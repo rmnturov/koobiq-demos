@@ -2,6 +2,11 @@ import { FocusKeyManager } from '@angular/cdk/a11y';
 import { afterEveryRender, computed, contentChildren, DestroyRef, Directive, ElementRef, inject, Injector, Renderer2, signal } from '@angular/core';
 import { KbqDropdownItem } from '@koobiq/components/dropdown';
 
+const lists = new WeakMap<HTMLElement, DrilldownMenuList>();
+export function findDrilldownList(element: HTMLElement | null): DrilldownMenuList | undefined {
+  return element ? lists.get(element) : undefined;
+}
+
 class MenuOption {
   constructor(readonly item: KbqDropdownItem) {}
   get disabled() { return this.item.disabled() || this.item.progress(); }
@@ -35,8 +40,9 @@ export class DrilldownMenuList {
   private lastFocused: HTMLElement | null = null;
 
   constructor() {
+    lists.set(this.element, this);
     afterEveryRender(() => this.sync());
-    inject(DestroyRef).onDestroy(() => this.manager.destroy());
+    inject(DestroyRef).onDestroy(() => { this.manager.destroy(); lists.delete(this.element); });
   }
 
   registerItem(item: KbqDropdownItem): () => void {

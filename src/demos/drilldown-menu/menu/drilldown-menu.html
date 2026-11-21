@@ -1,0 +1,31 @@
+<ng-content />
+<ng-template #panelTemplate>
+  @if (isOpen()) {
+    <div #panelElement class="drilldown-panel" [style.width.px]="resolvedWidth()" [style.max-height.px]="resolvedMaxHeight()">
+      @for (screen of visited(); track screen.id) {
+        <section class="drilldown-screen" tabindex="-1" [attr.data-screen]="screen.id"
+          [hidden]="screen.id !== activeScreenId()" [attr.inert]="screen.id !== activeScreenId() ? '' : null"
+          [attr.aria-hidden]="screen.id !== activeScreenId() ? 'true' : null" [attr.aria-label]="screen.definition.title()" role="region">
+          <header class="drilldown-header">
+            <div class="drilldown-header-start">
+              @if (screen.id !== rootScreen()) {
+                <button kbq-button class="drilldown-icon-button" type="button" aria-label="Назад" (click)="back()">
+                  <i kbq-icon="kbq-arrow-left_16"></i>
+                </button>
+              }
+            </div>
+            <span class="drilldown-heading">{{ screen.definition.title() }}</span>
+            <div class="drilldown-header-end">
+              <ng-container [ngTemplateOutlet]="screen.definition.headerActions() ?? null" [ngTemplateOutletContext]="{ $implicit: this }" />
+            </div>
+          </header>
+          <div kbqScrollbarViewport class="drilldown-body">
+            <div class="drilldown-content">
+              <ng-container [ngTemplateOutlet]="screen.definition.template" [ngTemplateOutletContext]="{ $implicit: this }" />
+            </div>
+          </div>
+        </section>
+      }
+    </div>
+  }
+</ng-template>
