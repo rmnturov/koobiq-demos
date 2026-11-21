@@ -1,4 +1,4 @@
-import { FocusKeyManager } from '@angular/cdk/a11y';
+import { FocusKeyManager, FocusMonitor, InteractivityChecker } from '@angular/cdk/a11y';
 import {
   afterEveryRender,
   computed,
@@ -12,19 +12,44 @@ import {
   signal,
 } from '@angular/core';
 import { KbqDropdownItem } from '@koobiq/components/dropdown';
+import { KbqScrollbarViewport } from '@koobiq/components/scrollbar';
 
 const lists = new WeakMap<HTMLElement, DrilldownMenuList>();
 export function findDrilldownList(element: HTMLElement | null): DrilldownMenuList | undefined {
   return element ? lists.get(element) : undefined;
 }
 
+export function revealDrilldownTarget(
+  viewport: KbqScrollbarViewport | undefined,
+  target: HTMLElement,
+): void {
+  if (!viewport) return;
+  const body = viewport.getNativeElement();
+  const bounds = body.getBoundingClientRect();
+  const item = target.getBoundingClientRect();
+  if (item.top < bounds.top) viewport.scrollToElement(target, { behavior: 'instant' });
+  else if (item.bottom > bounds.bottom)
+    viewport.scrollToElement(target, {
+      top: body.clientHeight - target.offsetHeight,
+      behavior: 'instant',
+    });
+}
+
 class MenuOption {
-  constructor(readonly item: KbqDropdownItem) {}
+  constructor(
+    readonly item: KbqDropdownItem,
+    private readonly checker: InteractivityChecker,
+    private readonly focusTarget: () => void,
+  ) {}
   get disabled() {
-    return this.item.disabled() || this.item.progress();
+    return (
+      this.item.disabled() ||
+      this.item.progress() ||
+      !this.checker.isFocusable(this.item.getHostElement())
+    );
   }
   focus() {
-    this.item.focus('keyboard');
+    this.focusTarget();
   }
 }
 
@@ -36,6 +61,9 @@ class MenuOption {
 export class DrilldownMenuList {
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly renderer = inject(Renderer2);
+  private readonly focusMonitor = inject(FocusMonitor);
+  private readonly checker = inject(InteractivityChecker);
+  private viewport?: KbqScrollbarViewport;
   private readonly queried = contentChildren(KbqDropdownItem, { descendants: true });
   private readonly registered = signal<readonly KbqDropdownItem[]>([]);
   private readonly cache = new WeakMap<KbqDropdownItem, MenuOption>();
@@ -51,7 +79,10 @@ export class DrilldownMenuList {
     return items.map((item) => {
       let option = this.cache.get(item);
       if (!option) {
-        option = new MenuOption(item);
+        option = new MenuOption(item, this.checker, () => {
+          this.focusMonitor.focusVia(item.getHostElement(), 'keyboard', { preventScroll: true });
+          revealDrilldownTarget(this.viewport, item.getHostElement());
+        });
         this.cache.set(item, option);
       }
       return option;
@@ -82,14 +113,20 @@ export class DrilldownMenuList {
     return this.activeId();
   }
 
+  setViewport(viewport: KbqScrollbarViewport | undefined): void {
+    this.viewport = viewport;
+  }
+
   focusInitial(selector?: string): void {
     const option =
       this.options().find(
         (value) => !value.disabled && !!selector && value.item.getHostElement().matches(selector),
       ) ??
-      this.options().find(
-        (value) => !value.disabled && value.item.getHostElement().id === this.activeId(),
-      ) ??
+      (!selector
+        ? this.options().find(
+            (value) => !value.disabled && value.item.getHostElement().id === this.activeId(),
+          )
+        : undefined) ??
       this.options().find((value) => !value.disabled);
     if (option) this.manager.setActiveItem(option);
     else this.element.focus({ preventScroll: true });
@@ -128,15 +165,17 @@ export class DrilldownMenuList {
   }
 
   private sync(): void {
+    if (this.element.closest('[inert],[hidden]')) return;
     const enabled = this.options().filter((option) => !option.disabled);
     const current =
       enabled.find((option) => option.item.getHostElement().id === this.activeId()) ?? enabled[0];
     const nextId = current?.item.getHostElement().id ?? null;
     const repairFocus =
       this.activeId() !== nextId &&
-      this.lastFocused !== null &&
-      (document.activeElement === this.lastFocused || document.activeElement === document.body) &&
-      !this.element.closest('[inert]');
+      (document.activeElement === this.element ||
+        (this.lastFocused !== null &&
+          (document.activeElement === this.lastFocused ||
+            document.activeElement === document.body)));
     if (this.activeId() !== nextId) this.activeId.set(nextId);
     this.renderer.setAttribute(this.element, 'tabindex', current ? '-1' : '0');
     for (const option of this.options()) {

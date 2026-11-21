@@ -1,5 +1,7 @@
+import { installFocusLayout } from '../testing/focus-layout';
+installFocusLayout();
 import { OverlayContainer } from '@angular/cdk/overlay';
-import { Component, viewChild } from '@angular/core';
+import { Component, signal, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { KbqDropdownItem } from '@koobiq/components/dropdown';
 import { DrilldownMenu } from './drilldown-menu';
@@ -15,9 +17,11 @@ import { DrilldownMenuTrigger } from './drilldown-menu-trigger';
     DrilldownMenuTrigger,
     KbqDropdownItem,
   ],
-  template: `<button id="before">Before</button
-    ><button id="trigger" [drilldownMenuTriggerFor]="menu">Open</button
-    ><button id="after">After</button>
+  template: `<button id="before">Before</button>
+    @if (showTrigger()) {
+      <button id="trigger" [drilldownMenuTriggerFor]="menu">Open</button>
+    }
+    <input type="hidden" id="hidden-page-field" /><button id="after">After</button>
     <demo-drilldown-menu #menu="drilldownMenu">
       <ng-template drilldownMenuScreen="root" title="Root" let-api>
         <div drilldownMenuList>
@@ -33,21 +37,20 @@ import { DrilldownMenuTrigger } from './drilldown-menu-trigger';
       </ng-template>
       <ng-template #actions><button id="reset">Reset</button></ng-template>
       <ng-template drilldownMenuScreen="child" title="Child" [headerActions]="actions">
-        <div drilldownMenuList><button kbq-dropdown-item id="choice">Choice</button></div>
+        <div drilldownMenuList>
+          <button kbq-dropdown-item id="choice">Choice</button
+          ><button kbq-dropdown-item id="other-choice">Other</button>
+        </div>
         <input id="editor" />
       </ng-template>
     </demo-drilldown-menu>`,
 })
 class Host {
   readonly menu = viewChild.required(DrilldownMenu);
+  readonly showTrigger = signal(true);
 }
 
 describe('drilldown overlay and focus', () => {
-  beforeEach(() => {
-    vi.spyOn(HTMLElement.prototype, 'offsetWidth', 'get').mockReturnValue(20);
-    vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockReturnValue(20);
-  });
-  afterEach(() => vi.restoreAllMocks());
   async function render() {
     const fixture = TestBed.createComponent(Host);
     fixture.detectChanges();
@@ -108,5 +111,41 @@ describe('drilldown overlay and focus', () => {
     expect(menu.isOpen()).toBe(false);
     expect(document.activeElement?.id).toBe('after');
     expect(overlay.querySelector('.drilldown-panel')).toBeNull();
+  });
+
+  it('attaches the portal when opened through the public menu API', async () => {
+    const { fixture, menu, overlay } = await render();
+    menu.close();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    menu.open();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(overlay.querySelector('.drilldown-panel')).not.toBeNull();
+    expect(document.activeElement?.id).toBe('child-opener');
+  });
+
+  it('restores the fallback when Angular destroys the trigger of a focused panel', async () => {
+    const { fixture, menu } = await render();
+    fixture.componentInstance.showTrigger.set(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(menu.isOpen()).toBe(false);
+    expect(document.activeElement?.id).toBe('after');
+  });
+
+  it('ignores stationary hover while rows slide under the pointer', async () => {
+    const { fixture, overlay, key } = await render();
+    await key('ArrowRight');
+    const other = overlay.querySelector<HTMLElement>('#other-choice')!;
+    other.dispatchEvent(new MouseEvent('mouseenter', { clientX: 100, clientY: 100 }));
+    fixture.detectChanges();
+    expect(document.activeElement?.id).toBe('choice');
+    other.dispatchEvent(
+      new MouseEvent('pointermove', { bubbles: true, clientX: 110, clientY: 100 }),
+    );
+    other.dispatchEvent(new MouseEvent('mouseenter', { clientX: 110, clientY: 100 }));
+    fixture.detectChanges();
+    expect(document.activeElement?.id).toBe('other-choice');
   });
 });

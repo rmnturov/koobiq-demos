@@ -2,12 +2,16 @@ import { Component, signal, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { KbqDropdownItem } from '@koobiq/components/dropdown';
 import { DrilldownMenuList } from './drilldown-menu-list';
+import { installFocusLayout } from '../testing/focus-layout';
+installFocusLayout();
 
 @Component({
   imports: [KbqDropdownItem, DrilldownMenuList],
   template: `<div drilldownMenuList>
     @if (showFirst()) {
-      <button kbq-dropdown-item id="first" [disabled]="disabled()">First</button>
+      <span [hidden]="hiddenFirst()"
+        ><button kbq-dropdown-item id="first" [disabled]="disabled()">First</button></span
+      >
     }
     <button kbq-dropdown-item id="second" disabled>Second</button>
     <button kbq-dropdown-item id="third" [disabled]="disabled()">Third</button>
@@ -15,6 +19,7 @@ import { DrilldownMenuList } from './drilldown-menu-list';
 })
 class Host {
   readonly disabled = signal(false);
+  readonly hiddenFirst = signal(false);
   readonly showFirst = signal(true);
   readonly list = viewChild.required(DrilldownMenuList);
 }
@@ -72,5 +77,29 @@ describe('drilldown list', () => {
     expect(root.querySelector('[drilldownMenuList]')?.getAttribute('tabindex')).toBe('0');
     expect(root.querySelectorAll('button[tabindex="0"]')).toHaveLength(0);
     expect(document.activeElement).toBe(root.querySelector('[drilldownMenuList]'));
+  });
+
+  it('moves the tab stop away from a hidden active row', async () => {
+    const { fixture, host, stops } = await render();
+    host.list().focusInitial();
+    host.hiddenFirst.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(stops()).toEqual(['third']);
+    expect(document.activeElement?.id).toBe('third');
+  });
+
+  it('returns from the empty-list fallback to newly available items', async () => {
+    const { fixture, host, key } = await render();
+    host.list().focusInitial();
+    host.disabled.set(true);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    host.disabled.set(false);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement?.id).toBe('first');
+    key('ArrowDown');
+    expect(document.activeElement?.id).toBe('third');
   });
 });

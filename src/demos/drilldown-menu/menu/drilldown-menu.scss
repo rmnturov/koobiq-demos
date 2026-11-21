@@ -14,7 +14,7 @@
   background: var(--kbq-background-card);
   border-radius: var(--kbq-size-border-radius);
   box-shadow: var(--kbq-shadow-popup);
-  overflow: hidden;
+  overflow: clip;
   font: inherit;
 }
 
@@ -67,6 +67,7 @@
   min-width: 28px;
 }
 .drilldown-body {
+  position: relative;
   min-height: 0;
   flex: 1 1 auto;
   overflow-x: hidden;

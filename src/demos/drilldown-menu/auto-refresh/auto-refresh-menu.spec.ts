@@ -1,3 +1,5 @@
+import { installFocusLayout } from '../testing/focus-layout';
+installFocusLayout();
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { Component, signal, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
@@ -114,5 +116,16 @@ describe('auto refresh section', () => {
     await settle();
     expect(overlay.querySelectorAll('[role="menuitemradio"]')).toHaveLength(1);
     expect(host.value()).toBe(45000);
+  });
+
+  it('focuses Off on re-entry when the current value is no longer a preset', async () => {
+    const { host, open, settle } = await render();
+    await open();
+    host.menu().back();
+    await settle();
+    host.value.set(47000);
+    await settle();
+    await open();
+    expect(document.activeElement?.getAttribute('data-period')).toBe('off');
   });
 });

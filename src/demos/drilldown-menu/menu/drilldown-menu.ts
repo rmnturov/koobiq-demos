@@ -1,5 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { InteractivityChecker } from '@angular/cdk/a11y';
+import { FocusMonitor, InteractivityChecker } from '@angular/cdk/a11y';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -16,12 +16,13 @@ import {
   signal,
   TemplateRef,
   viewChild,
+  viewChildren,
 } from '@angular/core';
 import { kbqAnimationsDisabled } from '@koobiq/components/core';
 import { KbqButtonModule } from '@koobiq/components/button';
 import { KbqIconModule } from '@koobiq/components/icon';
 import { KbqScrollbarViewport } from '@koobiq/components/scrollbar';
-import { findDrilldownList } from './drilldown-menu-list';
+import { findDrilldownList, revealDrilldownTarget } from './drilldown-menu-list';
 import type { DrilldownMenuScreen } from './drilldown-menu-screen';
 import { DRILLDOWN_MENU, DrilldownCloseReason, DrilldownFrame } from './drilldown-menu.types';
 import { DrilldownTransition } from './drilldown-menu-transition';
@@ -46,6 +47,8 @@ export class DrilldownMenu {
   origin: HTMLElement | null = null;
   updatePosition: () => void = () => {};
   leavePanel: (reverse: boolean) => void = () => {};
+  attachPanel: (() => void) | null = null;
+  portalAttached = false;
   readonly rootScreen = input('root');
   readonly maxHeight = input(480);
   readonly width = input(320);
@@ -67,6 +70,8 @@ export class DrilldownMenu {
   readonly resolvedWidth = computed(() => this.positive(this.width(), 320));
   private readonly injector = inject(Injector);
   private readonly checker = inject(InteractivityChecker);
+  private readonly focusMonitor = inject(FocusMonitor);
+  private readonly scrollbars = viewChildren(KbqScrollbarViewport);
   private readonly screens = new Map<string, DrilldownMenuScreen>();
   private stack: DrilldownFrame[] = [];
   private renderVersion = 0;
@@ -74,10 +79,44 @@ export class DrilldownMenu {
   private readonly motionDisabled = kbqAnimationsDisabled();
   private observer?: ResizeObserver;
   private lastSize = { width: 0, height: 0 };
+  private hoverLocked = false;
+  private pointerPosition: { x: number; y: number } | null = null;
+  private guardedPanel: HTMLElement | null = null;
+  private readonly guardHover = (event: MouseEvent) => {
+    if (
+      !this.hoverLocked ||
+      !(event.target instanceof HTMLElement) ||
+      !event.target.matches('[kbq-dropdown-item]')
+    )
+      return;
+    this.pointerPosition ??= { x: event.clientX, y: event.clientY };
+    event.stopImmediatePropagation();
+  };
 
   constructor() {
     const resize = () => this.resizeCurrent();
+    const pointerMove = (event: PointerEvent) => {
+      const moved =
+        this.pointerPosition &&
+        (event.clientX !== this.pointerPosition.x || event.clientY !== this.pointerPosition.y);
+      this.pointerPosition = { x: event.clientX, y: event.clientY };
+      if (!moved || !this.hoverLocked) return;
+      this.hoverLocked = false;
+      const target =
+        event.target instanceof HTMLElement
+          ? event.target.closest<HTMLElement>('[kbq-dropdown-item]')
+          : null;
+      if (
+        target &&
+        this.screenElement()?.contains(target) &&
+        !target.classList.contains('kbq-progress') &&
+        this.checker.isFocusable(target)
+      ) {
+        this.focusMonitor.focusVia(target, 'mouse', { preventScroll: true });
+      }
+    };
     window.addEventListener('resize', resize);
+    window.addEventListener('pointermove', pointerMove, { passive: true });
     effect(() => {
       this.maxHeight();
       this.width();
@@ -90,6 +129,8 @@ export class DrilldownMenu {
       this.transition.destroy();
       this.observer?.disconnect();
       window.removeEventListener('resize', resize);
+      window.removeEventListener('pointermove', pointerMove);
+      this.guardedPanel?.removeEventListener('mouseenter', this.guardHover, true);
       this.close('destroy');
     });
   }
@@ -103,17 +144,22 @@ export class DrilldownMenu {
   unregisterScreen(id: string, screen: DrilldownMenuScreen): void {
     if (this.screens.get(id) !== screen) return;
     this.screens.delete(id);
+    this.stack = this.stack.filter((frame) => this.screens.has(frame.id));
+    this.depth.set(Math.max(0, this.stack.length - 1));
     this.visited.update((items) => items.filter((item) => item.id !== id));
     if (this.isOpen() && this.activeScreenId() === id) {
-      this.stack = this.stack.filter((frame) => this.screens.has(frame.id));
       const parent = this.stack.at(-1);
-      if (parent) this.show(parent.id);
+      if (parent) this.show(parent.id, undefined, 'back');
       else this.close('action');
     }
   }
 
   open(): void {
     if (this.isOpen() || !this.screens.has(this.rootScreen())) return;
+    if (this.attachPanel && !this.portalAttached) {
+      this.attachPanel();
+      return;
+    }
     this.isOpen.set(true);
     this.stack = [{ id: this.rootScreen(), scrollTop: 0, activeItemId: null }];
     this.show(this.rootScreen());
@@ -126,14 +172,14 @@ export class DrilldownMenu {
     const previous = this.stack.findIndex((frame) => frame.id === id);
     if (previous >= 0) this.stack = this.stack.slice(0, previous + 1);
     else this.stack.push({ id, opener, scrollTop: 0, activeItemId: null });
-    this.show(id);
+    this.show(id, undefined, previous >= 0 ? 'back' : 'forward');
   }
 
   back(): void {
     if (this.stack.length < 2) return;
     this.saveFrame();
     const child = this.stack.pop()!;
-    this.show(this.stack.at(-1)!.id, child.opener);
+    this.show(this.stack.at(-1)!.id, child.opener, 'back');
   }
 
   close(reason: DrilldownCloseReason = 'action'): void {
@@ -141,6 +187,9 @@ export class DrilldownMenu {
     this.renderVersion++;
     this.transition.destroy();
     this.observer?.disconnect();
+    this.guardedPanel?.removeEventListener('mouseenter', this.guardHover, true);
+    this.guardedPanel = null;
+    this.hoverLocked = false;
     this.isOpen.set(false);
     this.activeScreenId.set(null);
     this.stack = [];
@@ -187,14 +236,19 @@ export class DrilldownMenu {
           'button,input,select,textarea,a[href],[tabindex]',
         ),
       ).filter(
-        (element) => !element.closest('[inert],[hidden]') && this.checker.isTabbable(element),
+        (element) =>
+          !element.closest('[inert],[hidden]') &&
+          this.checker.isFocusable(element) &&
+          this.checker.isTabbable(element),
       );
       const index = stops.indexOf(target);
       const next = stops[index + (event.shiftKey ? -1 : 1)];
       event.preventDefault();
       event.stopPropagation();
-      if (next) next.focus();
-      else this.leavePanel(event.shiftKey);
+      if (next) {
+        next.focus({ preventScroll: true });
+        revealDrilldownTarget(this.viewportFor(this.screenElement()!), next);
+      } else this.leavePanel(event.shiftKey);
     } else if (target.matches('[kbq-dropdown-item]') && target.closest('[drilldownMenuList]')) {
       if (event.key === 'ArrowLeft' && this.depth()) {
         event.preventDefault();
@@ -208,9 +262,11 @@ export class DrilldownMenu {
     }
   }
 
-  private show(id: string, opener?: HTMLElement): void {
+  private show(id: string, opener?: HTMLElement, direction: 'forward' | 'back' = 'forward'): void {
     const previousId = this.activeScreenId();
-    const definition = this.screens.get(id)!;
+    const definition = this.screens.get(id);
+    if (!definition) return;
+    this.hoverLocked = true;
     if (!this.visited().some((screen) => screen.id === id))
       this.visited.update((items) => [...items, { id, definition }]);
     this.activeScreenId.set(id);
@@ -221,38 +277,51 @@ export class DrilldownMenu {
         if (version !== this.renderVersion || !this.isOpen()) return;
         const screen = this.screenElement(id);
         if (!screen) return;
-        this.layout(screen, this.screenElement(previousId), opener ? 'back' : 'forward');
+        const panel = this.panelElement()!.nativeElement;
+        if (this.guardedPanel !== panel) {
+          this.guardedPanel?.removeEventListener('mouseenter', this.guardHover, true);
+          this.guardedPanel = panel;
+          panel.addEventListener('mouseenter', this.guardHover, true);
+        }
+        this.layout(screen, this.screenElement(previousId), direction);
         const body = screen.querySelector<HTMLElement>('[kbqScrollbarViewport]')!;
         const frame = this.stack.at(-1)!;
         body.scrollTop = frame.scrollTop;
         const list = findDrilldownList(body.querySelector<HTMLElement>('[drilldownMenuList]'));
+        const viewport = this.viewportFor(screen);
+        list?.setViewport(viewport);
+        const selector = definition.initialFocus();
+        const preferred = selector ? body.querySelector<HTMLElement>(selector) : null;
         if (
           opener?.isConnected &&
           !opener.matches(':disabled,[aria-disabled="true"]') &&
           screen.contains(opener)
         ) {
           opener.focus({ preventScroll: true });
+        } else if (
+          preferred &&
+          !preferred.matches('[kbq-dropdown-item]') &&
+          this.checker.isFocusable(preferred)
+        ) {
+          preferred.focus({ preventScroll: true });
         } else if (list) {
           if (!frame.activeItemId || !list.focusItem(frame.activeItemId))
             list.focusInitial(definition.initialFocus());
         } else {
-          const selector = definition.initialFocus();
-          const preferred = selector ? body.querySelector<HTMLElement>(selector) : null;
-          const focusTarget =
-            preferred &&
-            !preferred.matches(':disabled,[aria-disabled="true"]') &&
-            !preferred.closest('[inert],[hidden]')
-              ? preferred
-              : null;
+          const focusTarget = preferred && this.checker.isFocusable(preferred) ? preferred : null;
           (
             focusTarget ??
-            body.querySelector<HTMLElement>(
-              'button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]',
-            ) ??
+            Array.from(
+              body.querySelectorAll<HTMLElement>(
+                'button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]',
+              ),
+            ).find((element) => this.checker.isFocusable(element)) ??
             screen.querySelector<HTMLElement>('header button:not(:disabled)') ??
             screen
           ).focus({ preventScroll: true });
         }
+        if (document.activeElement instanceof HTMLElement && body.contains(document.activeElement))
+          revealDrilldownTarget(viewport, document.activeElement);
         this.observer?.disconnect();
         if (typeof ResizeObserver !== 'undefined') {
           this.observer ??= new ResizeObserver(() => this.resizeCurrent());
@@ -262,6 +331,10 @@ export class DrilldownMenu {
       },
       { injector: this.injector },
     );
+  }
+
+  private viewportFor(screen: HTMLElement): KbqScrollbarViewport | undefined {
+    return this.scrollbars().find((viewport) => screen.contains(viewport.getNativeElement()));
   }
 
   private resizeCurrent(): void {

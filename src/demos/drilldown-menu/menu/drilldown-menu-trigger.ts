@@ -33,15 +33,30 @@ export class DrilldownMenuTrigger {
 
   constructor() {
     effect((onCleanup) => {
-      const subscription = this.menu().closed.subscribe((reason) => {
+      const menu = this.menu();
+      const open = () => this.open();
+      menu.attachPanel = open;
+      const subscription = menu.closed.subscribe((reason) => {
         this.overlayRef?.detach();
+        menu.portalAttached = false;
         if (reason === 'escape' || reason === 'action') this.restoreFocus();
       });
-      onCleanup(() => subscription.unsubscribe());
+      onCleanup(() => {
+        subscription.unsubscribe();
+        if (menu.attachPanel === open) menu.attachPanel = null;
+      });
     });
     inject(DestroyRef).onDestroy(() => {
+      // Angular can destroy the portal view before this directive, leaving focus on body.
+      const restore =
+        this.menu().isOpen() &&
+        (document.activeElement === document.body ||
+          (!!document.activeElement && this.menu().ownsTarget(document.activeElement)));
       this.menu().close('destroy');
       this.overlayRef?.dispose();
+      this.menu().portalAttached = false;
+      if (restore && this.fallback?.isConnected && this.checker.isFocusable(this.fallback))
+        this.fallback.focus({ preventScroll: true });
     });
   }
 
@@ -97,8 +112,12 @@ export class DrilldownMenuTrigger {
       menu.close('tab');
     };
     this.overlayRef.attach(new TemplatePortal(template, this.viewContainer));
+    menu.portalAttached = true;
     menu.open();
-    if (!menu.isOpen()) this.overlayRef.detach();
+    if (!menu.isOpen()) {
+      this.overlayRef.detach();
+      menu.portalAttached = false;
+    }
   }
 
   close(): void {
@@ -117,6 +136,7 @@ export class DrilldownMenuTrigger {
     ).filter(
       (element) =>
         !element.closest('.cdk-overlay-container,[inert],[hidden]') &&
+        this.checker.isFocusable(element) &&
         this.checker.isTabbable(element),
     );
   }

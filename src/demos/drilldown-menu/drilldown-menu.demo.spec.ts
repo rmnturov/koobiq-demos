@@ -1,3 +1,5 @@
+import { installFocusLayout } from './testing/focus-layout';
+installFocusLayout();
 import { OverlayContainer } from '@angular/cdk/overlay';
 import { TestBed } from '@angular/core/testing';
 import { findDemo } from '../demos.registry';
