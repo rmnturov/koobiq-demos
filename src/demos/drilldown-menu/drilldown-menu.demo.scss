@@ -39,6 +39,9 @@
   margin-bottom: var(--kbq-size-xl);
   flex-wrap: wrap;
 }
+.demo-toolbar [data-menu-trigger] {
+  margin-inline-start: auto;
+}
 .demo-table {
   margin-top: var(--kbq-size-l);
 }
