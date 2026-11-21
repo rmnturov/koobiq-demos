@@ -1,7 +1,7 @@
 <ng-content />
 <ng-template #panelTemplate>
   @if (isOpen()) {
-    <div #panelElement class="drilldown-panel" role="dialog" [id]="id" [attr.aria-label]="activeTitle()" (keydown)="onKeydown($event)" [style.width.px]="resolvedWidth()" [style.max-height.px]="resolvedMaxHeight()">
+    <div #panelElement class="drilldown-panel" role="dialog" [id]="id" [attr.aria-label]="activeTitle()" (keydown)="onKeydown($event)" [style.max-height.px]="resolvedMaxHeight()">
       @for (screen of visited(); track screen.id) {
         <section class="drilldown-screen" tabindex="-1" [attr.data-screen]="screen.id"
           [hidden]="screen.id !== activeScreenId()" [attr.inert]="screen.id !== activeScreenId() ? '' : null"
