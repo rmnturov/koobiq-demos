@@ -104,13 +104,6 @@ export class DrilldownMenuTrigger {
       null;
     menu.origin = this.origin;
     menu.updatePosition = () => this.overlayRef?.updatePosition();
-    menu.leavePanel = (reverse) => {
-      const stops = this.pageTabStops();
-      const index = stops.indexOf(this.origin);
-      const target = index >= 0 ? stops[index + (reverse ? -1 : 1)] : this.fallback;
-      (target ?? this.origin).focus({ preventScroll: true });
-      menu.close('tab');
-    };
     this.overlayRef.attach(new TemplatePortal(template, this.viewContainer));
     menu.portalAttached = true;
     menu.open();

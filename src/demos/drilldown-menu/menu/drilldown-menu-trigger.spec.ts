@@ -94,23 +94,39 @@ describe('drilldown overlay and focus', () => {
     expect(overlay.querySelectorAll('.cdk-overlay-pane')).toHaveLength(0);
   });
 
-  it('keeps header tab order and leaves the portal relative to the trigger', async () => {
-    const { fixture, menu, overlay, key } = await render();
+  it('cycles Tab in both directions through the header, menu and custom controls', async () => {
+    const { menu, overlay, key } = await render();
     await key('ArrowRight');
     await key('Tab', true);
     expect(document.activeElement?.id).toBe('reset');
     await key('Tab', true);
     expect(document.activeElement?.getAttribute('aria-label')).toBe('Назад');
     await key('Tab', true);
-    expect(menu.isOpen()).toBe(false);
-    expect(document.activeElement?.id).toBe('before');
-    (fixture.nativeElement.querySelector('#trigger') as HTMLElement).click();
-    fixture.detectChanges();
-    await fixture.whenStable();
+    expect(document.activeElement?.id).toBe('editor');
+    expect(menu.isOpen()).toBe(true);
     await key('Tab');
-    expect(menu.isOpen()).toBe(false);
-    expect(document.activeElement?.id).toBe('after');
-    expect(overlay.querySelector('.drilldown-panel')).toBeNull();
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Назад');
+    await key('Tab');
+    expect(document.activeElement?.id).toBe('reset');
+    await key('Tab');
+    expect(document.activeElement?.id).toBe('choice');
+    await key('Tab');
+    expect(document.activeElement?.id).toBe('editor');
+    await key('Tab');
+    expect(document.activeElement?.getAttribute('aria-label')).toBe('Назад');
+    expect(menu.isOpen()).toBe(true);
+    expect(
+      overlay.querySelector('[role="menu"]')?.querySelectorAll('button[tabindex="0"]'),
+    ).toHaveLength(1);
+  });
+
+  it('keeps focus inside a menu with a single tab stop', async () => {
+    const { menu, key } = await render();
+    await key('Tab');
+    expect(document.activeElement?.id).toBe('child-opener');
+    await key('Tab', true);
+    expect(document.activeElement?.id).toBe('child-opener');
+    expect(menu.isOpen()).toBe(true);
   });
 
   it('attaches the portal when opened through the public menu API', async () => {

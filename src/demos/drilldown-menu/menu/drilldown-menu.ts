@@ -46,7 +46,6 @@ export class DrilldownMenu {
   readonly id = `drilldown-menu-${nextMenuId++}`;
   origin: HTMLElement | null = null;
   updatePosition: () => void = () => {};
-  leavePanel: (reverse: boolean) => void = () => {};
   attachPanel: (() => void) | null = null;
   portalAttached = false;
   readonly rootScreen = input('root');
@@ -231,10 +230,9 @@ export class DrilldownMenu {
       if (this.depth()) this.back();
       else this.close('escape');
     } else if (event.key === 'Tab') {
+      const screen = this.screenElement()!;
       const stops = Array.from(
-        this.screenElement()!.querySelectorAll<HTMLElement>(
-          'button,input,select,textarea,a[href],[tabindex]',
-        ),
+        screen.querySelectorAll<HTMLElement>('button,input,select,textarea,a[href],[tabindex]'),
       ).filter(
         (element) =>
           !element.closest('[inert],[hidden]') &&
@@ -242,13 +240,16 @@ export class DrilldownMenu {
           this.checker.isTabbable(element),
       );
       const index = stops.indexOf(target);
-      const next = stops[index + (event.shiftKey ? -1 : 1)];
+      const next =
+        index < 0
+          ? event.shiftKey
+            ? stops.at(-1)
+            : stops[0]
+          : stops[(index + (event.shiftKey ? stops.length - 1 : 1)) % stops.length];
       event.preventDefault();
       event.stopPropagation();
-      if (next) {
-        next.focus({ preventScroll: true });
-        revealDrilldownTarget(this.viewportFor(this.screenElement()!), next);
-      } else this.leavePanel(event.shiftKey);
+      (next ?? screen).focus({ preventScroll: true });
+      if (next) revealDrilldownTarget(this.viewportFor(screen), next);
     } else if (target.matches('[kbq-dropdown-item]') && target.closest('[drilldownMenuList]')) {
       if (event.key === 'ArrowLeft' && this.depth()) {
         event.preventDefault();
