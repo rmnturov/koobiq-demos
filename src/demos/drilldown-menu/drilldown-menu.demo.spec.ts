@@ -1,11 +1,38 @@
 import { installFocusLayout } from './testing/focus-layout';
 installFocusLayout();
 import { OverlayContainer } from '@angular/cdk/overlay';
+import { FocusMonitor } from '@angular/cdk/a11y';
 import { TestBed } from '@angular/core/testing';
 import { findDemo } from '../demos.registry';
 import { DrilldownMenuDemo } from './drilldown-menu.demo';
 
 describe('drilldown menu demo', () => {
+  it('shows the header button name in a tooltip on keyboard focus', async () => {
+    const fixture = TestBed.createComponent(DrilldownMenuDemo);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.nativeElement.querySelector('[data-menu-trigger]').click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    const overlay = TestBed.inject(OverlayContainer).getContainerElement();
+    const focusMonitor = TestBed.inject(FocusMonitor);
+    const expectHint = async (name: string) => {
+      const button = overlay.querySelector<HTMLButtonElement>(`button[aria-label="${name}"]`)!;
+      focusMonitor.focusVia(button, 'keyboard');
+      await vi.waitFor(() => {
+        fixture.detectChanges();
+        expect(overlay.querySelector('[role="tooltip"]')?.textContent?.trim()).toBe(name);
+      });
+    };
+    await expectHint('Справка');
+    overlay.querySelector<HTMLElement>('[data-refresh-trigger]')!.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
+    await expectHint('Назад');
+    await expectHint('Сбросить период обновления');
+    expect(overlay.querySelector('.drilldown-panel')).not.toBeNull();
+  });
+
   it('registers a working demo and refreshes without the optional section', async () => {
     expect(findDemo('drilldown-menu')?.title).toBe('Меню с переходами');
     const fixture = TestBed.createComponent(DrilldownMenuDemo);

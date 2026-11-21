@@ -11,6 +11,7 @@ import {
 import { KbqButtonModule } from '@koobiq/components/button';
 import { KbqDropdownItem } from '@koobiq/components/dropdown';
 import { KbqIconModule } from '@koobiq/components/icon';
+import { KbqToolTipModule } from '@koobiq/components/tooltip';
 import { DrilldownMenuList } from '../menu/drilldown-menu-list';
 import { DrilldownMenuScreen } from '../menu/drilldown-menu-screen';
 import { DRILLDOWN_MENU } from '../menu/drilldown-menu.types';
@@ -26,6 +27,7 @@ export interface AutoRefreshPreset {
   imports: [
     KbqDropdownItem,
     KbqIconModule,
+    KbqToolTipModule,
     KbqButtonModule,
     DrilldownMenuScreen,
     DrilldownMenuList,

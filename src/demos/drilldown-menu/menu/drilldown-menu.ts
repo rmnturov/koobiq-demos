@@ -21,6 +21,7 @@ import {
 import { kbqAnimationsDisabled } from '@koobiq/components/core';
 import { KbqButtonModule } from '@koobiq/components/button';
 import { KbqIconModule } from '@koobiq/components/icon';
+import { KbqToolTipModule } from '@koobiq/components/tooltip';
 import { KbqScrollbarViewport } from '@koobiq/components/scrollbar';
 import { findDrilldownList, revealDrilldownTarget } from './drilldown-menu-list';
 import type { DrilldownMenuScreen } from './drilldown-menu-screen';
@@ -36,7 +37,7 @@ let nextMenuId = 0;
 @Component({
   selector: 'demo-drilldown-menu',
   exportAs: 'drilldownMenu',
-  imports: [NgTemplateOutlet, KbqButtonModule, KbqIconModule, KbqScrollbarViewport],
+  imports: [NgTemplateOutlet, KbqButtonModule, KbqIconModule, KbqToolTipModule, KbqScrollbarViewport],
   providers: [{ provide: DRILLDOWN_MENU, useExisting: forwardRef(() => DrilldownMenu) }],
   templateUrl: './drilldown-menu.html',
   styleUrl: './drilldown-menu.scss',

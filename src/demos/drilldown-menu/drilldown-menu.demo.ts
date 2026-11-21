@@ -5,6 +5,7 @@ import { KbqDividerModule } from '@koobiq/components/divider';
 import { KbqDropdownItem } from '@koobiq/components/dropdown';
 import { KbqFormFieldModule } from '@koobiq/components/form-field';
 import { KbqIconModule } from '@koobiq/components/icon';
+import { KbqToolTipModule } from '@koobiq/components/tooltip';
 import { KbqInputModule } from '@koobiq/components/input';
 import { KbqToggleModule } from '@koobiq/components/toggle';
 import {
@@ -26,6 +27,7 @@ import { DrilldownMenuTrigger } from './menu/drilldown-menu-trigger';
     KbqDropdownItem,
     KbqFormFieldModule,
     KbqIconModule,
+    KbqToolTipModule,
     KbqInputModule,
     KbqToggleModule,
     DrilldownMenu,
