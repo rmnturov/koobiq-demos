@@ -1,0 +1,161 @@
+<kbq-content-panel class="panel">
+    <kbq-content-panel-header>
+        <!-- Заголовка нет: слева сравнение со стоком, справа ссылка на текущее состояние. -->
+        <div kbqContentPanelHeaderTitle class="panel__view">
+            <kbq-button-toggle-group
+                data-target="compare"
+                aria-label="Сравнение со стоком"
+                [value]="store.view()"
+                (change)="store.setView($event.value)"
+            >
+                <kbq-button-toggle value="before">Было</kbq-button-toggle>
+                <kbq-button-toggle value="after">Стало</kbq-button-toggle>
+            </kbq-button-toggle-group>
+        </div>
+        <div kbqContentPanelHeaderActions class="panel__actions">
+            <button
+                kbq-button
+                type="button"
+                data-target="copy-url"
+                class="panel__copy"
+                [attr.aria-label]="copied() ? 'Ссылка скопирована' : 'Скопировать URL'"
+                [color]="colors.Contrast"
+                (click)="copyUrl()"
+            >
+                @if (copied()) {
+                    <i kbq-icon="kbq-check_16" class="kbq-icon_left"></i>
+                    <span class="panel__copy-label">Скопировано</span>
+                } @else {
+                    <i kbq-icon="kbq-link_16" class="kbq-icon_left"></i>
+                    <span class="panel__copy-label">Скопировать URL</span>
+                }
+            </button>
+        </div>
+    </kbq-content-panel-header>
+
+    <kbq-content-panel-body>
+        <form class="kbq-form-vertical settings" novalidate>
+            <section class="settings__group">
+                <div class="settings__title-row">
+                    <h3 class="settings__title">Общие цвета теней</h3>
+                    <i
+                        kbq-icon-button="kbq-circle-question_16"
+                        aria-label="Что такое общие цвета"
+                        [color]="colors.ContrastFade"
+                        [kbqTooltip]="sharedColorsHint"
+                    ></i>
+                </div>
+
+                <div class="settings__colors">
+                    @for (layer of layers; track layer) {
+                        <app-palette-select
+                            [attr.data-target]="'color-' + layer"
+                            [label]="layerLabels[layer]"
+                            [scheme]="store.scheme()"
+                            [value]="store.shadows().colors[layer]"
+                            [locked]="store.locked()"
+                            (valueChange)="setSharedColor(layer, $event)"
+                        />
+                    }
+                </div>
+            </section>
+
+            @for (item of elevations; track item) {
+                <section class="settings__group" [attr.data-target]="'elevation-' + item">
+                    <div class="settings__head">
+                        <div class="settings__heading">
+                            <h3 class="settings__title">{{ elevationLabels[item] }}</h3>
+                            <i
+                                kbq-icon-button="kbq-circle-question_16"
+                                [attr.aria-label]="'Что за токен у уровня ' + elevationLabels[item]"
+                                [color]="colors.ContrastFade"
+                                [kbqTooltip]="elevationHints[item]"
+                            ></i>
+                        </div>
+                        <button
+                            kbq-button
+                            type="button"
+                            [attr.data-target]="'reset-' + item"
+                            aria-label="Сбросить"
+                            [color]="colors.ContrastFade"
+                            [kbqStyle]="buttonStyles.Transparent"
+                            [disabled]="store.locked()"
+                            [kbqTooltip]="'Сбросить'"
+                            [kbqTooltipArrow]="false"
+                            [kbqPlacement]="placements.Left"
+                            (click)="store.resetElevation(item)"
+                        >
+                            <i kbq-icon="kbq-undo_16"></i>
+                        </button>
+                    </div>
+
+                    @for (layer of layers; track layer) {
+                        <div
+                            class="settings__layer"
+                            role="group"
+                            [attr.aria-label]="elevationLabels[item] + ', ' + layerLabels[layer]"
+                            [attr.data-target]="item + '-' + layer"
+                        >
+                            <div class="settings__layer-head">
+                                <span class="settings__layer-title">{{ layerLabels[layer] }}</span>
+                                <app-palette-select
+                                    class="settings__layer-color"
+                                    [attr.data-target]="item + '-' + layer + '-color'"
+                                    [ariaLabel]="'Цвет: ' + elevationLabels[item] + ', ' + layerLabels[layer]"
+                                    [scheme]="store.scheme()"
+                                    [token]="layer"
+                                    [value]="store.shadows().elevations[item][layer].color"
+                                    [locked]="store.locked()"
+                                    (valueChange)="store.setLayerColor(item, layer, $event)"
+                                />
+                            </div>
+                            <div class="settings__numbers">
+                                @for (param of geometry; track param) {
+                                    <app-shadow-number-field
+                                        [attr.data-target]="item + '-' + layer + '-' + param"
+                                        [label]="geometryLabels[param]"
+                                        [param]="param"
+                                        [value]="store.shadows().elevations[item][layer][param]"
+                                        [locked]="store.locked()"
+                                        (valueChange)="store.setGeometry(item, layer, param, $event)"
+                                    />
+                                }
+                            </div>
+                        </div>
+                    }
+                </section>
+            }
+
+            <!--
+            Блок CSS скрыт до решения по его виду: разметку держим рядом, чтобы вернуть одной правкой.
+            <section class="settings__group">
+                <h3 class="settings__title">CSS</h3>
+                <kbq-code-block data-target="css" [files]="files()" [softWrap]="true" />
+            </section>
+            -->
+        </form>
+    </kbq-content-panel-body>
+
+    <kbq-content-panel-footer>
+        <kbq-split-button [color]="colors.ContrastFade" [disabled]="store.locked()">
+            <button kbq-button type="button" data-target="reset-scheme" (click)="store.resetScheme()">
+                Сбросить тему
+            </button>
+            <button
+                kbq-button
+                type="button"
+                data-target="reset-more"
+                aria-label="Ещё сбросы"
+                [kbqDropdownTriggerFor]="resetMenu"
+            >
+                <i kbq-icon="kbq-chevron-down-s_16"></i>
+            </button>
+        </kbq-split-button>
+
+        <kbq-dropdown #resetMenu="kbqDropdown">
+            <button kbq-dropdown-item type="button" data-target="reset-schemes" (click)="store.resetSchemes()">
+                Сбросить обе темы
+            </button>
+        </kbq-dropdown>
+    </kbq-content-panel-footer>
+</kbq-content-panel>

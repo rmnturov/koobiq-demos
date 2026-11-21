@@ -1,0 +1,119 @@
+/*
+ * Курсор — служебный слой сцены: он не участвует в попадании (`.stage__cursor`
+ * исключён в замерах) и не перехватывает события. Начальный `transform` уводит
+ * его за кадр: пока `Act` не поставил точку, курсора не видно — в том числе на
+ * постере под reduced-motion.
+ *
+ * Точка хоста — место клика. Глифы лежат стопкой, и каждый сам сдвигается так,
+ * чтобы его горячая точка совпала с этой точкой: отсюда `margin` и
+ * `transform-origin` в координатах глифа.
+ */
+:host {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    width: 0;
+    height: 0;
+    --cursor-edge: #fff;
+    --cursor-line: #000;
+    /* Крупный курсор, как стиль `large` в Stageshow: сцена идёт в масштабе 1:1. */
+    --cursor-size: 1.5;
+    pointer-events: none;
+    transform: translate3d(-100px, -100px, 0);
+    will-change: transform;
+}
+
+/* Нажатие сжимает стопку от точки клика: она остаётся на месте. */
+.cursor__press {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform-origin: 0 0;
+    transition: transform 260ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:host([data-pressed]) .cursor__press {
+    transform: scale(0.9);
+    transition: transform 80ms ease-out;
+}
+
+/* Неактивный глиф уходит в точку и гаснет: виды сменяют друг друга без рывка. */
+.cursor__glyph {
+    position: absolute;
+    top: 0;
+    left: 0;
+    transform: scale(0);
+    opacity: 0;
+    transition:
+        transform 120ms ease,
+        opacity 120ms ease;
+}
+
+.cursor__glyph svg {
+    display: block;
+    filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.3));
+}
+
+/* Стрелка: острие в точке (7.5, 5.25) — как у системного курсора macOS. */
+.cursor__glyph[data-glyph='pointer'] {
+    margin: -5.25px 0 0 -7.5px;
+    transform-origin: 7.5px 5.25px;
+}
+
+/* I-beam: горячая точка — середина текстовой линии (5, 8). */
+.cursor__glyph[data-glyph='ibeam'] {
+    margin: -8px 0 0 -5px;
+    transform-origin: 5px 8px;
+    /* Текстовая линия остаётся при тексте: крупным его делает только стрелка. */
+    --cursor-size: 1.4;
+}
+
+/* Рука: горячая точка — кончик указательного пальца (9.75, 3.25). */
+.cursor__glyph[data-glyph='hand'] {
+    margin: -3.25px 0 0 -9.75px;
+    transform-origin: 9.75px 3.25px;
+}
+
+/* Тонкая линия со светлой окантовкой: читается на любой подложке, как в macOS. */
+.cursor__ibeam_edge {
+    stroke: var(--cursor-edge);
+}
+
+.cursor__ibeam_line {
+    stroke: var(--cursor-line);
+}
+
+/* На тёмной сцене линейный курсор инвертируется, как системный. */
+:host-context(.kbq-dark) {
+    --cursor-edge: rgba(0, 0, 0, 0.75);
+    --cursor-line: #fff;
+}
+
+/* Вид под точкой: активный глиф разворачивается до своего размера. */
+:host([data-kind='default']) .cursor__glyph[data-glyph='pointer'],
+:host([data-kind='ibeam']) .cursor__glyph[data-glyph='ibeam'],
+:host([data-kind='hand']) .cursor__glyph[data-glyph='hand'] {
+    transform: scale(var(--cursor-size, 1));
+    opacity: 1;
+}
+
+/*
+ * Кольцо от клика: расходится из точки и гаснет, как `ripple` в Stageshow. Лежит под
+ * глифом и вне сжимаемой стопки — иначе оно сжималось бы вместе с курсором. Начальное
+ * состояние то же, что первый кадр анимации: без анимации кольца не видно.
+ */
+.cursor__ripple {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 36px;
+    height: 36px;
+    margin: -18px 0 0 -18px;
+    border: 1.5px solid var(--kbq-foreground-theme);
+    border-radius: 50%;
+    background: var(--kbq-background-theme-fade);
+    pointer-events: none;
+    transform: scale(0.2);
+    opacity: 0;
+}

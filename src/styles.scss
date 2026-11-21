@@ -1,0 +1,17 @@
+@import '@koobiq/design-tokens/web/css-tokens.css';
+@import '@koobiq/design-tokens/web/css-tokens-light.css';
+@import '@koobiq/design-tokens/web/css-tokens-dark.css';
+@import '@koobiq/design-tokens/web/css/font.css';
+@import '@koobiq/components/prebuilt-themes/theme.css';
+@import '@koobiq/icons/fonts/kbq-icons.css';
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+}
+
+body {
+    font-family: var(--kbq-font-family-base);
+    font-size: var(--kbq-typography-text-normal-font-size, 14px);
+}

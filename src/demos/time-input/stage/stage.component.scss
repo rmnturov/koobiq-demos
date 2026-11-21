@@ -1,0 +1,77 @@
+:host {
+    display: block;
+    width: 100%;
+}
+
+/*
+ * Место под кадр: ширину задаёт родитель, высоту — масштаб. Кадр изнутри
+ * трансформируется, поэтому в раскладке он занимает не свои 720px, а ровно
+ * `height * scale`.
+ */
+.stage-fit {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    /* Серый фон тянется по колонке, а кадр сцены стоит в нём по центру. */
+    background: var(--kbq-background-bg-secondary);
+}
+
+.stage {
+    position: relative;
+    box-sizing: border-box;
+    /*
+     * Сцена декоративная: настоящий курсор над ней ничего не наводит, не
+     * превращается в I-beam и не выделяет текст — как в Stageshow. Всё, что
+     * видно, рисует проигрыватель: наведение — его состояние, курсор — глиф.
+     */
+    pointer-events: none;
+    user-select: none;
+    /* Узкий кадр уже места: он стоит по центру, а не липнет к левому краю. */
+    margin: 0 auto;
+    overflow: hidden;
+    transform-origin: top left;
+    background: var(--kbq-background-bg-secondary);
+    color: var(--kbq-foreground-contrast);
+    font-family: var(--kbq-font-family-base);
+    transition: opacity 180ms ease;
+}
+
+/* Разрыв между проходами петли: сцена гаснет, а не мигает. */
+.stage[data-resetting] {
+    opacity: 0;
+}
+
+/*
+ * Мгновенная подмена состояния — только за визуальным разрывом (`Act.snap`).
+ * `::ng-deep` нужен потому, что сцена спроецирована: её переходы объявлены в её
+ * собственном стиле и атрибутом инкапсуляции хоста не накрываются.
+ */
+.stage[data-instant],
+.stage[data-instant] ::ng-deep * {
+    transition: none !important;
+}
+
+/* Волна клика: рисуется в точке нажатия и гаснет по часам сцены. */
+.stage__ripple {
+    position: absolute;
+    z-index: 1;
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px;
+    border-radius: 50%;
+    background: var(--kbq-background-theme-fade);
+    pointer-events: none;
+    animation: stage-ripple 480ms ease-out forwards;
+}
+
+@keyframes stage-ripple {
+    from {
+        opacity: 0.55;
+        transform: scale(0.35);
+    }
+
+    to {
+        opacity: 0;
+        transform: scale(1.4);
+    }
+}

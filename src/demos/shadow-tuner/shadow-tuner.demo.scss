@@ -1,0 +1,69 @@
+:host {
+    display: block;
+    height: 100%;
+    color: var(--kbq-foreground-contrast);
+}
+
+/* Слева форма во всю высоту, справа превью с оверлейным скроллом Кубика. */
+.tuner {
+    display: grid;
+    grid-template-columns: 400px minmax(0, 1fr);
+    box-sizing: border-box;
+    height: 100%;
+    /* Справа отступа нет: трек оверлейного скролла Кубика встаёт вплотную к краю окна. */
+    padding: var(--kbq-size-s) 0 var(--kbq-size-s) var(--kbq-size-s);
+    gap: var(--kbq-size-s);
+}
+
+.tuner__settings {
+    min-height: 0;
+}
+
+.tuner__preview {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: auto;
+    /*
+     * Горизонтальных паддингов у колонки нет: трек оверлейного скролла Кубика стоит по краю
+     * скроллпорта, и паддинг отодвинул бы его от края окна. Отступы держат сами сцены.
+     * Сверху отступа тоже нет: шапка первой сцены встаёт на уровень верха панели настроек.
+     */
+    padding: 0 0 var(--kbq-size-7xl);
+}
+
+/* Боковой отступ сцен: справа его хватает, чтобы текст не уходил под трек скролла. */
+.tuner__preview > app-levels-scene,
+.tuner__preview > app-cards-scene,
+.tuner__preview > app-select-scene,
+.tuner__preview > app-workspace-scene,
+.tuner__preview > app-modal-scene {
+    padding-inline: var(--kbq-size-l);
+}
+
+/*
+ * Отбивка сцен — их собственным margin: gap контейнера отсчитывался бы и от трека скроллбара Кубика
+ * (он тоже flex-ребёнок), и первая сцена уезжала вниз на его высоту.
+ */
+.tuner__preview > app-cards-scene,
+.tuner__preview > app-select-scene,
+.tuner__preview > app-workspace-scene,
+.tuner__preview > app-modal-scene {
+    margin-top: var(--kbq-size-7xl);
+}
+
+/* На узком экране сцены идут за формой, а прокручивает страница. */
+@media (max-width: 960px) {
+    .tuner {
+        grid-template-columns: minmax(0, 1fr);
+        height: auto;
+    }
+
+    .tuner__settings {
+        height: 70vh;
+    }
+
+    .tuner__preview {
+        overflow: visible;
+    }
+}

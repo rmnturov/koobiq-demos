@@ -1,0 +1,12 @@
+<main class="content">
+    <div class="grid">
+        @for (demo of visible(); track demo.slug) {
+            <a class="card" [routerLink]="['/demo', demo.slug]">
+                <span class="card__title kbq-subheading">{{ demo.title }}</span>
+                <span class="card__description">{{ demo.description }}</span>
+            </a>
+        } @empty {
+            <p class="empty">Демо пока нет</p>
+        }
+    </div>
+</main>

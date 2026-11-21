@@ -1,0 +1,163 @@
+:host {
+    display: block;
+    min-height: 0;
+}
+
+/* Переменные контент-панели объявлены на её контейнере, а у панели настроек контейнера нет. */
+.panel {
+    --kbq-content-panel-border-radius: var(--kbq-size-l);
+    /* Фон панели наследуют шапка и футер: своих фонов у них нет. */
+    --kbq-content-panel-background-color: var(--kbq-background-bg-secondary);
+    --kbq-content-panel-border: var(--kbq-size-border-width) solid var(--kbq-line-contrast-less);
+    --kbq-content-panel-header-overflow-box-shadow: var(--kbq-shadow-overflow-normal-bottom);
+    --kbq-content-panel-footer-overflow-box-shadow: var(--kbq-shadow-overflow-normal-top);
+    --kbq-content-panel-vertical-padding: var(--kbq-size-xxl);
+
+    height: 100%;
+}
+
+/* Колонка панели — flex-ребёнок с min-width: auto: без нуля её распирает содержимое формы. */
+:host ::ng-deep .kbq-content-panel__content {
+    min-width: 0;
+}
+
+.settings {
+    contain: inline-size;
+    display: flex;
+    flex-direction: column;
+    gap: var(--kbq-size-3xl);
+    /* Заголовок первой группы не липнет к шапке панели. */
+    padding-top: var(--kbq-size-l);
+    /* Последнее поле отступает от футера на двойной 7xl: так форма не липнет к кнопкам. */
+    padding-bottom: calc(var(--kbq-size-7xl) * 2);
+}
+
+.settings__group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kbq-size-xl);
+    min-width: 0;
+}
+
+.settings__title {
+    margin: 0;
+    font-family: var(--kbq-typography-subheading-font-family);
+    font-size: var(--kbq-typography-subheading-font-size);
+    font-weight: var(--kbq-typography-subheading-font-weight);
+    line-height: var(--kbq-typography-subheading-line-height);
+    letter-spacing: var(--kbq-typography-subheading-letter-spacing);
+    font-feature-settings: var(--kbq-typography-subheading-font-feature-settings);
+}
+
+.settings__title-row {
+    display: flex;
+    align-items: center;
+    gap: var(--kbq-size-xs);
+}
+
+/* Заголовок уровня и вопрос о его токене стоят в одну строку, как у общих цветов. */
+.settings__heading {
+    display: flex;
+    align-items: center;
+    gap: var(--kbq-size-xs);
+}
+
+.settings__note {
+    margin: 0;
+    color: var(--kbq-foreground-contrast-secondary);
+    font-size: var(--kbq-typography-text-compact-font-size);
+    line-height: var(--kbq-typography-text-compact-line-height);
+
+    code {
+        font-family: var(--kbq-typography-mono-compact-font-family);
+    }
+}
+
+.settings__layer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kbq-size-s);
+    min-width: 0;
+}
+
+.settings__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--kbq-size-s);
+}
+
+/* Сетка шапки слоя повторяет сетку чисел: цвет стоит на месте blur и spread — от левого края
+   blur до правого края spread, поэтому его ширина равна сумме этих двух полей. */
+.settings__layer-head {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    align-items: center;
+    gap: var(--kbq-size-s);
+}
+
+.settings__layer-title {
+    grid-column: 1 / 3;
+    font-weight: var(--kbq-typography-text-normal-strong-font-weight);
+}
+
+.settings__layer-color {
+    grid-column: 3 / -1;
+    min-width: 0;
+}
+
+/* Общие цвета — та же сетка, что у чисел слоя, но в три колонки: поля стоят одной строкой. */
+.settings__colors {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--kbq-size-s);
+}
+
+/*
+ * Четыре параметра слоя — одна слитая группа, как сгруппированные поля Кубика: у соседей общий
+ * бордер, внутренние углы прямые, внешние скруглены. Соседа сдвигаем на толщину бордера, иначе
+ * на стыке встают две линии вплотную и шов читается толще.
+ */
+.settings__numbers {
+    display: flex;
+    min-width: 0;
+
+    app-shadow-number-field {
+        flex: 1 1 0;
+        min-width: 0;
+    }
+
+    app-shadow-number-field + app-shadow-number-field {
+        margin-inline-start: calc(var(--kbq-size-border-width) * -1);
+    }
+
+    app-shadow-number-field:first-child ::ng-deep .kbq-form-field__container {
+        border-start-end-radius: 0;
+        border-end-end-radius: 0;
+    }
+
+    app-shadow-number-field:not(:first-child):not(:last-child) ::ng-deep .kbq-form-field__container {
+        border-radius: 0;
+    }
+
+    app-shadow-number-field:last-child:not(:first-child) ::ng-deep .kbq-form-field__container {
+        border-start-start-radius: 0;
+        border-end-start-radius: 0;
+    }
+
+    /* Бордер фокуса должен лечь поверх шва с соседом, а не под него. */
+    app-shadow-number-field:focus-within {
+        position: relative;
+        z-index: 2;
+    }
+}
+
+/*
+ * В узкой панели подпись кнопки копирования не влезает рядом с переключателем:
+ * остаётся иконка. Имя кнопки держит `aria-label`, поэтому скрытый текст ничего не ломает.
+ */
+@media (max-width: 400px) {
+    .panel__copy-label {
+        display: none;
+    }
+}

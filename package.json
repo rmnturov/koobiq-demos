@@ -1,0 +1,52 @@
+{
+  "name": "koobiq-demos",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "zip": "node scripts/zip-demos.mjs",
+    "prestart": "npm run zip",
+    "prebuild": "npm run zip",
+    "test:scripts": "node --test scripts/*.test.mjs"
+  },
+  "private": true,
+  "packageManager": "npm@11.6.2",
+  "dependencies": {
+    "@angular/cdk": "^21.2.14",
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@koobiq/angular-luxon-adapter": "^21.0.1",
+    "@koobiq/components": "^21.0.1",
+    "@koobiq/date-adapter": "^3.5.1",
+    "@koobiq/date-formatter": "^3.5.1",
+    "@koobiq/design-tokens": "^4.1.0",
+    "@koobiq/icons": "^12.5.0",
+    "ag-grid-angular": "^34.3.1",
+    "ag-grid-community": "^34.3.1",
+    "highlight.js": "^11.12.0",
+    "inter-ui": "^4.1.1",
+    "luxon": "^3.7.2",
+    "marked": "^17.0.6",
+    "overlayscrollbars": "^2.7.3",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.29",
+    "@angular/cli": "^21.2.29",
+    "@angular/compiler-cli": "^21.2.0",
+    "fflate": "^0.8.3",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}

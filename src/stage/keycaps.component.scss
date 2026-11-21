@@ -1,0 +1,41 @@
+/*
+ * Кепки — служебный слой (`.stage__keys` исключён из попадания в замерах).
+ * Место фиксировано: по центру снизу, 16px от нижнего края.
+ */
+:host {
+    position: absolute;
+    left: 50%;
+    bottom: 16px;
+    z-index: 3;
+    display: flex;
+    gap: var(--kbq-size-3xs);
+    pointer-events: none;
+    opacity: 0;
+    transform: translate(-50%, 4px);
+    transition: opacity 120ms ease, transform 120ms ease;
+}
+
+:host([data-show]) {
+    opacity: 1;
+    transform: translate(-50%, 0);
+}
+
+.keys__cap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    min-width: var(--kbq-size-3xl);
+    height: var(--kbq-size-3xl);
+    padding: 0 var(--kbq-size-s);
+    border-radius: var(--kbq-size-s);
+    background: var(--kbq-background-contrast);
+    color: var(--kbq-foreground-on-contrast);
+    /* Высота кепки задана, поэтому строка внутри не дышит интерлиньяжем. */
+    line-height: 1;
+    transition: transform 90ms ease;
+}
+
+:host([data-down]) .keys__cap {
+    transform: translateY(1px);
+}

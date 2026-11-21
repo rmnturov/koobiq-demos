@@ -1,0 +1,64 @@
+<header class="header">
+    <kbq-top-bar>
+        <div class="header__start" kbqTopBarContainer placement="start">
+            <nav class="header__trail" kbq-breadcrumbs size="big" wrapMode="wrap">
+                <kbq-breadcrumb-item text="Демки" routerLink="/" />
+                @if (demo(); as demo) {
+                    <kbq-breadcrumb-item [text]="demo.title" />
+                }
+            </nav>
+            @if (demo()) {
+                <div class="header__actions">
+                    <a
+                        aria-label="Код в репозитории"
+                        kbq-button
+                        kbqTooltip="Код в репозитории"
+                        [color]="KbqComponentColors.Contrast"
+                        [href]="repoUrl()"
+                        [kbqPlacement]="PopUpPlacements.Bottom"
+                        [kbqStyle]="KbqButtonStyles.Transparent"
+                        [kbqTooltipArrow]="false"
+                        rel="noopener noreferrer"
+                        target="_blank"
+                    >
+                        <i kbq-icon="kbq-code_16"></i>
+                    </a>
+                    <a
+                        aria-label="Скачать ZIP"
+                        download
+                        kbq-button
+                        kbqTooltip="Скачать ZIP"
+                        [color]="KbqComponentColors.Contrast"
+                        [href]="zipPath()"
+                        [kbqPlacement]="PopUpPlacements.Bottom"
+                        [kbqStyle]="KbqButtonStyles.Transparent"
+                        [kbqTooltipArrow]="false"
+                    >
+                        <i kbq-icon="kbq-arrow-down-to-bracket_16"></i>
+                    </a>
+                </div>
+            }
+        </div>
+        <div class="header__end" kbqTopBarContainer placement="end">
+            <app-theme-toggle />
+            @if (demo()) {
+                <button
+                    aria-label="Сброс примера"
+                    kbq-button
+                    kbqTooltip="Сброс примера"
+                    type="button"
+                    [color]="KbqComponentColors.Contrast"
+                    [kbqPlacement]="PopUpPlacements.BottomRight"
+                    [kbqStyle]="KbqButtonStyles.Transparent"
+                    [kbqTooltipArrow]="false"
+                    (click)="resetDemo()"
+                >
+                    <i kbq-icon="kbq-arrow-rotate-right_16"></i>
+                </button>
+            }
+        </div>
+    </kbq-top-bar>
+</header>
+<main class="content">
+    <router-outlet />
+</main>

@@ -1,0 +1,91 @@
+:host {
+    display: block;
+    padding: var(--kbq-size-l);
+    color: var(--kbq-foreground-contrast);
+}
+
+/*
+ * Раскладка демо: сплит. Слева — список сценариев, справа — сцена с механикой
+ * и плеером. Пояснение идёт над обеими колонками.
+ */
+.demo {
+    display: grid;
+    grid-template-columns: 240px minmax(0, 1fr);
+    grid-template-areas:
+        'lead lead'
+        'list main';
+    gap: var(--kbq-size-l);
+    align-items: start;
+}
+
+.demo__lead {
+    grid-area: lead;
+    max-width: 70ch;
+    margin: 0;
+    color: var(--kbq-foreground-contrast-secondary);
+}
+
+/* Сценарии — список Koobiq: строки одинаковой высоты, выбор одной строки. */
+.demo__scenarios {
+    grid-area: list;
+    min-width: 0;
+    /* Двенадцать строк выше окна: список листается сам, страница — нет. */
+    max-height: calc(100vh - var(--kbq-size-l) * 2);
+    overflow-y: auto;
+}
+
+.demo__list {
+    display: block;
+}
+
+.demo__main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kbq-size-s);
+    grid-area: main;
+    min-width: 0;
+}
+
+/* Группа кнопок стоит по своей ширине, а не растягивается колонкой сцены. */
+.demo__main kbq-button-toggle-group {
+    align-self: flex-start;
+}
+
+.demo__tagline {
+    margin: 0;
+    color: var(--kbq-foreground-contrast-secondary);
+}
+
+/* Подпись шага и вердикт: одна строка, дальше — кнопки плеера. */
+.demo__controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--kbq-size-xs) var(--kbq-size-m);
+    align-items: center;
+    justify-content: space-between;
+}
+
+.demo__caption {
+    margin: 0;
+}
+
+.demo__actions {
+    display: flex;
+    gap: var(--kbq-size-xs);
+}
+
+/* Узкое окно: сплит складывается в одну колонку, список идёт первым. */
+@media (max-width: 900px) {
+    .demo {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-areas:
+            'lead'
+            'list'
+            'main';
+    }
+
+    .demo__scenarios {
+        max-height: none;
+    }
+}
+

@@ -1,0 +1,260 @@
+@use '@koobiq/components/core/styles/common/squircle' as *;
+
+:host {
+  display: block;
+  padding: var(--kbq-size-l);
+  color: var(--kbq-foreground-contrast);
+}
+
+/* Демо — одна колонка: пояснение, переключатели и карточка формы по центру. */
+.demo {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--kbq-size-l);
+}
+
+.demo__lead {
+  max-width: 70ch;
+  margin: 0;
+  color: var(--kbq-foreground-contrast-secondary);
+}
+
+.demo__toggles {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--kbq-size-s) var(--kbq-size-m);
+}
+
+.demo__card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--kbq-size-s);
+  box-sizing: border-box;
+  width: 360px;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: var(--kbq-size-l);
+  border: 1px solid var(--kbq-line-contrast-less);
+  border-radius: var(--kbq-size-border-radius);
+  background: var(--kbq-background-card);
+
+  /* Подсказка и ошибка шире поля: узкое поле не должно рвать текст на строки. */
+  --demo-text-width: 328px;
+}
+
+/* Поле времени уже карточки; ширину задает формат (см. fieldWidth в компоненте). */
+.demo__field {
+  /* Кубик по умолчанию рисует фокус в 1px — для прототипа он вдвое толще. */
+  --kbq-form-field-size-focus-outline-width: 2px;
+}
+
+/* Строка настроек подсказок: мастер-тумблер и группа независимых опций. */
+.demo__suggest-settings {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--kbq-size-s) var(--kbq-size-m);
+}
+
+.demo__suggest-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--kbq-size-s) var(--kbq-size-m);
+}
+
+.demo__field-options {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--kbq-size-s) var(--kbq-size-m);
+}
+
+/* Поле и выпадающий список живут в одном относительном контейнере. */
+.demo__field-wrap {
+  position: relative;
+  width: fit-content;
+}
+
+/* Кнопки внутри поля: вся площадь слота — активная зона, иконка по центру. */
+.demo__field-button {
+  display: flex;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  width: var(--kbq-form-field-size-addon-width);
+  height: var(--kbq-form-field-size-height);
+  /* Кнопка на всю высоту поля, но её вклад в раскладку — высота контента: поле не растёт. */
+  margin-block: calc(0px - var(--kbq-form-field-size-border-width));
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* Кнопки поля: очистка и шеврон, состояния берут icon-токены. */
+.demo__field-button .kbq-icon {
+  color: var(--kbq-icon-contrast-fade);
+}
+
+.demo__field-button:hover .kbq-icon {
+  color: var(--kbq-states-icon-contrast-fade-hover);
+}
+
+.demo__field-button:active .kbq-icon {
+  color: var(--kbq-states-icon-contrast-fade-active);
+}
+
+/* В невалидном поле краснеют все иконки, включая часы. `-webkit-text-fill-color` дублирует
+   `color`: глифовые иконки тема формы красит первым свойством, и без него наш цвет не виден
+   (`@koobiq/components/form-field/_form-field-theme.scss`, `.kbq-icon.kbq-empty` в ошибке).
+   !important нужен, потому что у правила темы есть своё значение того же свойства. */
+.demo__field.kbq-form-field_invalid .demo__clock,
+.demo__field.kbq-form-field_invalid .demo__field-button .kbq-icon {
+  color: var(--kbq-icon-error) !important;
+  -webkit-text-fill-color: var(--kbq-icon-error) !important;
+}
+
+.demo__field.kbq-form-field_invalid .demo__field-button:hover .kbq-icon {
+  color: var(--kbq-states-icon-error-hover) !important;
+  -webkit-text-fill-color: var(--kbq-states-icon-error-hover) !important;
+}
+
+.demo__field.kbq-form-field_invalid .demo__field-button:active .kbq-icon {
+  color: var(--kbq-states-icon-error-active) !important;
+  -webkit-text-fill-color: var(--kbq-states-icon-error-active) !important;
+}
+
+/* Крайняя правая кнопка дотягивается до границы поля: правый padding и рамка входят в её зону. */
+.demo__field-button:last-child {
+  width: calc(
+    var(--kbq-form-field-size-addon-width) + var(--kbq-form-field-size-container-right-padding) +
+      var(--kbq-form-field-size-border-width)
+  );
+  padding-right: calc(
+    var(--kbq-form-field-size-container-right-padding) + var(--kbq-form-field-size-border-width)
+  );
+  margin-inline-end: calc(
+    0px - var(--kbq-form-field-size-container-right-padding) - var(
+        --kbq-form-field-size-border-width
+      )
+  );
+}
+
+/* Иконка часов — декорация в префиксе, цвет берем из icon-токена. */
+.demo__clock {
+  color: var(--kbq-icon-contrast-fade);
+}
+
+/* Панель как у Autocomplete: ширина поля, свой оверлейный скроллбар вместо нативного. */
+.demo__suggestions {
+  position: absolute;
+  top: calc(100% + var(--kbq-size-3xs));
+  left: 0;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 100%;
+  max-height: var(--kbq-autocomplete-size-panel-max-height, 256px);
+  overflow: hidden;
+  border-radius: var(--kbq-size-border-radius);
+  background: var(--kbq-select-panel-dropdown-background, var(--kbq-background-card));
+  box-shadow: var(--kbq-select-panel-dropdown-shadow, var(--kbq-shadow-popup));
+
+  @include kbq-squircle(var(--kbq-size-border-radius));
+}
+
+.demo__suggestion-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  padding: var(--kbq-size-xxs);
+}
+
+.demo__suggestion-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/*
+ * Кубик исключает клавиатурный фокус из правила с рамкой (`.cdk-keyboard-focused`),
+ * а у обычного input свою рамку для него не рисует. В прототипе рамка нужна всегда,
+ * но только когда фокус на самом поле: у шеврона своя рамка, две одновременно не нужны.
+ */
+:host ::ng-deep .demo__field:has(input.cdk-keyboard-focused) .kbq-form-field__container {
+  border-color: var(--kbq-form-field-states-focused-focus-outline);
+  box-shadow: inset 0 0 0.1px var(--kbq-form-field-size-focus-outline-width)
+    var(--kbq-form-field-states-focused-focus-outline);
+}
+
+:host
+  ::ng-deep
+  .demo__field.kbq-form-field_invalid:has(input.cdk-keyboard-focused)
+  .kbq-form-field__container {
+  border-color: var(--kbq-form-field-states-error-focused-focus-outline);
+  box-shadow: inset 0 0 0.1px var(--kbq-form-field-size-focus-outline-width)
+    var(--kbq-form-field-states-error-focused-focus-outline);
+}
+
+.demo__field kbq-error {
+  width: var(--demo-text-width);
+}
+
+/* Кнопки под полем: очистка и отправка стоят в один ряд; от поля их отделяет еще 4px. */
+.demo__actions {
+  display: flex;
+  gap: var(--kbq-size-s);
+  margin-top: var(--kbq-size-xxs);
+}
+
+/* Строка значения под карточкой: та же ширина и центрирование, поэтому текст идёт по её краю. */
+.demo__value {
+  box-sizing: border-box;
+  width: 360px;
+  max-width: 100%;
+  margin: 0 auto;
+  color: var(--kbq-foreground-contrast-secondary);
+}
+
+/* Значение — код: цифры одинаковой ширины, чтобы строка не дёргалась при наборе. */
+.demo__value-text {
+  color: var(--kbq-foreground-contrast);
+  font-family: var(--kbq-font-family-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Живой регион скрыт визуально, но остаётся в дереве доступности. */
+.demo__live {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
+/* Узкое окно: переключатели идут друг под другом, карточка занимает ширину колонки. */
+@media (max-width: 560px) {
+  .demo__toggles {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .demo__card {
+    width: 100%;
+  }
+
+  .demo__value {
+    width: 100%;
+  }
+
+  .demo__card {
+    --demo-text-width: calc(100vw - 64px);
+  }
+}

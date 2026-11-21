@@ -1,0 +1,83 @@
+:host {
+  display: block;
+}
+
+/*
+ * Две колонки по 480 — как у плашек сравнения: пара центрирована, поля в обеих
+ * сторонах одной ширины, иначе сторона читается как «до/после» по размеру.
+ * Поле и строка факта держатся своей ширины из переменной: 136 — ширина кадра,
+ * и по центру колонки она встает ровно над полем плашки ниже.
+ */
+.pair {
+  --pair-field-width: 136px;
+
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 480px));
+  justify-content: center;
+  gap: 2px;
+}
+
+/*
+ * Плашка стороны — тот же серый прямоугольник, что у блоков сравнения: живая пара стоит
+ * первой на странице, и без фона она читалась бы как форма, а не как тот же пример.
+ * 480 × 300 по кадру, зазор 2, скруглены только внешние углы пары; поле по центру.
+ */
+.pair__side {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--kbq-size-s);
+  box-sizing: border-box;
+  height: 300px;
+  padding: var(--kbq-size-l);
+  border-radius: 12px 0 0 12px;
+  background: var(--kbq-background-contrast-less);
+}
+
+.pair__side:last-of-type {
+  border-radius: 0 12px 12px 0;
+}
+
+/*
+ * Поле узкое, 136 — как в плашках и как у самого `kbqTimepicker`: строка `ЧЧ:ММ`
+ * в него помещается целиком, а растянутое на всю колонку поле читалось бы как форма.
+ */
+.pair__field {
+  width: var(--pair-field-width);
+}
+
+/* Строка факта: значение слева, очистка справа, на одной базовой линии. */
+.pair__fact {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kbq-size-s);
+  width: var(--pair-field-width);
+}
+
+/* Цифры моноширинные: строка значения не дёргается при наборе. */
+.pair__value {
+  font-variant-numeric: tabular-nums;
+  color: var(--kbq-foreground-contrast-secondary);
+}
+
+/*
+ * Узкое место — поля друг под другом: ниже 1000 px две колонки по 480 не помещаются,
+ * и пара складывается в одну. Брейкпоинт тот же, что у блока сравнения: обе пары
+ * страницы ломаются на одной ширине, иначе соседние секции прыгают по-разному.
+ */
+@media (max-width: 1000px) {
+  .pair {
+    grid-template-columns: minmax(0, 480px);
+  }
+
+  /* Пара сложилась в колонку — внешними стали верхние и нижние углы, как у плашек. */
+  .pair__side {
+    border-radius: 12px 12px 0 0;
+  }
+
+  .pair__side:last-of-type {
+    border-radius: 0 0 12px 12px;
+  }
+}

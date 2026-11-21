@@ -1,0 +1,177 @@
+:host {
+  display: block;
+  color: var(--kbq-foreground-contrast);
+}
+
+/*
+ * Статья по кадру 15-8682: 1280 шириной с паддингом 16 по бокам, по центру окна.
+ * Паддинг живёт здесь, поэтому блок сравнения растягивается до content-box (1248)
+ * сам, без своих чисел ширины.
+ */
+.demo {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 1280px;
+  max-width: 100%;
+  margin: 0 auto;
+  /* Низ статьи — 200 по кадру: последний абзац не прилипает к краю окна. */
+  padding: 0 16px 200px;
+}
+
+/*
+ * Колонка текста — 640 по кадру: заголовки, абзацы и оглавление. Своя раскладка
+ * (flex-колонка), чтобы отступы заголовков не схлопывались через границу обертки
+ * и совпадали с кадром у всех блоков одинаково.
+ */
+.demo__text {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 640px;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+
+/*
+ * Живая пара — та же геометрия, что у блоков сравнения ниже: две колонки по 480
+ * с зазором 2, пара центрирована в статье. Иначе поля шириной 312 стояли бы вразрез
+ * с узкими полями плашек, и страница читалась бы как две разные сетки.
+ *
+ * Сверху 24: серая плашка — отдельный пример, а не продолжение вступительного абзаца.
+ * Без отступа ее край читался как рамка вокруг текста, и абзац слипался с примером.
+ */
+.demo__live {
+  width: 100%;
+  margin-top: 24px;
+}
+
+/*
+ * Заголовки: масштаб кадра — это масштаб статей Кубика (markdown-типографика),
+ * а не прикладные токены `headline`/`title`/`subheading`: у них шаги 28/32, 20/28
+ * и 18/26, то есть каждый на ступень ниже, чем в кадре. Переменные `--kbq-md-*`
+ * держат ровно 36/44, 24/32 и 20/28, поэтому семья, размер и строка берутся оттуда,
+ * а жирность H1 — из кадра (в markdown-стиле заголовок первого уровня обычный).
+ */
+.demo__h1,
+.demo__h2,
+.demo__h3 {
+  margin: 0;
+  color: var(--kbq-foreground-contrast);
+}
+
+.demo__h1 {
+  margin-top: 32px;
+  margin-bottom: 12px;
+  font-family: var(--kbq-md-typography-md-h1-font-family);
+  font-size: var(--kbq-md-typography-md-h1-font-size);
+  font-weight: 700;
+  line-height: var(--kbq-md-typography-md-h1-line-height);
+}
+
+.demo__h2 {
+  margin-top: 20px;
+  margin-bottom: 12px;
+  font-family: var(--kbq-md-typography-md-h2-font-family);
+  font-size: var(--kbq-md-typography-md-h2-font-size);
+  font-weight: var(--kbq-md-typography-md-h2-font-weight);
+  line-height: var(--kbq-md-typography-md-h2-line-height);
+}
+
+/*
+ * H3 — заголовок кейса и цель якоря из оглавления. `scroll-margin-top` держит запас
+ * под верхнюю панель оболочки: 56 по кадру плюс 8 зазора, иначе заголовок уезжает
+ * под панель при переходе по ссылке.
+ */
+.demo__h3 {
+  margin-top: 16px;
+  margin-bottom: 12px;
+  scroll-margin-top: 64px;
+  font-family: var(--kbq-md-typography-md-h3-font-family);
+  font-size: var(--kbq-md-typography-md-h3-font-size);
+  font-weight: var(--kbq-md-typography-md-h3-font-weight);
+  line-height: var(--kbq-md-typography-md-h3-line-height);
+}
+
+/*
+ * Заголовок под серой парой отступает сильнее обычного: между примерами стоит граница
+ * раздела, и без большого зазора новый раздел читается продолжением верхнего.
+ */
+.demo__live + .demo__section .demo__h2 {
+  margin-top: 48px;
+}
+
+/*
+ * Заголовок кейса после прозы — 32, а не 16: абзац объясняет раздел, и без отступа
+ * заголовок первого кейса прилипает к нему снизу. Кейсы друг от друга держат прежние
+ * 40 (24 снизу блока плюс 16): там заголовок отделяет пример от примера, а не текст.
+ */
+.demo__text + .demo__case .demo__h3 {
+  margin-top: 32px;
+}
+
+/*
+ * Абзац кейса перед сравнением: 12 до пары, в ритме прозы статьи — столько же, сколько
+ * заголовок кейса оставляет до своего блока.
+ */
+.demo__note {
+  margin-bottom: 12px;
+}
+
+/* Отступ до абзаца секции: список ссылок отделен от прозы, а не липнет к ней. */
+.demo__toc {
+  margin-bottom: 12px;
+}
+
+/*
+ * Список оглавления: строка 24, между строками 8, между ссылками — интерпункт `·`
+ * цветом ссылки. Разделитель нарисован на элементе списка, а не в тексте ссылки:
+ * в текст он не попадает, и скопированная ссылка остается названием кейса.
+ *
+ * Зазор по горизонтали нулевой: расстояния держат поля самого разделителя, поэтому
+ * слева и справа от точки они одинаковые. Разделитель стоит после ссылки, а не перед
+ * ней: иначе перенесенная строка начиналась бы с точки.
+ */
+.demo__toc-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--kbq-size-s) 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.demo__toc-item {
+  display: flex;
+  align-items: center;
+}
+
+.demo__toc-item:not(:last-child)::after {
+  content: '·';
+  margin: 0 var(--kbq-size-s);
+  color: var(--kbq-foreground-theme);
+}
+
+.demo__toc-link {
+  color: var(--kbq-foreground-theme);
+  text-decoration: underline;
+  text-decoration-color: var(--kbq-line-theme-fade);
+  text-underline-offset: 3px;
+}
+
+/*
+ * Кейс: заголовок в колонке текста, блок сравнения — во всю ширину статьи.
+ * Промежуток между кейсами складывается из padding-bottom блока (24) и margin-top
+ * заголовка (16): 40 по кадру, отдельного gap здесь не нужно. После прозы заголовок
+ * отступает на 32 — это отдельное правило ниже.
+ */
+.demo__case {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Длинная строка прозы не должна растягивать колонку: markdown переносит ее сам. */
+.demo kbq-markdown {
+  min-width: 0;
+}

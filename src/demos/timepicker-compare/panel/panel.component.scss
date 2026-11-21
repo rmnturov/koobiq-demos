@@ -1,0 +1,358 @@
+:host {
+  display: block;
+  /*
+   * Хост — граница замера панели: `fieldGeometry` считает пиксели до него, поэтому он
+   * обязан быть в цепи `offsetParent`. Иначе обход уходит выше и курсор блока получает
+   * координаты страницы вместо координат пары.
+   */
+  position: relative;
+  color: var(--kbq-foreground-contrast);
+}
+
+/*
+ * Плашка панели — 480 × 300 по кадру 15-8682. Серый фон принадлежит ей, а не блоку
+ * сравнения: поэтому перезапуск прохода гасит содержимое, а плашка стоит на месте.
+ *
+ * Скруглены только внешние углы пары: у левой панели левые, у правой правые. 12 —
+ * радиус кадра (у токена `--kbq-size-border-radius` другое значение).
+ */
+.panel {
+  position: relative;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  border-radius: 12px 0 0 12px;
+  background: var(--kbq-background-contrast-less);
+}
+
+.panel[data-side='right'] {
+  border-radius: 0 12px 12px 0;
+}
+
+/*
+ * Ниже 1000 px пара складывается в колонку: панели стоят друг под другом, и внешними
+ * становятся верхние и нижние углы. Брейкпоинт тот же, что у раскладки пары.
+ */
+@media (max-width: 1000px) {
+  .panel {
+    border-radius: 12px 12px 0 0;
+  }
+
+  .panel[data-side='right'] {
+    border-radius: 0 0 12px 12px;
+  }
+}
+
+/*
+ * Содержимое плашки — часть кадра: между проходами оно подменяется одним кадром, без
+ * прозрачности и переходов. Плашка при этом не меняется вовсе, поэтому перезапуск не
+ * читается как моргание фона.
+ */
+.panel__content {
+  position: relative;
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  /*
+   * Кросс-фейд стыка проходов: длительность приходит переменной `--compare-fade` из
+   * `FADE_MS`, а вне блока сравнения переход мгновенный.
+   */
+  transition: opacity var(--compare-fade, 0ms) ease-in-out;
+}
+
+/* Содержимое погашено: кадр меняется, плашка стоит. */
+.panel__content_faded {
+  opacity: 0;
+}
+
+/*
+ * Подпись стороны — у внешнего края плашки, поворотом 90° (вертикальный набор), по кадру:
+ * слева «Кубик» читается снизу вверх, справа «Новый» сверху вниз — подписи смотрят
+ * наружу, как скобки вокруг пары.
+ * Абсолют, поэтому от подписи панель не растет; по вертикали она по центру.
+ * Живет в `.panel`, а не в `.panel__content`: подпись стороны — часть плашки, и на стыке
+ * проходов она остается, пока гаснет содержимое. Иначе обе подписи исчезали и появлялись
+ * вместе с кадром, и пара на мгновение теряла стороны.
+ */
+.panel__label {
+  position: absolute;
+  top: 50%;
+  left: var(--kbq-size-s);
+  /* `vertical-rl` читается сверху вниз; разворот на 180° переворачивает набор для левой стороны. */
+  transform: translateY(-50%) rotate(180deg);
+  writing-mode: vertical-rl;
+  color: var(--kbq-foreground-contrast-secondary);
+}
+
+.panel[data-side='right'] .panel__label {
+  right: var(--kbq-size-s);
+  left: auto;
+  transform: translateY(-50%);
+}
+
+/*
+ * Текст из буфера: строка над полем, по центру плашки. Ширина — по тексту, поэтому
+ * выделение и рука идут по всей строке, а не по обрезку: ссылка из кейса видна целиком.
+ * Потолок — внутренняя ширина плашки (без боковых полей): дальше строка не растет, а
+ * обрезается многоточием, чтобы кадр не менял высоту.
+ */
+.panel__clipboard {
+  position: absolute;
+  top: var(--kbq-size-l);
+  right: 0;
+  left: 0;
+  box-sizing: border-box;
+  width: max-content;
+  max-width: calc(100% - 2 * var(--kbq-size-l));
+  margin: 0 auto;
+  overflow: hidden;
+  text-align: left;
+}
+
+/*
+ * Строка буфера — свой блок: перенос в тексте значит вторую строку, а не знак.
+ * Подложка и текст живут в ней, поэтому выделение считается по строкам.
+ */
+.panel__clipboard-line {
+  position: relative;
+  display: block;
+  white-space: pre;
+}
+
+/*
+ * Выделение буфера: пустая подложка под текстом. Она тянется `scaleX` от левого края —
+ * так анимация выделения не плющит буквы, как плющил бы `transform` на самом тексте.
+ * Цвет — тот же, что у выделения в Кубике.
+ */
+.panel__selection {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  transform: scaleX(0);
+  transform-origin: left center;
+  /* Тематический фон, а не `fade`: на серой плашке 15 % синего почти не видно. */
+  background: var(--kbq-background-theme);
+  opacity: 0.3;
+  /*
+   * Протяжка наливается шагами, поэтому переход есть. Снятие выделения — не откат, а
+   * снятие: подложка гаснет в тот же кадр, и шаблон ставит ей 0 мс, когда доля нулевая.
+   */
+  transition: transform 90ms linear;
+}
+
+.panel__clipboard-text {
+  position: relative;
+}
+
+/*
+ * Коробка поля: ширина по полю, высота — строки поля. Ошибка выходит ниже коробки
+ * (у `kbq-form-field` своя строка под полем), поэтому поле стоит по центру плашки
+ * и тогда, когда ошибки нет, и тогда, когда она появилась.
+ */
+.panel__box {
+  position: relative;
+  width: max-content;
+  height: var(--kbq-size-3xl);
+}
+
+/*
+ * Поле больше не тянется по панели: 136 — ширина кадра 15-8682. Остальное у поля
+ * штатное: фон, рамка `--kbq-line-contrast-fade`, радиус, иконка 16 и паддинги приходят
+ * токенами `kbq-form-field`, и подменять их своими значениями значило бы разойтись
+ * с настоящим контролом.
+ */
+.panel__field {
+  width: 136px;
+}
+
+/*
+ * Длинный вид не растит панель: строка выходит за край поля.
+ *
+ * У Кубика она обрезается многоточием — так он показывает, что текст не влез. Новое
+ * поле многоточия не ставит: в живом вводе строка уходит за край, и ставить точку
+ * вместо символа значило бы показывать текст, которого в поле нет.
+ */
+.panel__field input {
+  text-overflow: ellipsis;
+}
+
+.panel[data-side='right'] .panel__field input {
+  text-overflow: clip;
+}
+
+/*
+ * Слот тултипов висит над полем абсолютом: пузырь не сдвигает поле, и две панели
+ * рядом не разъезжаются друг с другом.
+ *
+ * Отличие от настоящего пузыря: до поля 6px (общий зазор `--kbq-size-xs`), у
+ * безстрелочного `.kbq-tooltip` — 4px (`$trigger-margin_without-arrow`).
+ */
+.panel__hints {
+  position: absolute;
+  bottom: calc(100% + var(--kbq-size-xs));
+  left: 0;
+  z-index: 1;
+  display: flex;
+  gap: var(--kbq-size-xs);
+  width: max-content;
+  max-width: 300px;
+}
+
+/*
+ * Тултип Koobiq без стрелки: пузырь над полем, выровнен по его левому краю.
+ *
+ * Остаются три отличия от настоящего `.kbq-tooltip`, и все три — плата за кадр:
+ * стрелки нет; радиус простой `border-radius`, а не squircle-маска Кубика (миксин
+ * `kbq-squircle` живёт внутри пакета и наружу не отдаётся); текст в одну строку
+ * (`nowrap` вместо `pre-line`), чтобы пузырь не рос вниз и не двигал поле.
+ *
+ * Цвета — те же темы, что у поля из демо `timepicker`: распознавание показывает
+ * `kbq-contrast` (ночной фон, белый текст), отказ — `kbq-error` (красный фон, белый
+ * текст). Своих оттенков здесь нет: значения берутся из токенов этих тем.
+ */
+.panel__hint {
+  /* Значения — из tooltip-tokens.scss: у своего элемента они не наследуются. */
+  --kbq-tooltip-size-max-width: 300px;
+  --kbq-tooltip-size-border-radius: var(--kbq-size-s);
+  --kbq-tooltip-size-padding-horizontal: var(--kbq-size-m);
+  --kbq-tooltip-size-padding-vertical: var(--kbq-size-s);
+  --kbq-tooltip-contrast-fade-off-background: var(--kbq-background-night);
+  --kbq-tooltip-contrast-fade-off-text: var(--kbq-foreground-white);
+  --kbq-tooltip-contrast-fade-off-shadow: var(--kbq-shadow-popup);
+
+  /* Потолок ширины — как у Кубика (300px), но не шире самой панели. */
+  max-width: min(100%, var(--kbq-tooltip-size-max-width));
+  padding: var(--kbq-tooltip-size-padding-vertical) var(--kbq-tooltip-size-padding-horizontal);
+  border-radius: var(--kbq-tooltip-size-border-radius);
+  background-color: var(--kbq-background-bg);
+  background-image: linear-gradient(
+    var(--kbq-tooltip-contrast-fade-off-background),
+    var(--kbq-tooltip-contrast-fade-off-background)
+  );
+  box-shadow: var(--kbq-tooltip-contrast-fade-off-shadow);
+  color: var(--kbq-tooltip-contrast-fade-off-text);
+  /* Подсказка — одна строка, как у Кубика: длинная обрезается, а не растёт вниз. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/*
+ * Отказ нового поля — тема `kbq-error`: красный фон и белый текст, как тултип
+ * валидации поля в демо `timepicker`. У текущего `KbqTimepicker` отказ черный
+ * (`panel__hint_contrast`): это разные контролы, и тема у них разная.
+ * Токенов размера и тени у этих тем нет, они общие с `.panel__hint`.
+ */
+.panel__hint_error {
+  --kbq-tooltip-error-fade-off-background: var(--kbq-background-error);
+  --kbq-tooltip-error-fade-off-text: var(--kbq-foreground-white);
+
+  background-image: linear-gradient(
+    var(--kbq-tooltip-error-fade-off-background),
+    var(--kbq-tooltip-error-fade-off-background)
+  );
+  color: var(--kbq-tooltip-error-fade-off-text);
+}
+
+/* Отказ текущего контрола — та же ночная тема, что у распознавания. */
+.panel__hint_contrast {
+  color: var(--kbq-tooltip-contrast-fade-off-text);
+  background-image: linear-gradient(
+    var(--kbq-tooltip-contrast-fade-off-background),
+    var(--kbq-tooltip-contrast-fade-off-background)
+  );
+}
+
+/*
+ * Скрытые часы маски: их ширина — точка прихода руки, начало минут. Шрифт поля копирует
+ * замер, поэтому ширина та же, что у текста в поле.
+ */
+.panel__measure {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  white-space: pre;
+  pointer-events: none;
+}
+
+/*
+ * Зеркало: текст поля, который input в разметку не отдаёт. Шрифт поля ему копирует
+ * замер, поэтому по ширине префикса читается положение каретки.
+ */
+.panel__mirror {
+  position: absolute;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  white-space: pre;
+  pointer-events: none;
+}
+
+/*
+ * Подсветка сегмента маски: полоса под буквами, как у выделения в настоящем поле.
+ * `multiply` нужен потому, что слой лежит выше поля: темные буквы остаются темными,
+ * а белый фон поля синеет. Без него подсветка закрасила бы и цифры.
+ */
+.panel__segment {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  height: 20px;
+  border-radius: 2px;
+  background: var(--kbq-background-theme);
+  mix-blend-mode: multiply;
+  opacity: 0.3;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.panel__caret {
+  position: absolute;
+  /* У поля свой слой (z-index: 3): с меньшим значением каретка уходит под него. */
+  z-index: 4;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 18px;
+  border-radius: 1px;
+  /* Цвет акцента, как у каретки сцены: её видно и там, где стоит I-beam мыши. */
+  background: var(--kbq-foreground-theme);
+  opacity: 0;
+  pointer-events: none;
+}
+
+/*
+ * Каретка не мигает: панель — кадр, а не живое поле. Мигание в мультике читалось бы
+ * как работающий набор там, где скрипт уже остановился.
+ */
+.panel__caret_visible {
+  opacity: 1;
+  /* Каретка мигает, пока поле в фокусе: так она читается как каретка, а не как черта. */
+  animation: panel-caret-blink 1060ms steps(1, end) infinite;
+}
+
+@keyframes panel-caret-blink {
+  0%,
+  49.9% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Под reduced-motion петля не играет, и мигание на постере только мешало бы. */
+@media (prefers-reduced-motion: reduce) {
+  .panel__caret_visible {
+    animation: none;
+  }
+}

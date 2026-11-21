@@ -1,0 +1,36 @@
+/* Общая рамка сцен превью: заголовок, пояснение и колонка содержимого. Подключается `@use './scene';`. */
+.scene {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kbq-size-l);
+    min-width: 0;
+}
+
+.scene__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--kbq-size-m);
+}
+
+.scene__title {
+    margin: 0;
+    font-family: var(--kbq-typography-title-font-family);
+    font-size: var(--kbq-typography-title-font-size);
+    font-weight: var(--kbq-typography-title-font-weight);
+    line-height: var(--kbq-typography-title-line-height);
+    letter-spacing: var(--kbq-typography-title-letter-spacing);
+    font-feature-settings: var(--kbq-typography-title-font-feature-settings);
+}
+
+.scene__note {
+    max-width: 72ch;
+    margin: calc(0px - var(--kbq-size-s)) 0 0;
+    color: var(--kbq-foreground-contrast-secondary);
+
+    code {
+        font-family: var(--kbq-typography-mono-normal-font-family);
+        font-size: 0.9em;
+    }
+}

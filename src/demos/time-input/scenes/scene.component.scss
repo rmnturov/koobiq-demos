@@ -1,0 +1,222 @@
+:host {
+    display: block;
+    height: 100%;
+    color: var(--kbq-foreground-contrast);
+}
+
+.scene {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    /* Композиция растёт вниз от верхнего края: ошибка под полем ничего не сдвигает. */
+    justify-content: flex-start;
+    align-items: center;
+    gap: var(--kbq-size-xl);
+    box-sizing: border-box;
+    height: 100%;
+    padding: var(--kbq-size-xl);
+    background: var(--kbq-background-bg-secondary);
+}
+
+/* У сценариев ввода сообщения нет: колонка отступает от верхнего края глубже. */
+.scene_typing {
+    padding-top: calc(var(--kbq-size-xl) + var(--kbq-size-3xl));
+}
+
+/* Текст для копирования — как в сообщении чата: моно-шрифт, без плашки. */
+.scene__message {
+    display: flex;
+    flex-direction: column;
+    max-width: 320px;
+}
+
+.scene__text {
+    margin: 0;
+    font-family: var(--kbq-font-family-mono);
+    font-size: var(--kbq-typography-text-normal-font-size);
+    line-height: var(--kbq-typography-text-normal-line-height);
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+/* Якоря строки: нулевой ширины, чтобы скрипт вёл выделение от первого символа до последнего. */
+.scene__anchor {
+    display: inline-block;
+    width: 0;
+    height: 1em;
+}
+
+/* Конец строки — на последнем её пикселе: иначе каретка уходит за текст. */
+.scene__anchor:last-child {
+    position: relative;
+    left: -1px;
+}
+
+/* Точка покоя — правее текста, с воздухом: курсор не накрывает последнюю букву. */
+.scene__anchor[data-target='park'] {
+    position: relative;
+    left: 12px;
+}
+
+/* Выделение — подсветка, а не маркеры: крайние пробелы видно по её ширине, перевод строки — по двум строкам. */
+.scene__mark {
+    border-radius: var(--kbq-size-3xs);
+    background: var(--kbq-background-theme-fade);
+    color: inherit;
+}
+
+/*
+ * Колонка формы — та же ширина, что в макете: заглушки и поле времени стоят
+ * одной колонкой по центру сцены.
+ */
+.scene__form {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: var(--kbq-size-xl);
+    width: 320px;
+    max-width: 100%;
+}
+
+/* Заглушки вместо заполненных полей: скелетоны формы, волна не идёт. */
+.scene__ghost ::ng-deep .kbq-skeleton {
+    animation: none;
+}
+
+/* Точка покоя сценариев ввода: правее колонки, в пустом поле сцены. */
+.scene__park {
+    position: absolute;
+    top: 50%;
+    left: calc(100% + var(--kbq-size-m));
+    width: 0;
+    height: 0;
+}
+
+.scene__label {
+    margin: 0;
+}
+
+/* Строка времени: подпись и текст ошибки тянутся на всю колонку, поле — узкое. */
+.scene__row_time {
+    display: flex;
+    flex-direction: column;
+    gap: var(--kbq-size-xs);
+}
+
+.scene__control {
+    position: relative;
+    min-width: 0;
+    /* Текст ошибки меряется по строке формы, а не по рамке узкого поля. */
+    container-type: inline-size;
+}
+
+/* Поле и тултип над ним: тултип выходит за рамку узкого поля. */
+.scene__field-box {
+    position: relative;
+    width: 112px;
+}
+
+/* Поле времени узкое, как настоящий timepicker: иконка часов, маска и время. */
+.scene__field_time {
+    width: 112px;
+}
+
+.scene__field_time ::ng-deep .kbq-form-field__hint {
+    width: 100cqw;
+}
+
+/* Тултип Koobiq без стрелки: пузырь над полем, выровнен по его левому краю. */
+.scene__tooltip {
+    /* Значения — из tooltip-tokens.scss: у своего элемента они не наследуются. */
+    --kbq-tooltip-size-max-width: 300px;
+    --kbq-tooltip-size-border-radius: var(--kbq-size-s);
+    --kbq-tooltip-size-padding-horizontal: var(--kbq-size-m);
+    --kbq-tooltip-size-padding-vertical: var(--kbq-size-s);
+    --kbq-tooltip-contrast-fade-on-background: var(--kbq-background-card);
+    --kbq-tooltip-contrast-fade-on-text: var(--kbq-foreground-contrast);
+    --kbq-tooltip-contrast-fade-on-shadow: var(--kbq-shadow-popup);
+
+    position: absolute;
+    bottom: calc(100% + var(--kbq-size-xs));
+    left: 0;
+    z-index: 3;
+    /* Пузырь шире узкого поля: иначе текст жмётся в колонку поля. */
+    width: max-content;
+    max-width: var(--kbq-tooltip-size-max-width);
+    padding: var(--kbq-tooltip-size-padding-vertical) var(--kbq-tooltip-size-padding-horizontal);
+    border-radius: var(--kbq-tooltip-size-border-radius);
+    background-color: var(--kbq-background-bg);
+    background-image: linear-gradient(
+        var(--kbq-tooltip-contrast-fade-on-background),
+        var(--kbq-tooltip-contrast-fade-on-background)
+    );
+    box-shadow: var(--kbq-tooltip-contrast-fade-on-shadow);
+    color: var(--kbq-tooltip-contrast-fade-on-text);
+    white-space: pre-line;
+}
+
+/* Зеркало повторяет шрифт и паддинги поля: по нему считается положение каретки. */
+.scene__mirror {
+    position: absolute;
+    top: 0;
+    left: 0;
+    visibility: hidden;
+    white-space: pre;
+    pointer-events: none;
+}
+
+.scene__caret {
+    position: absolute;
+    /* У поля свой слой (z-index: 3): с меньшим значением каретка уходит под него. */
+    z-index: 4;
+    transform: translateY(-50%);
+    width: 2px;
+    height: 18px;
+    border-radius: 1px;
+    /* Цвет акцента, как у каретки Stageshow: её видно и там, где стоит I-beam мыши. */
+    background: var(--kbq-foreground-theme);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/*
+ * Каретка горит ровно, пока идёт набор: каждый символ пересоздаёт элемент, и
+ * анимация начинается заново. Мигание стартует с задержкой — так пауза в наборе
+ * читается, а работающий набор не мерцает.
+ */
+.scene__caret_visible {
+    opacity: 1;
+    animation: scene-caret 1.06s steps(1, end) 0.5s infinite;
+}
+
+/*
+ * Пауза плеера: мигание останавливается, а каретка стоит видимой — бесконечное
+ * мигание на паузе читается как поломка паузы. Таймеров нет: правило снимает
+ * анимацию, пока на хосте висит `scene_paused`.
+ */
+:host(.scene_paused) .scene__caret_visible {
+    animation: none;
+}
+
+.scene__toast {
+    position: absolute;
+    right: var(--kbq-size-m);
+    bottom: var(--kbq-size-m);
+    z-index: 2;
+    max-width: 60%;
+    padding: var(--kbq-size-xs) var(--kbq-size-s);
+    border-radius: var(--kbq-size-s);
+    background: var(--kbq-background-contrast);
+    color: var(--kbq-foreground-on-contrast);
+}
+
+@keyframes scene-caret {
+    0%,
+    49% {
+        opacity: 1;
+    }
+    50%,
+    100% {
+        opacity: 0;
+    }
+}
