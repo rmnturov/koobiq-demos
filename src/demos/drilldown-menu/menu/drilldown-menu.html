@@ -1,7 +1,7 @@
 <ng-content />
 <ng-template #panelTemplate>
   @if (isOpen()) {
-    <div #panelElement class="drilldown-panel" [style.width.px]="resolvedWidth()" [style.max-height.px]="resolvedMaxHeight()">
+    <div #panelElement class="drilldown-panel" role="dialog" [id]="id" [attr.aria-label]="activeTitle()" (keydown)="onKeydown($event)" [style.width.px]="resolvedWidth()" [style.max-height.px]="resolvedMaxHeight()">
       @for (screen of visited(); track screen.id) {
         <section class="drilldown-screen" tabindex="-1" [attr.data-screen]="screen.id"
           [hidden]="screen.id !== activeScreenId()" [attr.inert]="screen.id !== activeScreenId() ? '' : null"
@@ -9,7 +9,7 @@
           <header class="drilldown-header">
             <div class="drilldown-header-start">
               @if (screen.id !== rootScreen()) {
-                <button kbq-button class="drilldown-icon-button" type="button" aria-label="Назад" (click)="back()">
+                <button kbq-button kbqStyle="transparent" class="drilldown-icon-button" type="button" aria-label="Назад" (click)="back()">
                   <i kbq-icon="kbq-arrow-left_16"></i>
                 </button>
               }

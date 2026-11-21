@@ -1,4 +1,5 @@
 import { NgTemplateOutlet } from '@angular/common';
+import { InteractivityChecker } from '@angular/cdk/a11y';
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, ElementRef, forwardRef, inject, Injector, input, output, signal, TemplateRef, viewChild } from '@angular/core';
 import { KbqButtonModule } from '@koobiq/components/button';
 import { KbqIconModule } from '@koobiq/components/icon';
@@ -8,6 +9,7 @@ import type { DrilldownMenuScreen } from './drilldown-menu-screen';
 import { DRILLDOWN_MENU, DrilldownCloseReason, DrilldownFrame } from './drilldown-menu.types';
 
 interface VisitedScreen { id: string; definition: DrilldownMenuScreen; }
+let nextMenuId = 0;
 
 @Component({
   selector: 'demo-drilldown-menu',
@@ -19,6 +21,10 @@ interface VisitedScreen { id: string; definition: DrilldownMenuScreen; }
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DrilldownMenu {
+  readonly id = `drilldown-menu-${nextMenuId++}`;
+  origin: HTMLElement | null = null;
+  updatePosition: () => void = () => {};
+  leavePanel: (reverse: boolean) => void = () => {};
   readonly rootScreen = input('root');
   readonly maxHeight = input(480);
   readonly width = input(320);
@@ -27,12 +33,14 @@ export class DrilldownMenu {
   readonly isOpen = signal(false);
   readonly activeScreenId = signal<string | null>(null);
   readonly visited = signal<readonly VisitedScreen[]>([]);
+  readonly activeTitle = computed(() => this.visited().find(screen => screen.id === this.activeScreenId())?.definition.title() ?? 'Параметры таблицы');
   readonly depth = signal(0);
   readonly panelTemplate = viewChild<TemplateRef<unknown>>('panelTemplate');
   readonly panelElement = viewChild<ElementRef<HTMLElement>>('panelElement');
   readonly resolvedMaxHeight = computed(() => this.positive(this.maxHeight(), 480));
   readonly resolvedWidth = computed(() => this.positive(this.width(), 320));
   private readonly injector = inject(Injector);
+  private readonly checker = inject(InteractivityChecker);
   private readonly screens = new Map<string, DrilldownMenuScreen>();
   private stack: DrilldownFrame[] = [];
   private renderVersion = 0;
@@ -88,12 +96,45 @@ export class DrilldownMenu {
     this.stack = [];
     this.visited.set([]);
     this.depth.set(0);
-    this.closed.emit(reason);
+    if (reason !== 'destroy') this.closed.emit(reason);
   }
 
   screenElement(id = this.activeScreenId()): HTMLElement | null {
     return Array.from(this.panelElement()?.nativeElement.querySelectorAll<HTMLElement>('[data-screen]') ?? [])
       .find(element => element.dataset['screen'] === id) ?? null;
+  }
+
+  ownsTarget(target: Node): boolean {
+    const panel = this.panelElement()?.nativeElement;
+    if (!panel) return false;
+    if (panel.contains(target)) return true;
+    return Array.from(panel.querySelectorAll<HTMLElement>('[aria-controls],[aria-owns]')).some(owner => {
+      const ids = `${owner.getAttribute('aria-controls') ?? ''} ${owner.getAttribute('aria-owns') ?? ''}`.trim().split(/\s+/);
+      return ids.some(id => !!id && !!document.getElementById(id)?.contains(target));
+    });
+  }
+
+  onKeydown(event: KeyboardEvent): void {
+    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+    const target = event.target;
+    if (!(target instanceof HTMLElement) || !this.screenElement()?.contains(target)) return;
+    if (event.key === 'Escape') {
+      event.preventDefault(); event.stopPropagation();
+      if (this.depth()) this.back(); else this.close('escape');
+    } else if (event.key === 'Tab') {
+      const stops = Array.from(this.screenElement()!.querySelectorAll<HTMLElement>('button,input,select,textarea,a[href],[tabindex]'))
+        .filter(element => !element.closest('[inert],[hidden]') && this.checker.isTabbable(element));
+      const index = stops.indexOf(target);
+      const next = stops[index + (event.shiftKey ? -1 : 1)];
+      event.preventDefault(); event.stopPropagation();
+      if (next) next.focus(); else this.leavePanel(event.shiftKey);
+    } else if (target.matches('[kbq-dropdown-item]') && target.closest('[drilldownMenuList]')) {
+      if (event.key === 'ArrowLeft' && this.depth()) {
+        event.preventDefault(); event.stopPropagation(); this.back();
+      } else if (event.key === 'ArrowRight' && target.dataset['drilldownTarget']) {
+        event.preventDefault(); event.stopPropagation(); this.navigate(target.dataset['drilldownTarget'], target);
+      }
+    }
   }
 
   private show(id: string, opener?: HTMLElement): void {
