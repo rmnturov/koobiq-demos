@@ -1,6 +1,22 @@
 import { NgTemplateOutlet } from '@angular/common';
 import { InteractivityChecker } from '@angular/cdk/a11y';
-import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, effect, ElementRef, forwardRef, inject, Injector, input, output, signal, TemplateRef, viewChild } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  ElementRef,
+  forwardRef,
+  inject,
+  Injector,
+  input,
+  output,
+  signal,
+  TemplateRef,
+  viewChild,
+} from '@angular/core';
 import { kbqAnimationsDisabled } from '@koobiq/components/core';
 import { KbqButtonModule } from '@koobiq/components/button';
 import { KbqIconModule } from '@koobiq/components/icon';
@@ -10,7 +26,10 @@ import type { DrilldownMenuScreen } from './drilldown-menu-screen';
 import { DRILLDOWN_MENU, DrilldownCloseReason, DrilldownFrame } from './drilldown-menu.types';
 import { DrilldownTransition } from './drilldown-menu-transition';
 
-interface VisitedScreen { id: string; definition: DrilldownMenuScreen; }
+interface VisitedScreen {
+  id: string;
+  definition: DrilldownMenuScreen;
+}
 let nextMenuId = 0;
 
 @Component({
@@ -35,7 +54,12 @@ export class DrilldownMenu {
   readonly isOpen = signal(false);
   readonly activeScreenId = signal<string | null>(null);
   readonly visited = signal<readonly VisitedScreen[]>([]);
-  readonly activeTitle = computed(() => this.visited().find(screen => screen.id === this.activeScreenId())?.definition.title() ?? 'Параметры таблицы');
+  readonly activeTitle = computed(
+    () =>
+      this.visited()
+        .find((screen) => screen.id === this.activeScreenId())
+        ?.definition.title() ?? 'Параметры таблицы',
+  );
   readonly depth = signal(0);
   readonly panelTemplate = viewChild<TemplateRef<unknown>>('panelTemplate');
   readonly panelElement = viewChild<ElementRef<HTMLElement>>('panelElement');
@@ -55,27 +79,30 @@ export class DrilldownMenu {
     const resize = () => this.resizeCurrent();
     window.addEventListener('resize', resize);
     effect(() => {
-      this.maxHeight(); this.width();
+      this.maxHeight();
+      this.width();
       afterNextRender(resize, { injector: this.injector });
     });
     inject(DestroyRef).onDestroy(() => {
-      this.transition.destroy(); this.observer?.disconnect();
+      this.transition.destroy();
+      this.observer?.disconnect();
       window.removeEventListener('resize', resize);
       this.close('destroy');
     });
   }
 
   registerScreen(id: string, screen: DrilldownMenuScreen): void {
-    if (this.screens.has(id) && this.screens.get(id) !== screen) throw new Error(`Duplicate drilldown screen: ${id}`);
+    if (this.screens.has(id) && this.screens.get(id) !== screen)
+      throw new Error(`Duplicate drilldown screen: ${id}`);
     this.screens.set(id, screen);
   }
 
   unregisterScreen(id: string, screen: DrilldownMenuScreen): void {
     if (this.screens.get(id) !== screen) return;
     this.screens.delete(id);
-    this.visited.update(items => items.filter(item => item.id !== id));
+    this.visited.update((items) => items.filter((item) => item.id !== id));
     if (this.isOpen() && this.activeScreenId() === id) {
-      this.stack = this.stack.filter(frame => this.screens.has(frame.id));
+      this.stack = this.stack.filter((frame) => this.screens.has(frame.id));
       const parent = this.stack.at(-1);
       if (parent) this.show(parent.id);
       else this.close('action');
@@ -93,7 +120,7 @@ export class DrilldownMenu {
   navigate(id: string, opener?: HTMLElement): void {
     if (!this.isOpen() || !this.screens.has(id) || this.activeScreenId() === id) return;
     this.saveFrame();
-    const previous = this.stack.findIndex(frame => frame.id === id);
+    const previous = this.stack.findIndex((frame) => frame.id === id);
     if (previous >= 0) this.stack = this.stack.slice(0, previous + 1);
     else this.stack.push({ id, opener, scrollTop: 0, activeItemId: null });
     this.show(id);
@@ -120,18 +147,26 @@ export class DrilldownMenu {
   }
 
   screenElement(id = this.activeScreenId()): HTMLElement | null {
-    return Array.from(this.panelElement()?.nativeElement.querySelectorAll<HTMLElement>('[data-screen]') ?? [])
-      .find(element => element.dataset['screen'] === id) ?? null;
+    return (
+      Array.from(
+        this.panelElement()?.nativeElement.querySelectorAll<HTMLElement>('[data-screen]') ?? [],
+      ).find((element) => element.dataset['screen'] === id) ?? null
+    );
   }
 
   ownsTarget(target: Node): boolean {
     const panel = this.panelElement()?.nativeElement;
     if (!panel) return false;
     if (panel.contains(target)) return true;
-    return Array.from(panel.querySelectorAll<HTMLElement>('[aria-controls],[aria-owns]')).some(owner => {
-      const ids = `${owner.getAttribute('aria-controls') ?? ''} ${owner.getAttribute('aria-owns') ?? ''}`.trim().split(/\s+/);
-      return ids.some(id => !!id && !!document.getElementById(id)?.contains(target));
-    });
+    return Array.from(panel.querySelectorAll<HTMLElement>('[aria-controls],[aria-owns]')).some(
+      (owner) => {
+        const ids =
+          `${owner.getAttribute('aria-controls') ?? ''} ${owner.getAttribute('aria-owns') ?? ''}`
+            .trim()
+            .split(/\s+/);
+        return ids.some((id) => !!id && !!document.getElementById(id)?.contains(target));
+      },
+    );
   }
 
   onKeydown(event: KeyboardEvent): void {
@@ -139,20 +174,33 @@ export class DrilldownMenu {
     const target = event.target;
     if (!(target instanceof HTMLElement) || !this.screenElement()?.contains(target)) return;
     if (event.key === 'Escape') {
-      event.preventDefault(); event.stopPropagation();
-      if (this.depth()) this.back(); else this.close('escape');
+      event.preventDefault();
+      event.stopPropagation();
+      if (this.depth()) this.back();
+      else this.close('escape');
     } else if (event.key === 'Tab') {
-      const stops = Array.from(this.screenElement()!.querySelectorAll<HTMLElement>('button,input,select,textarea,a[href],[tabindex]'))
-        .filter(element => !element.closest('[inert],[hidden]') && this.checker.isTabbable(element));
+      const stops = Array.from(
+        this.screenElement()!.querySelectorAll<HTMLElement>(
+          'button,input,select,textarea,a[href],[tabindex]',
+        ),
+      ).filter(
+        (element) => !element.closest('[inert],[hidden]') && this.checker.isTabbable(element),
+      );
       const index = stops.indexOf(target);
       const next = stops[index + (event.shiftKey ? -1 : 1)];
-      event.preventDefault(); event.stopPropagation();
-      if (next) next.focus(); else this.leavePanel(event.shiftKey);
+      event.preventDefault();
+      event.stopPropagation();
+      if (next) next.focus();
+      else this.leavePanel(event.shiftKey);
     } else if (target.matches('[kbq-dropdown-item]') && target.closest('[drilldownMenuList]')) {
       if (event.key === 'ArrowLeft' && this.depth()) {
-        event.preventDefault(); event.stopPropagation(); this.back();
+        event.preventDefault();
+        event.stopPropagation();
+        this.back();
       } else if (event.key === 'ArrowRight' && target.dataset['drilldownTarget']) {
-        event.preventDefault(); event.stopPropagation(); this.navigate(target.dataset['drilldownTarget'], target);
+        event.preventDefault();
+        event.stopPropagation();
+        this.navigate(target.dataset['drilldownTarget'], target);
       }
     }
   }
@@ -160,33 +208,46 @@ export class DrilldownMenu {
   private show(id: string, opener?: HTMLElement): void {
     const previousId = this.activeScreenId();
     const definition = this.screens.get(id)!;
-    if (!this.visited().some(screen => screen.id === id)) this.visited.update(items => [...items, { id, definition }]);
+    if (!this.visited().some((screen) => screen.id === id))
+      this.visited.update((items) => [...items, { id, definition }]);
     this.activeScreenId.set(id);
     this.depth.set(this.stack.length - 1);
     const version = ++this.renderVersion;
-    afterNextRender(() => {
-      if (version !== this.renderVersion || !this.isOpen()) return;
-      const screen = this.screenElement(id);
-      if (!screen) return;
-      this.layout(screen, this.screenElement(previousId), opener ? 'back' : 'forward');
-      const body = screen.querySelector<HTMLElement>('[kbqScrollbarViewport]')!;
-      const frame = this.stack.at(-1)!;
-      body.scrollTop = frame.scrollTop;
-      const list = findDrilldownList(body.querySelector<HTMLElement>('[drilldownMenuList]'));
-      if (opener?.isConnected && !opener.matches(':disabled,[aria-disabled="true"]') && screen.contains(opener)) {
-        opener.focus({ preventScroll: true });
-      } else if (list) {
-        if (!frame.activeItemId || !list.focusItem(frame.activeItemId)) list.focusInitial(definition.initialFocus());
-      } else {
-        (body.querySelector<HTMLElement>('button:not(:disabled),input:not(:disabled),[tabindex="0"]') ?? screen).focus({ preventScroll: true });
-      }
-      this.observer?.disconnect();
-      if (typeof ResizeObserver !== 'undefined') {
-        this.observer ??= new ResizeObserver(() => this.resizeCurrent());
-        const content = screen.querySelector('.drilldown-content');
-        if (content) this.observer.observe(content);
-      }
-    }, { injector: this.injector });
+    afterNextRender(
+      () => {
+        if (version !== this.renderVersion || !this.isOpen()) return;
+        const screen = this.screenElement(id);
+        if (!screen) return;
+        this.layout(screen, this.screenElement(previousId), opener ? 'back' : 'forward');
+        const body = screen.querySelector<HTMLElement>('[kbqScrollbarViewport]')!;
+        const frame = this.stack.at(-1)!;
+        body.scrollTop = frame.scrollTop;
+        const list = findDrilldownList(body.querySelector<HTMLElement>('[drilldownMenuList]'));
+        if (
+          opener?.isConnected &&
+          !opener.matches(':disabled,[aria-disabled="true"]') &&
+          screen.contains(opener)
+        ) {
+          opener.focus({ preventScroll: true });
+        } else if (list) {
+          if (!frame.activeItemId || !list.focusItem(frame.activeItemId))
+            list.focusInitial(definition.initialFocus());
+        } else {
+          (
+            body.querySelector<HTMLElement>(
+              'button:not(:disabled),input:not(:disabled),[tabindex="0"]',
+            ) ?? screen
+          ).focus({ preventScroll: true });
+        }
+        this.observer?.disconnect();
+        if (typeof ResizeObserver !== 'undefined') {
+          this.observer ??= new ResizeObserver(() => this.resizeCurrent());
+          const content = screen.querySelector('.drilldown-content');
+          if (content) this.observer.observe(content);
+        }
+      },
+      { injector: this.injector },
+    );
   }
 
   private resizeCurrent(): void {
@@ -194,25 +255,56 @@ export class DrilldownMenu {
     if (screen && this.isOpen()) this.layout(screen, screen, 'forward', true);
   }
 
-  private layout(screen: HTMLElement, from: HTMLElement | null, direction: 'forward' | 'back', onlyIfChanged = false): void {
+  private layout(
+    screen: HTMLElement,
+    from: HTMLElement | null,
+    direction: 'forward' | 'back',
+    onlyIfChanged = false,
+  ): void {
     const panel = this.panelElement()?.nativeElement;
     const definition = this.screens.get(this.activeScreenId()!);
     if (!panel || !definition) return;
-    const targetWidth = Math.max(1, Math.min(this.positive(definition.screenWidth() ?? this.resolvedWidth(), 320), window.innerWidth - 16));
+    const targetWidth = Math.max(
+      1,
+      Math.min(
+        this.positive(definition.screenWidth() ?? this.resolvedWidth(), 320),
+        window.innerWidth - 16,
+      ),
+    );
     screen.style.width = `${targetWidth}px`;
-    const naturalHeight = (screen.querySelector<HTMLElement>('.drilldown-header')?.offsetHeight ?? 40)
-      + (screen.querySelector<HTMLElement>('.drilldown-content')?.scrollHeight ?? 0);
+    const naturalHeight =
+      (screen.querySelector<HTMLElement>('.drilldown-header')?.offsetHeight ?? 40) +
+      (screen.querySelector<HTMLElement>('.drilldown-content')?.scrollHeight ?? 0);
     const origin = this.origin?.getBoundingClientRect();
     const below = origin ? window.innerHeight - origin.bottom - 16 : window.innerHeight - 16;
     const above = origin ? origin.top - 16 : below;
     const available = naturalHeight <= below ? below : Math.max(below, above);
-    const targetHeight = Math.max(1, Math.min(naturalHeight || 40, this.resolvedMaxHeight(), available));
-    if (onlyIfChanged && this.lastSize.width === targetWidth && this.lastSize.height === targetHeight) return;
+    const targetHeight = Math.max(
+      1,
+      Math.min(naturalHeight || 40, this.resolvedMaxHeight(), available),
+    );
+    if (
+      onlyIfChanged &&
+      this.lastSize.width === targetWidth &&
+      this.lastSize.height === targetHeight
+    )
+      return;
     this.lastSize = { width: targetWidth, height: targetHeight };
     screen.style.height = `${targetHeight}px`;
-    this.transition.run({ panel, from, to: screen, direction, targetWidth, targetHeight,
-      disabled: this.motionDisabled || !from || window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
-      position: this.updatePosition, settled: () => {} });
+    this.transition.run({
+      panel,
+      from,
+      to: screen,
+      direction,
+      targetWidth,
+      targetHeight,
+      disabled:
+        this.motionDisabled ||
+        !from ||
+        window.matchMedia?.('(prefers-reduced-motion: reduce)').matches,
+      position: this.updatePosition,
+      settled: () => {},
+    });
     this.updatePosition();
   }
 
@@ -221,8 +313,12 @@ export class DrilldownMenu {
     const frame = this.stack.at(-1);
     if (!screen || !frame) return;
     frame.scrollTop = screen.querySelector<HTMLElement>('[kbqScrollbarViewport]')?.scrollTop ?? 0;
-    frame.activeItemId = findDrilldownList(screen.querySelector<HTMLElement>('[drilldownMenuList]'))?.activeItemId() ?? null;
+    frame.activeItemId =
+      findDrilldownList(screen.querySelector<HTMLElement>('[drilldownMenuList]'))?.activeItemId() ??
+      null;
   }
 
-  private positive(value: number, fallback: number): number { return Number.isFinite(value) && value > 0 ? value : fallback; }
+  private positive(value: number, fallback: number): number {
+    return Number.isFinite(value) && value > 0 ? value : fallback;
+  }
 }

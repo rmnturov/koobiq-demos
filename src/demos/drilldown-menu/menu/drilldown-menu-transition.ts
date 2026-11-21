@@ -23,7 +23,10 @@ export class DrilldownTransition {
     const { panel, from, to, targetWidth, targetHeight, direction, disabled } = request;
     const sign = direction === 'forward' ? 1 : -1;
     const entering = !this.layers.has(to) || to.hidden;
-    if (from) { this.layers.add(from); from.hidden = false; }
+    if (from) {
+      this.layers.add(from);
+      from.hidden = false;
+    }
     this.layers.add(to);
     to.hidden = false;
     if (entering && from !== to && from && !disabled) {
@@ -31,14 +34,20 @@ export class DrilldownTransition {
       to.style.transform = `translateX(${sign * targetWidth}px)`;
       void to.offsetWidth;
     }
-    panel.style.transition = disabled ? 'none' : 'width 200ms var(--drilldown-easing), height 200ms var(--drilldown-easing)';
+    panel.style.transition = disabled
+      ? 'none'
+      : 'width 200ms var(--drilldown-easing), height 200ms var(--drilldown-easing)';
     panel.style.width = `${targetWidth}px`;
     panel.style.height = `${targetHeight}px`;
     for (const layer of this.layers) {
       layer.style.transition = disabled ? 'none' : 'transform 200ms var(--drilldown-easing)';
-      layer.style.transform = layer === to ? 'translateX(0px)' : `translateX(${-sign * targetWidth}px)`;
+      layer.style.transform =
+        layer === to ? 'translateX(0px)' : `translateX(${-sign * targetWidth}px)`;
     }
-    if (disabled) { this.finish(); return; }
+    if (disabled) {
+      this.finish();
+      return;
+    }
     const done = (event: TransitionEvent) => {
       if (event.target === to && event.propertyName === 'transform') this.finish();
     };
@@ -69,7 +78,11 @@ export class DrilldownTransition {
     request.settled();
   }
 
-  destroy(): void { this.cancelPending(); this.request = undefined; this.layers.clear(); }
+  destroy(): void {
+    this.cancelPending();
+    this.request = undefined;
+    this.layers.clear();
+  }
 
   private cancelPending(): void {
     clearTimeout(this.timer);

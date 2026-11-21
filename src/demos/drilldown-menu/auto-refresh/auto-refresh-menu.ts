@@ -1,4 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, model, viewChild } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  model,
+  viewChild,
+} from '@angular/core';
 import { KbqButtonModule } from '@koobiq/components/button';
 import { KbqDropdownItem } from '@koobiq/components/dropdown';
 import { KbqIconModule } from '@koobiq/components/icon';
@@ -7,11 +16,20 @@ import { DrilldownMenuScreen } from '../menu/drilldown-menu-screen';
 import { DRILLDOWN_MENU } from '../menu/drilldown-menu.types';
 
 export type AutoRefreshPeriod = number | null;
-export interface AutoRefreshPreset { value: number; label: string; }
+export interface AutoRefreshPreset {
+  value: number;
+  label: string;
+}
 
 @Component({
   selector: 'demo-auto-refresh-menu',
-  imports: [KbqDropdownItem, KbqIconModule, KbqButtonModule, DrilldownMenuScreen, DrilldownMenuList],
+  imports: [
+    KbqDropdownItem,
+    KbqIconModule,
+    KbqButtonModule,
+    DrilldownMenuScreen,
+    DrilldownMenuList,
+  ],
   templateUrl: './auto-refresh-menu.html',
   styleUrl: './auto-refresh-menu.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -27,26 +45,34 @@ export class AutoRefreshMenu {
   readonly options = computed(() => {
     const unique = new Map<number, AutoRefreshPreset>();
     for (const preset of this.presets()) {
-      if (Number.isFinite(preset.value) && preset.value > 0 && !unique.has(preset.value)) unique.set(preset.value, preset);
+      if (Number.isFinite(preset.value) && preset.value > 0 && !unique.has(preset.value))
+        unique.set(preset.value, preset);
     }
     return [...unique.values()].sort((a, b) => a.value - b.value);
   });
   readonly caption = computed(() => {
     const value = this.value();
     if (value === null) return '';
-    return this.options().find(option => option.value === value)?.label ?? this.formatPeriod()?.(value) ?? this.format(value);
+    return (
+      this.options().find((option) => option.value === value)?.label ??
+      this.formatPeriod()?.(value) ??
+      this.format(value)
+    );
   });
   private readonly rootItem = viewChild.required('rootItem', { read: KbqDropdownItem });
 
   constructor() {
     const parentList = inject(DrilldownMenuList, { optional: true, skipSelf: true });
-    effect(onCleanup => {
+    effect((onCleanup) => {
       const item = this.rootItem();
       if (parentList) onCleanup(parentList.registerItem(item));
     });
   }
 
-  select(value: AutoRefreshPeriod): void { this.value.set(value); this.menu.back(); }
+  select(value: AutoRefreshPeriod): void {
+    this.value.set(value);
+    this.menu.back();
+  }
 
   reset(): void {
     const value = this.defaultValue();

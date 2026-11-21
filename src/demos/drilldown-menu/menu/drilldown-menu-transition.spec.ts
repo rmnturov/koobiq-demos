@@ -7,7 +7,16 @@ describe('drilldown transitions', () => {
     const from = document.createElement('section');
     const to = document.createElement('section');
     const settled = vi.fn();
-    transition.run({ panel, from, to, direction: 'forward', targetWidth: 360, targetHeight: 240, disabled: true, settled });
+    transition.run({
+      panel,
+      from,
+      to,
+      direction: 'forward',
+      targetWidth: 360,
+      targetHeight: 240,
+      disabled: true,
+      settled,
+    });
     expect(panel.style.width).toBe('360px');
     expect(panel.style.height).toBe('240px');
     expect(to.hidden).toBe(false);
@@ -24,8 +33,26 @@ describe('drilldown transitions', () => {
     b.hidden = true;
     const oldSettled = vi.fn();
     const settled = vi.fn();
-    transition.run({ panel, from: a, to: b, direction: 'forward', targetWidth: 320, targetHeight: 400, disabled: false, settled: oldSettled });
-    transition.run({ panel, from: b, to: a, direction: 'back', targetWidth: 360, targetHeight: 240, disabled: false, settled });
+    transition.run({
+      panel,
+      from: a,
+      to: b,
+      direction: 'forward',
+      targetWidth: 320,
+      targetHeight: 400,
+      disabled: false,
+      settled: oldSettled,
+    });
+    transition.run({
+      panel,
+      from: b,
+      to: a,
+      direction: 'back',
+      targetWidth: 360,
+      targetHeight: 240,
+      disabled: false,
+      settled,
+    });
     vi.runAllTimers();
     expect(a.hidden).toBe(false);
     expect(b.hidden).toBe(true);

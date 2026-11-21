@@ -1,5 +1,7 @@
 @use '@koobiq/components/core/styles/functions/timing' as timing;
-:host { display: contents; }
+:host {
+  display: contents;
+}
 .drilldown-panel {
   --drilldown-easing: #{timing.$ease-in-out-quad};
   position: relative;
@@ -10,20 +12,61 @@
   overflow: hidden;
   font: inherit;
 }
-.drilldown-screen { position: absolute; top: 0; left: 0; display: flex; flex-direction: column; outline: none; }
-.drilldown-screen[hidden] { display: none; }
+.drilldown-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+.drilldown-screen[hidden] {
+  display: none;
+}
 .drilldown-header {
-  display: flex; align-items: center; flex: 0 0 auto;
-  min-height: 40px; padding: 0 var(--kbq-size-xs);
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 var(--kbq-size-xs);
   border-bottom: 1px solid var(--kbq-line-contrast-less);
   box-sizing: border-box;
 }
-.drilldown-header-start, .drilldown-header-end { display: flex; align-items: center; width: 32px; flex: 0 0 32px; }
-.drilldown-header-end { justify-content: flex-end; }
-.drilldown-heading { flex: 1; min-width: 0; text-align: center; font-weight: var(--kbq-typography-text-normal-strong-font-weight); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-.drilldown-icon-button { --kbq-button-default-size-padding-horizontal: 6px; --kbq-button-transparent-background: transparent; min-width: 28px; }
-.drilldown-body { min-height: 0; flex: 1 1 auto; overflow-x: hidden; overflow-y: auto; }
-.drilldown-content { padding: var(--kbq-size-xxs); }
+.drilldown-header-start,
+.drilldown-header-end {
+  display: flex;
+  align-items: center;
+  width: 32px;
+  flex: 0 0 32px;
+}
+.drilldown-header-end {
+  justify-content: flex-end;
+}
+.drilldown-heading {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-weight: var(--kbq-typography-text-normal-strong-font-weight);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.drilldown-icon-button {
+  --kbq-button-size-horizontal-padding: 6px;
+  min-width: 28px;
+}
+.drilldown-body {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.drilldown-content {
+  padding: var(--kbq-size-xxs);
+}
 @media (prefers-reduced-motion: reduce) {
-  .drilldown-panel, .drilldown-screen { transition: none !important; }
+  .drilldown-panel,
+  .drilldown-screen {
+    transition: none !important;
+  }
 }

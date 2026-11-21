@@ -1,7 +1,33 @@
-:host { display: contents; }
-.refresh-row { display: flex; align-items: center; gap: var(--kbq-size-s); min-width: 0; }
-.refresh-label { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
-.refresh-caption { color: var(--kbq-foreground-contrast-secondary); flex: 0 0 auto; }
-.refresh-chevron { color: var(--kbq-icon-contrast-fade); flex: 0 0 auto; }
-.refresh-choice { display: flex; align-items: center; justify-content: space-between; gap: var(--kbq-size-s); }
-.refresh-reset { --kbq-button-default-size-padding-horizontal: 6px; min-width: 28px; }
+:host {
+  display: contents;
+}
+.refresh-row {
+  display: flex;
+  align-items: center;
+  gap: var(--kbq-size-s);
+  min-width: 0;
+}
+.refresh-label {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.refresh-caption {
+  color: var(--kbq-foreground-contrast-secondary);
+  flex: 0 0 auto;
+}
+.refresh-chevron {
+  color: var(--kbq-icon-contrast-fade);
+  flex: 0 0 auto;
+}
+.refresh-choice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--kbq-size-s);
+}
+.refresh-reset {
+  --kbq-button-size-horizontal-padding: 6px;
+  min-width: 28px;
+}

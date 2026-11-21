@@ -1,0 +1,137 @@
+<div class="demo">
+  <div class="demo-intro">
+    <h1 class="kbq-headline">Меню с переходами</h1>
+    <p>Откройте параметры таблицы и выберите период автообновления.</p>
+  </div>
+  <div class="demo-layout">
+    <div class="demo-stage">
+      <div class="demo-toolbar">
+        <span class="kbq-title">События</span>
+        <button kbq-button type="button" data-menu-trigger [drilldownMenuTriggerFor]="menu">
+          <i kbq-icon="kbq-sliders_16"></i>Параметры таблицы
+        </button>
+      </div>
+      <div class="demo-table" aria-hidden="true">
+        <div class="demo-table-head">
+          <span>Событие</span><span>Источник</span><span>Время</span>
+        </div>
+        @for (row of [1, 2, 3, 4, 5]; track row) {
+          <div class="demo-table-row">
+            <span class="demo-skeleton"></span><span class="demo-skeleton"></span
+            ><span class="demo-skeleton"></span>
+          </div>
+        }
+      </div>
+      <div class="demo-status" aria-live="polite">
+        <span>Автообновление: {{ periodLabel() }}</span
+        ><span>Обновлений: {{ refreshCount() }}</span>
+        @if (helpCount()) {
+          <span>Нажатий на «Справка»: {{ helpCount() }}</span>
+        }
+      </div>
+    </div>
+    <aside class="demo-settings" aria-label="Параметры демонстрации">
+      <h2 class="kbq-subheading">Параметры примера</h2>
+      <div class="demo-height">
+        <label for="menu-max-height">Максимальная высота, px</label>
+        <kbq-form-field
+          ><input
+            kbqInput
+            id="menu-max-height"
+            type="number"
+            min="80"
+            max="1200"
+            [ngModel]="maxHeight()"
+            (ngModelChange)="maxHeight.set($event)"
+        /></kbq-form-field>
+      </div>
+      <kbq-toggle [checked]="longPresets()" (change)="longPresets.set($event.checked)"
+        >Длинный список периодов</kbq-toggle
+      >
+      <kbq-toggle [checked]="includeAutoRefresh()" (change)="includeAutoRefresh.set($event.checked)"
+        >Раздел автообновления</kbq-toggle
+      >
+      <kbq-toggle
+        [checked]="autoRefreshAfter()"
+        [disabled]="!includeAutoRefresh()"
+        (change)="autoRefreshAfter.set($event.checked)"
+        >Автообновление после команды «Обновить»</kbq-toggle
+      >
+      <p class="demo-hint">Во вложенном экране Esc возвращает назад. В корне — закрывает меню.</p>
+    </aside>
+  </div>
+</div>
+
+<demo-drilldown-menu #menu="drilldownMenu" [maxHeight]="maxHeight()">
+  <ng-template #rootActions>
+    <button
+      kbq-button
+      kbqStyle="transparent"
+      type="button"
+      class="demo-header-action"
+      aria-label="Справка"
+      (click)="helpCount.set(helpCount() + 1)"
+    >
+      <i kbq-icon="kbq-circle-info_16"></i>
+    </button>
+  </ng-template>
+  <ng-template
+    drilldownMenuScreen="root"
+    title="Параметры таблицы"
+    [headerActions]="rootActions"
+    let-api
+  >
+    <div drilldownMenuList aria-label="Параметры таблицы">
+      @for (item of leadingItems; track item.label; let index = $index) {
+        <button
+          kbq-dropdown-item
+          type="button"
+          role="menuitem"
+          disabled
+          [id]="menu.id + '-leading-' + index"
+        >
+          <i [kbq-icon]="item.icon"></i>
+          <span class="demo-menu-row"
+            ><span class="demo-menu-label">{{ item.label }}</span
+            ><span class="demo-caption">{{ item.caption }}</span
+            ><i kbq-icon="kbq-chevron-right-s_16"></i
+          ></span>
+        </button>
+      }
+      <kbq-divider />
+      <button kbq-dropdown-item type="button" role="menuitem" disabled>
+        <i kbq-icon="kbq-list_16"></i
+        ><span class="demo-menu-row"
+          ><span class="demo-menu-label">Плотность</span><span class="demo-caption">Средняя</span
+          ><i kbq-icon="kbq-chevron-right-s_16"></i
+        ></span>
+      </button>
+      <button kbq-dropdown-item type="button" role="menuitem" disabled>
+        <i kbq-icon="kbq-text-wrap_16"></i>Перенос по словам
+      </button>
+      <kbq-divider />
+      @if (includeAutoRefresh() && !autoRefreshAfter()) {
+        <demo-auto-refresh-menu [(value)]="period" [presets]="presets()" [defaultValue]="300000" />
+      }
+      <button
+        kbq-dropdown-item
+        type="button"
+        role="menuitem"
+        data-refresh-now
+        [id]="menu.id + '-refresh-now'"
+        (click)="refresh(api)"
+      >
+        <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
+      </button>
+      @if (includeAutoRefresh() && autoRefreshAfter()) {
+        <demo-auto-refresh-menu [(value)]="period" [presets]="presets()" [defaultValue]="300000" />
+      }
+      <kbq-divider />
+      @for (item of trailingItems; track item.label) {
+        <button kbq-dropdown-item type="button" role="menuitem" disabled>
+          <i [kbq-icon]="item.icon"></i>{{ item.label }}
+        </button>
+      }
+    </div>
+  </ng-template>
+</demo-drilldown-menu>

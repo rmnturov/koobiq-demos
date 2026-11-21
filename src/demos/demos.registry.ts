@@ -6,6 +6,12 @@ import { DemoEntry } from './demo.types';
 /** The only place where demos are wired into the app. One entry per demo. */
 export const DEMOS: readonly DemoEntry[] = [
     {
+        slug: 'drilldown-menu',
+        title: 'Меню с переходами',
+        description: 'Настройка автообновления с переходами между экранами',
+        loadComponent: () => import('./drilldown-menu/drilldown-menu.demo').then((m) => m.DrilldownMenuDemo)
+    },
+    {
         slug: 'hello',
         title: 'Hello',
         description: 'Проверка каркаса: тема и компонент Koobiq',

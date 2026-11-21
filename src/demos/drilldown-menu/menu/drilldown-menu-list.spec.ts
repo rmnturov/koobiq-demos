@@ -6,7 +6,9 @@ import { DrilldownMenuList } from './drilldown-menu-list';
 @Component({
   imports: [KbqDropdownItem, DrilldownMenuList],
   template: `<div drilldownMenuList>
-    @if (showFirst()) { <button kbq-dropdown-item id="first" [disabled]="disabled()">First</button> }
+    @if (showFirst()) {
+      <button kbq-dropdown-item id="first" [disabled]="disabled()">First</button>
+    }
     <button kbq-dropdown-item id="second" disabled>Second</button>
     <button kbq-dropdown-item id="third" [disabled]="disabled()">Third</button>
   </div>`,
@@ -23,10 +25,15 @@ describe('drilldown list', () => {
     fixture.detectChanges();
     await fixture.whenStable();
     const root = fixture.nativeElement as HTMLElement;
-    const stops = () => Array.from(root.querySelectorAll<HTMLElement>('[tabindex="0"]')).map(el => el.id);
+    const stops = () =>
+      Array.from(root.querySelectorAll<HTMLElement>('[tabindex="0"]')).map((el) => el.id);
     const key = (key: string) => {
-      const keyCode = ({ ArrowDown: 40, ArrowUp: 38, Home: 36, End: 35 } as Record<string, number>)[key];
-      document.activeElement!.dispatchEvent(new KeyboardEvent('keydown', { key, keyCode, bubbles: true, cancelable: true }));
+      const keyCode = ({ ArrowDown: 40, ArrowUp: 38, Home: 36, End: 35 } as Record<string, number>)[
+        key
+      ];
+      document.activeElement!.dispatchEvent(
+        new KeyboardEvent('keydown', { key, keyCode, bubbles: true, cancelable: true }),
+      );
       fixture.detectChanges();
     };
     return { fixture, root, stops, key, host: fixture.componentInstance };

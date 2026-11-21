@@ -8,11 +8,28 @@ import { DrilldownMenuList } from './drilldown-menu-list';
 import { DrilldownMenuTrigger } from './drilldown-menu-trigger';
 
 @Component({
-  imports: [DrilldownMenu, DrilldownMenuScreen, DrilldownMenuList, DrilldownMenuTrigger, KbqDropdownItem],
-  template: `<button id="before">Before</button><button id="trigger" [drilldownMenuTriggerFor]="menu">Open</button><button id="after">After</button>
+  imports: [
+    DrilldownMenu,
+    DrilldownMenuScreen,
+    DrilldownMenuList,
+    DrilldownMenuTrigger,
+    KbqDropdownItem,
+  ],
+  template: `<button id="before">Before</button
+    ><button id="trigger" [drilldownMenuTriggerFor]="menu">Open</button
+    ><button id="after">After</button>
     <demo-drilldown-menu #menu="drilldownMenu">
       <ng-template drilldownMenuScreen="root" title="Root" let-api>
-        <div drilldownMenuList><button kbq-dropdown-item id="child-opener" data-drilldown-target="child" (click)="api.navigate('child', $any($event.currentTarget))">Child</button></div>
+        <div drilldownMenuList>
+          <button
+            kbq-dropdown-item
+            id="child-opener"
+            data-drilldown-target="child"
+            (click)="api.navigate('child', $any($event.currentTarget))"
+          >
+            Child
+          </button>
+        </div>
       </ng-template>
       <ng-template #actions><button id="reset">Reset</button></ng-template>
       <ng-template drilldownMenuScreen="child" title="Child" [headerActions]="actions">
@@ -21,7 +38,9 @@ import { DrilldownMenuTrigger } from './drilldown-menu-trigger';
       </ng-template>
     </demo-drilldown-menu>`,
 })
-class Host { readonly menu = viewChild.required(DrilldownMenu); }
+class Host {
+  readonly menu = viewChild.required(DrilldownMenu);
+}
 
 describe('drilldown overlay and focus', () => {
   beforeEach(() => {
@@ -31,16 +50,25 @@ describe('drilldown overlay and focus', () => {
   afterEach(() => vi.restoreAllMocks());
   async function render() {
     const fixture = TestBed.createComponent(Host);
-    fixture.detectChanges(); await fixture.whenStable();
+    fixture.detectChanges();
+    await fixture.whenStable();
     const trigger = fixture.nativeElement.querySelector('#trigger') as HTMLButtonElement;
-    trigger.click(); fixture.detectChanges(); await fixture.whenStable();
+    trigger.click();
+    fixture.detectChanges();
+    await fixture.whenStable();
     const overlay = TestBed.inject(OverlayContainer).getContainerElement();
     const menu = fixture.componentInstance.menu();
     const key = async (key: string, shiftKey = false, prevent = false) => {
-      const event = new KeyboardEvent('keydown', { key, shiftKey, bubbles: true, cancelable: true });
+      const event = new KeyboardEvent('keydown', {
+        key,
+        shiftKey,
+        bubbles: true,
+        cancelable: true,
+      });
       if (prevent) event.preventDefault();
       document.activeElement!.dispatchEvent(event);
-      fixture.detectChanges(); await fixture.whenStable();
+      fixture.detectChanges();
+      await fixture.whenStable();
     };
     return { fixture, overlay, menu, key, trigger };
   }
@@ -74,7 +102,8 @@ describe('drilldown overlay and focus', () => {
     expect(menu.isOpen()).toBe(false);
     expect(document.activeElement?.id).toBe('before');
     (fixture.nativeElement.querySelector('#trigger') as HTMLElement).click();
-    fixture.detectChanges(); await fixture.whenStable();
+    fixture.detectChanges();
+    await fixture.whenStable();
     await key('Tab');
     expect(menu.isOpen()).toBe(false);
     expect(document.activeElement?.id).toBe('after');

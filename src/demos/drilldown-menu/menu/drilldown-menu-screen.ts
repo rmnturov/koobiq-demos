@@ -12,7 +12,7 @@ export class DrilldownMenuScreen {
 
   constructor() {
     const menu = inject(DRILLDOWN_MENU);
-    effect(onCleanup => {
+    effect((onCleanup) => {
       const id = this.id();
       menu.registerScreen(id, this);
       onCleanup(() => menu.unregisterScreen(id, this));
