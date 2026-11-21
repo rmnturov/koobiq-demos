@@ -81,6 +81,9 @@ export class DrilldownMenu {
     effect(() => {
       this.maxHeight();
       this.width();
+      this.visited()
+        .find((screen) => screen.id === this.activeScreenId())
+        ?.definition.screenWidth();
       afterNextRender(resize, { injector: this.injector });
     });
     inject(DestroyRef).onDestroy(() => {
@@ -233,10 +236,21 @@ export class DrilldownMenu {
           if (!frame.activeItemId || !list.focusItem(frame.activeItemId))
             list.focusInitial(definition.initialFocus());
         } else {
+          const selector = definition.initialFocus();
+          const preferred = selector ? body.querySelector<HTMLElement>(selector) : null;
+          const focusTarget =
+            preferred &&
+            !preferred.matches(':disabled,[aria-disabled="true"]') &&
+            !preferred.closest('[inert],[hidden]')
+              ? preferred
+              : null;
           (
+            focusTarget ??
             body.querySelector<HTMLElement>(
-              'button:not(:disabled),input:not(:disabled),[tabindex="0"]',
-            ) ?? screen
+              'button:not(:disabled),input:not(:disabled),textarea:not(:disabled),select:not(:disabled),a[href],[tabindex="0"]',
+            ) ??
+            screen.querySelector<HTMLElement>('header button:not(:disabled)') ??
+            screen
           ).focus({ preventScroll: true });
         }
         this.observer?.disconnect();

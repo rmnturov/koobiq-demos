@@ -1,4 +1,4 @@
-import { DestroyRef, Directive, effect, inject, input, TemplateRef } from '@angular/core';
+import { Directive, effect, inject, input, TemplateRef } from '@angular/core';
 import { DRILLDOWN_MENU } from './drilldown-menu.types';
 
 @Directive({ selector: 'ng-template[drilldownMenuScreen]' })
@@ -17,6 +17,5 @@ export class DrilldownMenuScreen {
       menu.registerScreen(id, this);
       onCleanup(() => menu.unregisterScreen(id, this));
     });
-    inject(DestroyRef);
   }
 }

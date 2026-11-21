@@ -1,8 +1,13 @@
 @use '@koobiq/components/core/styles/functions/timing' as timing;
+@use '@koobiq/components/dropdown/dropdown-theme' as dropdown;
+@use '@koobiq/components/list/list-tokens' as list;
 :host {
   display: contents;
 }
 .drilldown-panel {
+  @include list.list-theme-tokens;
+  --kbq-dropdown-item-border-radius: var(--kbq-size-xs);
+  --kbq-dropdown-item-caption-color: var(--kbq-foreground-contrast-secondary);
   --drilldown-easing: #{timing.$ease-in-out-quad};
   position: relative;
   color: var(--kbq-foreground-contrast);
@@ -11,6 +16,12 @@
   box-shadow: var(--kbq-shadow-popup);
   overflow: hidden;
   font: inherit;
+}
+
+// Projected menu items belong to consumer views; keep Koobiq's theme inside this panel.
+.drilldown-panel ::ng-deep {
+  @include dropdown.kbq-dropdown-theme();
+  @include dropdown.kbq-dropdown-typography();
 }
 .drilldown-screen {
   position: absolute;

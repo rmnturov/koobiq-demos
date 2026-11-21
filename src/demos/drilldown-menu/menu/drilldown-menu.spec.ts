@@ -1,9 +1,10 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { Component, viewChild } from '@angular/core';
+import { Component, signal, viewChild } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { By } from '@angular/platform-browser';
 import { KbqDropdownItem } from '@koobiq/components/dropdown';
 import { KbqScrollbarViewport } from '@koobiq/components/scrollbar';
+import { KBQ_ANIMATIONS_CONFIG } from '@koobiq/components/core';
 import { DrilldownMenu } from './drilldown-menu';
 import { DrilldownMenuScreen } from './drilldown-menu-screen';
 import { DrilldownMenuList } from './drilldown-menu-list';
@@ -21,15 +22,18 @@ import { DrilldownMenuList } from './drilldown-menu-list';
         <input id="custom" />
         <div drilldownMenuList><button kbq-dropdown-item id="open-child">Child</button></div>
       </ng-template>
-      <ng-template drilldownMenuScreen="child" title="Child">
+      <ng-template drilldownMenuScreen="child" title="Child" [screenWidth]="childWidth()">
         <div drilldownMenuList><button kbq-dropdown-item id="child-item">Item</button></div>
       </ng-template>
-      <ng-template drilldownMenuScreen="third" title="Third"><p>Empty</p></ng-template>
+      <ng-template drilldownMenuScreen="third" title="Third" initialFocus="#preferred">
+        <input id="other" /><textarea id="preferred"></textarea>
+      </ng-template>
     </demo-drilldown-menu>
     <ng-container [ngTemplateOutlet]="menu.panelTemplate() ?? null" />`,
 })
 class Host {
   readonly menu = viewChild.required(DrilldownMenu);
+  readonly childWidth = signal(360);
 }
 
 describe('drilldown screens', () => {
@@ -87,5 +91,38 @@ describe('drilldown screens', () => {
     await fixture.whenStable();
     expect(menu.activeScreenId()).toBe('root');
     expect(root.querySelector<HTMLInputElement>('#custom')?.value).toBe('');
+  });
+
+  it('reacts to screen width changes while open', async () => {
+    const { fixture, menu, root } = await render();
+    menu.navigate('child');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(root.querySelector<HTMLElement>('.drilldown-panel')!.style.width).toBe('360px');
+    fixture.componentInstance.childWidth.set(400);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(root.querySelector<HTMLElement>('.drilldown-panel')!.style.width).toBe('400px');
+  });
+
+  it('respects an initial focus target in a custom form', async () => {
+    const { fixture, menu } = await render();
+    menu.navigate('third');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(document.activeElement?.id).toBe('preferred');
+  });
+
+  it('honors the Koobiq no-motion provider without delaying focus', async () => {
+    TestBed.configureTestingModule({
+      providers: [{ provide: KBQ_ANIMATIONS_CONFIG, useValue: { animationsDisabled: true } }],
+    });
+    const { fixture, menu, root } = await render();
+    menu.navigate('child');
+    fixture.detectChanges();
+    await fixture.whenStable();
+    expect(root.querySelector<HTMLElement>('.drilldown-panel')!.style.transition).toBe('none');
+    expect(document.activeElement?.id).toBe('child-item');
+    expect(root.querySelector<HTMLElement>('[data-screen="root"]')!.hidden).toBe(true);
   });
 });
