@@ -34,10 +34,10 @@
 
 **Interfaces:** `Incident` has `id`, `createdAt`, `name`, `severity`, `status`, `source`, `assignee`, `tags`, `description`. `IncidentQuery` has search/status/severity/assignee/period and `sort: {field, direction}`. `queryIncidents(rows, query, now)` returns a sorted filtered copy. `IncidentServer` accepts `{now, random, latencyMs}`, exposes `initialRows`, `catchUp()`, `read(): Promise<readonly Incident[]>`, and `offline`.
 
-- [ ] Write tests: initial length 300 and unique IDs; sort and compound filters; zero-arrival periods and bounded quiet periods; generated timestamps/IDs increase; elapsed hidden-time catch-up; failed read leaves server generation running.
-- [ ] Run `npm test -- --watch=false --include='src/demos/grid-auto-refresh/incident-server.spec.ts'`; confirm failure before implementation.
-- [ ] Implement deterministic-in-tests random generation with five-second logical ticks and a maximum quiet period of 25 seconds; favor small packets, allow rare larger bursts.
-- [ ] Run the same tests and confirm they pass; commit model/server/tests.
+- [x] Write tests: initial length 300 and unique IDs; sort and compound filters; zero-arrival periods and bounded quiet periods; generated timestamps/IDs increase; elapsed hidden-time catch-up; failed read leaves server generation running.
+- [x] Run `npm test -- --watch=false --include='src/demos/grid-auto-refresh/incident-server.spec.ts'`; confirm failure before implementation.
+- [x] Implement deterministic-in-tests random generation with five-second logical ticks and a maximum quiet period of 25 seconds; favor small packets, allow rare larger bursts.
+- [x] Run the same tests and confirm they pass; commit model/server/tests.
 
 ## Task 2: Refresh controller and scheduler
 
@@ -45,10 +45,10 @@
 
 **Interfaces:** `AutoRefreshController(server, {now})` exposes signals `snapshot`, `visibleRows`, `query`, `selectedIds`, `card`, `pendingCount`, `exactCount`, `intervalMs`, `busy`, `error`, `lastChecked`, `lastApplied`, `nextCheckAt`, `protectedMode`, `reasons`, `revision`. Methods: `start()`, `destroy()`, `poll()`, `refresh()`, `setQuery(query)`, `loadMore()`, `protect(reason)`, `setSelection(ids)`, `openCard(incident)`, `closeCard()`, `setInterval(ms)`, `setVisibility(hidden)`.
 
-- [ ] Write tests for safe automatic insertion; sticky protection; pending-ID deduplication and filter matching; frozen next-block loading; all-or-nothing selection recovery; open-card retention; non-time sort protection; failed manual refresh and query rollback; interval off/on; hidden tabs; exponential retry and restoration; concurrent request ordering; destruction.
-- [ ] Run `npm test -- --watch=false --include='src/demos/grid-auto-refresh/auto-refresh-controller.spec.ts'`; confirm failure before implementation.
-- [ ] Implement immutable applied snapshots, monotonic request IDs and a single request queue. Query changes invalidate older results. Scheduler checks elapsed generation independently, pauses polling when hidden/off, backs off to at most 120 seconds after errors, and restores the chosen interval after success.
-- [ ] Run controller/server tests and confirm they pass; commit controller/tests.
+- [x] Write tests for safe automatic insertion; sticky protection; pending-ID deduplication and filter matching; frozen next-block loading; all-or-nothing selection recovery; open-card retention; non-time sort protection; failed manual refresh and query rollback; interval off/on; hidden tabs; exponential retry and restoration; concurrent request ordering; destruction.
+- [x] Run `npm test -- --watch=false --include='src/demos/grid-auto-refresh/auto-refresh-controller.spec.ts'`; confirm failure before implementation.
+- [x] Implement immutable applied snapshots, monotonic request IDs and a single request queue. Query changes invalidate older results. Scheduler checks elapsed generation independently, pauses polling when hidden/off, backs off to at most 120 seconds after errors, and restores the chosen interval after success.
+- [x] Run controller/server tests and confirm they pass; commit controller/tests.
 
 ## Task 3: Koobiq view, integration and browser verification
 
@@ -56,11 +56,11 @@
 
 **Interfaces:** Uses Task 2 controller. Custom AG Grid title/severity/status renderers and sortable headers receive callbacks through `context`; sort applies only after a successful controller query. Grid incrementally receives `visibleRows` with stable `getRowId`, reports user scroll/selection, opens the card from the title, and adds blocks at the loaded bottom. Programmatic row updates restore selection without creating user interactions.
 
-- [ ] Add a registry integration test requiring the new demo and a view composition test for Koobiq components, Topbar-only controls, and no duplicate reset/diagnostic block; run and observe failure.
-- [ ] Resolve theme dependency against the installed public package. Keep existing design-tokens 4; if needed, use a narrowly scoped npm peer override for the theme's older tokens-3 peer declaration and verify a clean install/build rather than globally ignoring peer dependencies.
-- [ ] Implement the view from the approved Figma structure: 56 px Topbar, 40 px rows, 24 px side gutters, 480 px resizable Content Panel. Real Overflow Items moves controls into a Dropdown containing only hidden actions. Status details live in a Popover. Real ActionsPanel is scoped to the grid and uses its own Overflow Items.
-- [ ] Implement a local persistent toast surface with Koobiq button/icon, positioned over the rows below the sticky grid header. Keep pending updates off the grid data binding and preserve focus on refresh. Use polite announcements for meaningful changes, not countdown ticks.
-- [ ] Add removable Filter Bar pipes for status, severity, assignee, required period, plus text search. Revert the rendered filter state on failed query changes. Demo scenarios prepare observation/selection/card states without injecting arrivals.
-- [ ] Run `npm test -- --watch=false`, `npm run test:scripts`, `npm run build`; resolve in-scope errors and inspect the logs.
-- [ ] Start the actual Angular dev server and verify automatic arrivals, protected scroll including return-to-top, Show/Refresh, filters/sorting, selection restoration and reset, card retention, unknown count, off/on, errors/retry, infinite loading, theme switching and keyboard access. Verify overflow at narrow width and with the card open; restore temporary viewport changes.
-- [ ] Commit the verified implementation. Request one fresh-context review against the spec and Review Focus. Fix important findings, repeat the relevant checks, and return the live demo link with the actual verification results.
+- [x] Add registry and filter integration tests and observe failure before implementation. Verify real Koobiq composition, Topbar-only controls, keyboard behavior and absence of duplicate controls in the browser. A rendered jsdom check was attempted and replaced by browser verification after jsdom failed to calculate Koobiq CSS specificity (recorded in the verification report).
+- [x] Resolve theme dependency against the installed public package. Keep existing design-tokens 4; if needed, use a narrowly scoped npm peer override for the theme's older tokens-3 peer declaration and verify a clean install/build rather than globally ignoring peer dependencies.
+- [x] Implement the view from the approved Figma structure: 56 px Topbar, 40 px rows, 24 px side gutters, 480 px resizable Content Panel. Real Overflow Items moves controls into a Dropdown containing only hidden actions. Status details live in a Popover. Real ActionsPanel is scoped to the grid and uses its own Overflow Items.
+- [x] Implement a local persistent toast surface with Koobiq button/icon, positioned over the rows below the sticky grid header. Keep pending updates off the grid data binding and preserve focus on refresh. Use polite announcements for meaningful changes, not countdown ticks.
+- [x] Add removable Filter Bar pipes for status, severity, assignee, required period, plus text search. Revert the rendered filter state on failed query changes. Demo scenarios prepare observation/selection/card states without injecting arrivals.
+- [x] Run `npm test -- --watch=false`, `npm run test:scripts`, `npm run build`; resolve in-scope errors and inspect the logs.
+- [x] Start the actual Angular dev server and verify automatic arrivals, protected scroll including return-to-top, Show/Refresh, filters/sorting, selection restoration and reset, card retention, unknown count, off/on, errors/retry, infinite loading, theme switching and keyboard access. Verify overflow at narrow width and with the card open; restore temporary viewport changes.
+- [x] Commit the verified implementation. Request one fresh-context review against the spec and Review Focus. Fix important findings, repeat the relevant checks, and return the live demo link with the actual verification results.
