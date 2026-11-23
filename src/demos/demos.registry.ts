@@ -6,6 +6,12 @@ import { DemoEntry } from './demo.types';
 /** The only place where demos are wired into the app. One entry per demo. */
 export const DEMOS: readonly DemoEntry[] = [
     {
+        slug: 'grid-auto-refresh',
+        title: 'Автообновление в гриде',
+        description: 'Поток инцидентов, защищённое обновление и бесконечная прокрутка',
+        loadComponent: () => import('./grid-auto-refresh/grid-auto-refresh.demo').then(m => m.GridAutoRefreshDemo)
+    },
+    {
         slug: 'hello',
         title: 'Hello',
         description: 'Проверка каркаса: тема и компонент Koobiq',

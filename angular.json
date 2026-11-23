@@ -78,7 +78,8 @@
           "options": {
             "setupFiles": [
               "src/test-setup.ts"
-            ]
+            ],
+            "runnerConfig": "vitest.config.ts"
           }
         }
       }

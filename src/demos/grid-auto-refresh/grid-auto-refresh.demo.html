@@ -1,0 +1,98 @@
+<kbq-content-panel-container class="workspace" [opened]="!!state.card()" [width]="480" [minWidth]="320" [maxWidth]="680" [useStateSaving]="false" (openedChange)="!$event && state.closeCard()">
+    <section #list class="list" [class.has-selection]="state.selectedIds().length > 0" aria-label="Инциденты">
+        <kbq-top-bar class="topbar">
+            <div kbqTopBarContainer placement="start" class="title-container"><span kbqTopBarTitle>Инциденты <span class="total">{{ state.snapshot().length }}</span></span></div>
+            <div kbqTopBarContainer placement="end" class="controls-container">
+                <div #overflow="kbqOverflowItems" kbqOverflowItems class="controls" [debounceTime]="30">
+                    @for (control of controls; track control) {
+                        <div [kbqOverflowItem]="control" [alwaysVisible]="control === 'state'"><ng-container *ngTemplateOutlet="controlTemplate; context: { $implicit: control }" /></div>
+                    }
+                    @if (overflow.hiddenItemIDs().size) {
+                        <button kbq-button kbqOverflowItemsResult [kbqDropdownTriggerFor]="moreControls">Ещё <i kbq-icon="kbq-chevron-down-s_16"></i></button>
+                    }
+                    <kbq-dropdown #moreControls="kbqDropdown">
+                        @for (control of controls; track control) {
+                            @if (overflow.hiddenItemIDs().has(control)) {
+                                <ng-container *ngTemplateOutlet="menuControlTemplate; context: { $implicit: control }" />
+                            }
+                        }
+                    </kbq-dropdown>
+                </div>
+            </div>
+        </kbq-top-bar>
+        <div class="filters" (focusin)="state.protect('Работа с фильтрами')">
+            <kbq-filter-bar [filter]="filter()" [pipeTemplates]="templates" [useStateSaving]="false" (filterChange)="filterChanged($event)">
+                <kbq-filters [filters]="savedFilters" />
+                @for (pipe of filter().pipes; track pipe) { <ng-container *kbqPipe="pipe" /> }
+                <kbq-pipe-add />
+            </kbq-filter-bar>
+        </div>
+        <div class="grid-wrap">
+            <ag-grid-angular kbqAgGridTheme [columnDefs]="columns" [defaultColDef]="defaults" [context]="context" [getRowId]="getRowId" [rowSelection]="selection" [rowHeight]="40" [headerHeight]="40" [animateRows]="false" [loading]="false" [localeText]="localeText" [suppressCellFocus]="false" [suppressScrollOnNewData]="true" [overlayNoRowsTemplate]="'<span>Инциденты не найдены</span>'" (gridReady)="gridReady($event)" (selectionChanged)="selectionChanged($event)" (bodyScroll)="scrolled($event)" />
+            @if (state.pendingCount()) {
+                <div class="new-records" role="region" aria-label="Новые инциденты"><i kbq-icon="kbq-arrow-up_16"></i><span aria-live="polite">{{ state.pendingText() }}</span><button kbq-button [color]="'contrast'" [kbqStyle]="'transparent'" [disabled]="state.busy()" (click)="state.refresh()">Показать</button></div>
+            }
+            @if (state.error()) { <div class="error-message" role="status">{{ state.error() }}. {{ state.intervalMs() ? 'Повторим автоматически' : 'Автообновление выключено' }}</div> }
+            @if (feedback()) { <div class="action-feedback" role="status">{{ feedback() }}</div> }
+        </div>
+    </section>
+    <kbq-content-panel>
+            <kbq-content-panel-header>
+                <div kbqContentPanelHeaderTitle class="card-title">{{ state.card()?.name }}</div>
+                @if (state.card(); as card) { <div class="card-caption">{{ card.id }} · {{ card.createdAt | date:'dd.MM.yyyy HH:mm:ss' }}</div> }
+                <div class="card-actions"><button kbq-button (click)="notify('Назначение ответственного: ' + state.card()?.id)">Назначить</button><button kbq-button (click)="notify('Изменение статуса: ' + state.card()?.id)">Изменить статус</button></div>
+            </kbq-content-panel-header>
+            <kbq-content-panel-body>
+            @if (state.card(); as card) {
+                <div class="card-body">
+                    <dl><dt>Критичность</dt><dd [class.critical]="card.severity === 4">{{ severityLabels[card.severity] }}</dd><dt>Статус</dt><dd>{{ statusLabels[card.status] }}</dd><dt>Ответственный</dt><dd>{{ card.assignee }}</dd><dt>Источник</dt><dd>{{ card.source }}</dd><dt>Тип</dt><dd>Инцидент информационной безопасности</dd></dl>
+                    <h3>Описание</h3><p>{{ card.description }}</p>
+                    <h3>Метки</h3><div class="tags">@for (tag of card.tags; track tag) { <span>{{ tag }}</span> }</div>
+                </div>
+            }
+            </kbq-content-panel-body>
+    </kbq-content-panel>
+</kbq-content-panel-container>
+
+<ng-template #controlTemplate let-control>
+    @switch (control) {
+        @case ('interval') { <button kbq-button [kbqDropdownTriggerFor]="intervalMenu"><i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }} <i kbq-icon="kbq-chevron-down-s_16"></i></button> }
+        @case ('refresh') { <button kbq-button [disabled]="state.busy()" (click)="state.refresh()"><i kbq-icon="kbq-arrow-rotate-right_16"></i>{{ state.busy() ? 'Обновление…' : 'Обновить' }}</button> }
+        @case ('count') { <button kbq-button [kbqDropdownTriggerFor]="countMenu">{{ state.exactCount() ? 'Точное число' : 'Без числа' }} <i kbq-icon="kbq-chevron-down-s_16"></i></button> }
+        @case ('error') { <button kbq-button [disabled]="server.offline" (click)="server.offline = true">Ошибка связи</button> }
+        @case ('recover') { <button kbq-button [disabled]="!server.offline" (click)="server.offline = false; state.poll()">Восстановить связь</button> }
+        @case ('scenario') { <button kbq-button [kbqDropdownTriggerFor]="scenarioMenu">Сценарий <i kbq-icon="kbq-chevron-down-s_16"></i></button> }
+        @case ('state') { <button kbq-button kbqPopover [kbqTrigger]="'click'" [kbqPopoverHeader]="'Состояние автообновления'" [kbqPopoverContent]="stateDetails" [kbqPopoverSize]="'medium'" [class.critical]="state.error()"><span class="state-dot" [class.protected]="state.protectedMode()"></span>Состояние</button> }
+    }
+</ng-template>
+<ng-template #menuControlTemplate let-control>
+    @switch (control) {
+        @case ('interval') { <button kbq-dropdown-item [kbqDropdownTriggerFor]="intervalMenu"><i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }} <i kbq-icon="kbq-chevron-down-s_16"></i></button> }
+        @case ('refresh') { <button kbq-dropdown-item [disabled]="state.busy()" (click)="state.refresh()"><i kbq-icon="kbq-arrow-rotate-right_16"></i>{{ state.busy() ? 'Обновление…' : 'Обновить' }}</button> }
+        @case ('count') { <button kbq-dropdown-item [kbqDropdownTriggerFor]="countMenu">{{ state.exactCount() ? 'Точное число' : 'Без числа' }} <i kbq-icon="kbq-chevron-down-s_16"></i></button> }
+        @case ('error') { <button kbq-dropdown-item [disabled]="server.offline" (click)="server.offline = true">Ошибка связи</button> }
+        @case ('recover') { <button kbq-dropdown-item [disabled]="!server.offline" (click)="server.offline = false; state.poll()">Восстановить связь</button> }
+        @case ('scenario') { <button kbq-dropdown-item [kbqDropdownTriggerFor]="scenarioMenu">Сценарий <i kbq-icon="kbq-chevron-down-s_16"></i></button> }
+        @case ('state') { <button kbq-dropdown-item kbqPopover [kbqTrigger]="'click'" [kbqPopoverHeader]="'Состояние автообновления'" [kbqPopoverContent]="stateDetails" [kbqPopoverSize]="'medium'" [class.critical]="state.error()"><span class="state-dot" [class.protected]="state.protectedMode()"></span>Состояние</button> }
+    }
+</ng-template>
+<kbq-dropdown #intervalMenu="kbqDropdown">
+    @for (ms of intervals; track ms) { <button kbq-dropdown-item (click)="state.setInterval(ms)">{{ state.intervalMs() === ms ? '✓ ' : '' }}{{ intervalLabel(ms) }}</button> }
+</kbq-dropdown>
+<kbq-dropdown #countMenu="kbqDropdown"><button kbq-dropdown-item (click)="state.exactCount.set(true)">{{ state.exactCount() ? '✓ ' : '' }}Точное число новых</button><button kbq-dropdown-item (click)="state.exactCount.set(false)">{{ !state.exactCount() ? '✓ ' : '' }}Без точного числа</button></kbq-dropdown>
+<kbq-dropdown #scenarioMenu="kbqDropdown"><button kbq-dropdown-item (click)="scenario('observe')">Наблюдение за поступлениями</button><button kbq-dropdown-item (click)="scenario('select')">Работа с выбранными строками</button><button kbq-dropdown-item (click)="scenario('card')">Просмотр инцидента</button></kbq-dropdown>
+<ng-template #stateDetails>
+    <div class="state-details"><strong>{{ state.protectedMode() ? 'Защищённый режим' : 'Режим наблюдения' }}</strong><p>{{ state.intervalMs() ? 'Проверка: ' + intervalLabel(state.intervalMs()).toLowerCase() : 'Автообновление выключено' }}</p>
+        @for (reason of state.reasons(); track reason) { <p>{{ reason }}</p> }
+        <p>Последняя проверка: {{ state.lastChecked() ? (state.lastChecked() | date:'HH:mm:ss') : 'ещё не выполнялась' }}</p><p>Следующая проверка: {{ state.secondsUntilCheck() === null ? 'выключена' : 'через ' + state.secondsUntilCheck() + ' с' }}</p>
+        @if (state.error()) { <p class="critical">{{ state.error() }}</p> }
+    </div>
+</ng-template>
+<ng-template #actionsPanel>
+    <div #actionOverflow="kbqOverflowItems" kbqOverflowItems class="selection-actions">
+        <span [kbqOverflowItem]="'counter'" [alwaysVisible]="true" class="selection-count">Выбрано: {{ state.selectedIds().length }}</span>
+        @for (action of actions; track action) { <div [kbqOverflowItem]="action"><button kbq-button [color]="'contrast'" (click)="acknowledge(action)">{{ action }}</button></div> }
+        @if (actionOverflow.hiddenItemIDs().size) { <button kbq-button kbqOverflowItemsResult [color]="'contrast'" [kbqDropdownTriggerFor]="moreActions">Ещё <i kbq-icon="kbq-chevron-down-s_16"></i></button> }
+        <kbq-dropdown #moreActions="kbqDropdown">@for (action of actions; track action) { @if (actionOverflow.hiddenItemIDs().has(action)) { <button kbq-dropdown-item (click)="acknowledge(action)">{{ action }}</button> } }</kbq-dropdown>
+    </div>
+</ng-template>
