@@ -31,11 +31,14 @@ describe('auto-refresh controller', () => {
     const { controller: c, append } = setup();
     expect(c.visibleRows()).toHaveLength(50);
     expect(c.snapshot()).toHaveLength(300);
+    expect(c.newlyAppliedIds()).toEqual([]);
     append();
     await c.poll();
     expect(c.snapshot()).toHaveLength(303);
     expect(c.visibleRows()[0].id).toBe('INC-10303');
     expect(c.pendingCount()).toBe(0);
+    expect(c.newlyAppliedIds()).toHaveLength(3);
+    expect(c.newlyAppliedIds()).toContain('INC-10303');
   });
 
   it('latches protection after scrolling and deduplicates repeated discoveries', async () => {
@@ -51,6 +54,21 @@ describe('auto-refresh controller', () => {
     c.loadMore();
     expect(c.visibleRows()).toHaveLength(100);
     expect(c.visibleRows().every((row) => Number(row.id.slice(4)) <= 10300)).toBe(true);
+  });
+
+  it('marks only newly applied rows in the first block and never flashes subsequent loading', async () => {
+    const { controller: c, append } = setup();
+    c.protect('Прокрутка таблицы');
+    append(80);
+    await c.poll();
+    expect(c.newlyAppliedIds()).toEqual([]);
+    await c.refresh();
+    expect(c.newlyAppliedIds()).toHaveLength(50);
+    expect(c.newlyAppliedIds()).toEqual(c.visibleRows().map((row) => row.id));
+    c.loadMore();
+    expect(c.newlyAppliedIds()).toHaveLength(50);
+    await c.refresh();
+    expect(c.newlyAppliedIds()).toEqual([]);
   });
 
   it('only counts new records matching active filters', async () => {

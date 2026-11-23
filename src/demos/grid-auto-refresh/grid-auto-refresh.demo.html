@@ -9,7 +9,6 @@
   (openedChange)="!$event && state.closeCard()"
 >
   <section
-    #list
     class="list"
     [attr.inert]="compactCard() && state.card() ? '' : null"
     [class.with-card]="!!state.card()"
@@ -30,7 +29,13 @@
             </div>
           }
           @if (overflow.hiddenItemIDs().size) {
-            <button kbq-button kbqOverflowItemsResult [kbqDropdownTriggerFor]="moreControls">
+            <button
+              kbq-button
+              [kbqStyle]="'transparent'"
+              [color]="'contrast'"
+              kbqOverflowItemsResult
+              [kbqDropdownTriggerFor]="moreControls"
+            >
               Ещё <i kbq-icon="kbq-chevron-down-s_16"></i>
             </button>
           }
@@ -60,12 +65,26 @@
         <kbq-pipe-add />
       </kbq-filter-bar>
     </div>
-    <div class="grid-wrap">
+    <div
+      #gridArea
+      class="grid-wrap"
+      (pointerdown)="cancelReturnScroll()"
+      (wheel)="cancelReturnScroll()"
+      (touchstart)="cancelReturnScroll()"
+      (keydown)="cancelReturnScroll()"
+    >
       <span class="visually-hidden" aria-live="polite" aria-atomic="true">{{
         state.pendingCount() ? state.pendingText() : ''
       }}</span>
       <ag-grid-angular
         kbqAgGridTheme
+        kbqAgGridThemeDisableCellFocusStyles
+        [rowClassRules]="rowClasses"
+        [getRowStyle]="arrivalStyle"
+        [postSortRows]="keepAppliedOrder"
+        [suppressMultiSort]="true"
+        (sortChanged)="sortChanged($event)"
+        (rowClicked)="rowClicked($event)"
         [columnDefs]="columns"
         [defaultColDef]="defaults"
         [context]="context"
@@ -82,10 +101,11 @@
         (gridReady)="gridReady($event)"
         (selectionChanged)="selectionChanged($event)"
         (bodyScroll)="scrolled($event)"
+        (bodyScrollEnd)="scrollEnded($event)"
       />
       @if (state.pendingCount()) {
         <div class="new-records" role="region" aria-label="Новые инциденты">
-          <i kbq-icon="kbq-arrow-up_16"></i><span aria-live="polite">{{ state.pendingText() }}</span
+          <i kbq-icon="kbq-arrow-up_16"></i><span>{{ state.pendingText() }}</span
           ><button
             kbq-button
             [color]="'contrast'"
@@ -112,9 +132,7 @@
     <kbq-content-panel-header>
       <div kbqContentPanelHeaderTitle class="card-title">{{ state.card()?.name }}</div>
       @if (state.card(); as card) {
-        <div class="card-caption">
-          {{ card.id }} · {{ card.createdAt | date: 'dd.MM.yyyy HH:mm:ss' }}
-        </div>
+        <div class="card-caption">{{ card.id }} · {{ formatDate(card.createdAt) }}</div>
       }
       <div class="card-actions">
         <button kbq-button (click)="notify('Назначение ответственного: ' + state.card()?.id)">
@@ -156,30 +174,55 @@
 <ng-template #controlTemplate let-control>
   @switch (control) {
     @case ('interval') {
-      <button kbq-button [kbqDropdownTriggerFor]="intervalMenu">
+      <button
+        kbq-button
+        [kbqStyle]="'transparent'"
+        [color]="'contrast'"
+        [kbqDropdownTriggerFor]="intervalMenu"
+      >
         <i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }}
         <i kbq-icon="kbq-chevron-down-s_16"></i>
       </button>
     }
     @case ('refresh') {
-      <button kbq-button [disabled]="state.busy()" data-control="refresh" (click)="state.refresh()">
+      <button
+        kbq-button
+        [kbqStyle]="'transparent'"
+        [color]="'contrast'"
+        [disabled]="state.busy()"
+        data-control="refresh"
+        (click)="state.refresh()"
+      >
         <i kbq-icon="kbq-arrow-rotate-right_16"></i>{{ state.busy() ? 'Обновление…' : 'Обновить' }}
       </button>
     }
     @case ('count') {
-      <button kbq-button [kbqDropdownTriggerFor]="countMenu">
+      <button
+        kbq-button
+        [kbqStyle]="'transparent'"
+        [color]="'contrast'"
+        [kbqDropdownTriggerFor]="countMenu"
+      >
         {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
         <i kbq-icon="kbq-chevron-down-s_16"></i>
       </button>
     }
     @case ('error') {
-      <button kbq-button [disabled]="server.offline" (click)="server.offline = true">
+      <button
+        kbq-button
+        [kbqStyle]="'transparent'"
+        [color]="'contrast'"
+        [disabled]="server.offline"
+        (click)="server.offline = true"
+      >
         Ошибка связи
       </button>
     }
     @case ('recover') {
       <button
         kbq-button
+        [kbqStyle]="'transparent'"
+        [color]="'contrast'"
         [disabled]="!server.offline"
         (click)="server.offline = false; state.poll()"
       >
@@ -187,13 +230,20 @@
       </button>
     }
     @case ('scenario') {
-      <button kbq-button [kbqDropdownTriggerFor]="scenarioMenu">
+      <button
+        kbq-button
+        [kbqStyle]="'transparent'"
+        [color]="'contrast'"
+        [kbqDropdownTriggerFor]="scenarioMenu"
+      >
         Сценарий <i kbq-icon="kbq-chevron-down-s_16"></i>
       </button>
     }
     @case ('state') {
       <button
         kbq-button
+        [kbqStyle]="'transparent'"
+        [color]="'contrast'"
         kbqPopover
         [kbqTrigger]="'click'"
         [kbqPopoverHeader]="'Состояние автообновления'"
@@ -298,7 +348,7 @@
     }
     <p>
       Последняя проверка:
-      {{ state.lastChecked() ? (state.lastChecked() | date: 'HH:mm:ss') : 'ещё не выполнялась' }}
+      {{ formatDate(state.lastChecked()) }}
     </p>
     <p>
       Следующая проверка:

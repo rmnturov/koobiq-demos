@@ -12,6 +12,7 @@ const BLOCK_SIZE = 50;
 type RequestKind = 'poll' | 'refresh' | 'query';
 
 export class AutoRefreshController {
+  readonly newlyAppliedIds = signal<readonly string[]>([]);
   readonly snapshot = signal<readonly Incident[]>([]);
   readonly query = signal<IncidentQuery>(DEFAULT_QUERY);
   readonly selectedIds = signal<readonly string[]>([]);
@@ -187,6 +188,14 @@ export class AutoRefreshController {
 
   private applySnapshot(rows: readonly Incident[], query: IncidentQuery): void {
     const next = queryIncidents(rows, query, this.now());
+    this.newlyAppliedIds.set(
+      this.appliedIds.size
+        ? next
+            .slice(0, BLOCK_SIZE)
+            .filter((row) => !this.appliedIds.has(row.id))
+            .map((row) => row.id)
+        : [],
+    );
     const loadedIds = new Set(next.slice(0, BLOCK_SIZE).map((row) => row.id));
     const selection = this.selectedIds();
     if (!selection.every((id) => loadedIds.has(id))) this.selectedIds.set([]);

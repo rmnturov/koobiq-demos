@@ -1,4 +1,4 @@
-import { NgTemplateOutlet, DatePipe } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -13,6 +13,7 @@ import {
   TemplateRef,
   viewChild,
 } from '@angular/core';
+import { KbqLuxonDateModule } from '@koobiq/angular-luxon-adapter/adapter';
 import { KbqAgGridThemeModule } from '@koobiq/ag-grid-angular-theme';
 import {
   KbqActionsPanel,
@@ -32,21 +33,21 @@ import { AgGridAngular } from 'ag-grid-angular';
 import {
   AllCommunityModule,
   BodyScrollEvent,
+  BodyScrollEndEvent,
   ColDef,
   GridApi,
   GridReadyEvent,
   ModuleRegistry,
   RowSelectionOptions,
   SelectionChangedEvent,
+  SortChangedEvent,
+  RowClickedEvent,
+  RowClassRules,
+  PostSortRowsParams,
 } from 'ag-grid-community';
 import { AutoRefreshController } from './auto-refresh-controller';
 import { FILTER_TEMPLATES, IncidentFilters, filterFromQuery } from './incident-filters';
-import {
-  IncidentGridContext,
-  IncidentSortHeader,
-  IncidentTitleCell,
-  IncidentSeverityCell,
-} from './incident-grid-cells';
+import { IncidentGridContext, IncidentIdCell, IncidentSeverityCell } from './incident-grid-cells';
 import {
   DEFAULT_QUERY,
   Incident,
@@ -62,7 +63,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   selector: 'grid-auto-refresh-demo',
   imports: [
     NgTemplateOutlet,
-    DatePipe,
+    KbqLuxonDateModule,
     AgGridAngular,
     KbqAgGridThemeModule,
     KbqActionsPanelModule,
@@ -132,30 +133,35 @@ export class GridAutoRefreshDemo {
     loadingOoo: 'Загрузка…',
     noRowsToShow: 'Инциденты не найдены',
   };
+  readonly rowClasses: RowClassRules<Incident> = {
+    'incident-new-row': ({ data }) =>
+      !!data &&
+      Date.now() - (this.state.lastApplied() ?? 0) < 2000 &&
+      this.state.newlyAppliedIds().includes(data.id),
+  };
+  readonly arrivalStyle = () => ({
+    '--incident-arrival-progress': `${-Math.max(0, Date.now() - (this.state.lastApplied() ?? 0))}ms`,
+  });
+  private readonly appliedOrder = computed(
+    () => new Map(this.state.snapshot().map((row, index) => [row.id, index])),
+  );
+  // Native headers request sorting; rows keep the applied server order until the query succeeds.
+  readonly keepAppliedOrder = ({ nodes }: PostSortRowsParams<Incident>): void => {
+    const order = this.appliedOrder();
+    nodes.sort((a, b) => (order.get(a.id!) ?? 0) - (order.get(b.id!) ?? 0));
+  };
   readonly getRowId = ({ data }: { data: Incident }) => data.id;
   readonly defaults: ColDef<Incident> = {
-    sortable: false,
+    sortable: true,
+    sortingOrder: ['desc', 'asc'],
     resizable: true,
-    headerComponent: IncidentSortHeader,
     minWidth: 110,
-    suppressHeaderKeyboardEvent: ({ event, column }) => {
-      if (
-        (event.key === 'Enter' || event.key === ' ') &&
-        'getColId' in column &&
-        !(event.target instanceof HTMLButtonElement)
-      ) {
-        event.preventDefault();
-        this.sortField(column.getColId() as IncidentSortField);
-        return true;
-      }
-      return false;
-    },
     suppressKeyboardEvent: ({ event, colDef, data }) => {
       if (
         event.key === 'Enter' &&
-        colDef.field === 'name' &&
+        colDef.field !== undefined &&
         data &&
-        !(event.target instanceof HTMLButtonElement)
+        !(event.target instanceof Element && event.target.closest('a, button, input'))
       ) {
         event.preventDefault();
         this.state.openCard(data);
@@ -165,20 +171,8 @@ export class GridAutoRefreshDemo {
     },
   };
   readonly columns: ColDef<Incident>[] = [
-    {
-      field: 'createdAt',
-      headerName: 'Время создания',
-      width: 184,
-      valueFormatter: ({ value }) => this.formatDate(value),
-    },
-    { field: 'id', headerName: 'ID', width: 128 },
-    {
-      field: 'name',
-      headerName: 'Название',
-      minWidth: 300,
-      flex: 1,
-      cellRenderer: IncidentTitleCell,
-    },
+    { field: 'id', headerName: 'ID', width: 132, cellRenderer: IncidentIdCell },
+    { field: 'name', headerName: 'Название', minWidth: 280, flex: 1 },
     {
       field: 'severity',
       headerName: 'Критичность',
@@ -197,11 +191,20 @@ export class GridAutoRefreshDemo {
       valueFormatter: ({ data }) => (data ? STATUS_LABELS[data.status] : ''),
     },
     { field: 'source', headerName: 'Источник', width: 185 },
+    {
+      field: 'createdAt',
+      headerName: 'Время создания',
+      width: 200,
+      sort: 'desc',
+      valueFormatter: ({ value }) => this.formatDate(value),
+    },
   ];
   private readonly grid = signal<GridApi<Incident> | null>(null);
   private readonly injector = inject(Injector);
   private readonly panelService = inject(KbqActionsPanel);
-  private readonly list = viewChild<ElementRef<HTMLElement>>('list');
+  private readonly gridArea = viewChild<ElementRef<HTMLElement>>('gridArea');
+  private readonly dateFormatter = inject<DateFormatter<unknown>>(DateFormatter);
+  private returningToTop = false;
   private readonly panelTemplate = viewChild<TemplateRef<unknown>>('actionsPanel');
   private panelRef: KbqActionsPanelRef | null = null;
   private syncing = false;
@@ -235,6 +238,10 @@ export class GridAutoRefreshDemo {
       const revision = this.state.revision();
       if (!api || api.isDestroyed()) return;
       this.syncing = true;
+      if (revision !== this.appliedRevision) {
+        this.returningToTop =
+          (this.gridArea()?.nativeElement.querySelector('.ag-body-viewport')?.scrollTop ?? 0) > 0;
+      }
       api.setGridOption('rowData', [...rows]);
       api.forEachNode((node) => node.setSelected(!!node.id && ids.has(node.id)));
       const sort = this.state.query().sort;
@@ -245,7 +252,11 @@ export class GridAutoRefreshDemo {
       api.refreshHeader();
       if (revision !== this.appliedRevision) {
         this.appliedRevision = revision;
-        if (rows.length) api.ensureIndexVisible(0, 'top');
+        const viewport =
+          this.gridArea()?.nativeElement.querySelector<HTMLElement>('.ag-body-viewport');
+        if (this.returningToTop && viewport) {
+          afterNextRender(() => this.scrollToBeginning(viewport), { injector: this.injector });
+        } else if (rows.length) api.ensureIndexVisible(0, 'top');
       }
       this.syncing = false;
     });
@@ -254,7 +265,7 @@ export class GridAutoRefreshDemo {
       if (!this.ready()) return;
       if (selected && !this.panelRef) {
         const template = this.panelTemplate();
-        const host = this.list();
+        const host = this.gridArea();
         if (template && host) {
           const ref = this.panelService.open(template, {
             overlayContainer: host,
@@ -294,15 +305,46 @@ export class GridAutoRefreshDemo {
       { injector: this.injector },
     );
   }
-  sortField(field: IncidentSortField): void {
-    const query = this.state.query();
-    void this.state.setQuery({
-      ...query,
-      sort: {
-        field,
-        direction: query.sort.field === field && query.sort.direction === 'desc' ? 'asc' : 'desc',
-      },
+  sortChanged(event: SortChangedEvent<Incident>): void {
+    if (this.syncing) return;
+    const next = event.api.getColumnState().find((column) => column.sort);
+    if (!next?.sort) return;
+    const applied = this.state.query();
+    if (next.colId === applied.sort.field && next.sort === applied.sort.direction) return;
+    this.syncing = true;
+    event.api.applyColumnState({
+      state: [{ colId: applied.sort.field, sort: applied.sort.direction }],
+      defaultState: { sort: null },
     });
+    this.syncing = false;
+    void this.state.setQuery({
+      ...applied,
+      sort: { field: next.colId as IncidentSortField, direction: next.sort },
+    });
+  }
+  rowClicked(event: RowClickedEvent<Incident>): void {
+    const target = event.event?.target;
+    if (target instanceof Element && target.closest('a, button, input, .ag-selection-checkbox'))
+      return;
+    if (event.data) this.state.openCard(event.data);
+  }
+  private scrollToBeginning(viewport: HTMLElement): void {
+    if (!this.returningToTop) return;
+    if (viewport.scrollTop <= 1) {
+      this.cancelReturnScroll();
+      return;
+    }
+    // CSS scroll-behavior breaks AG Grid's synchronous ensureIndexVisible loop; animate only this return.
+    viewport.scrollTo({
+      top: 0,
+      behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth',
+    });
+  }
+  scrollEnded(event: BodyScrollEndEvent): void {
+    if (event.direction === 'vertical') this.cancelReturnScroll();
+  }
+  cancelReturnScroll(): void {
+    this.returningToTop = false;
   }
   gridReady(event: GridReadyEvent<Incident>): void {
     this.grid.set(event.api);
@@ -313,6 +355,10 @@ export class GridAutoRefreshDemo {
   }
   scrolled(event: BodyScrollEvent<Incident>): void {
     if (this.syncing) return;
+    if (this.returningToTop && event.direction === 'vertical') {
+      if (event.top <= 1) this.cancelReturnScroll();
+      return;
+    }
     if (event.direction === 'horizontal') {
       if (event.left > 0) this.state.protect('Прокрутка списка');
       return;
@@ -349,13 +395,11 @@ export class GridAutoRefreshDemo {
     clearTimeout(this.feedbackTimer);
     this.feedbackTimer = setTimeout(() => this.feedback.set(''), 4000);
   }
-  formatDate(value: number): string {
-    return new Intl.DateTimeFormat('ru-RU', {
-      day: '2-digit',
-      month: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
-    }).format(value);
+  formatDate(value: number | null): string {
+    return value === null
+      ? 'ещё не выполнялась'
+      : this.dateFormatter.absoluteShortDateTime(this.dateFormatter.adapter.parse(value, null), {
+          seconds: true,
+        });
   }
 }

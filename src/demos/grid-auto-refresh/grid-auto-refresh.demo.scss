@@ -63,8 +63,51 @@ ag-grid-angular {
   width: 100%;
   --ag-row-border-color: var(--kbq-line-contrast-less);
 }
-.has-selection .grid-wrap {
-  padding-bottom: 72px;
+.with-card .grid-wrap {
+  margin-inline-end: var(--kbq-size-s);
+}
+// The documented ActionsPanel pattern reserves room inside the viewport, under the floating panel.
+.has-selection ::ng-deep .ag-body-viewport {
+  padding-block-end: 72px;
+}
+:host ::ng-deep .ag-body-viewport {
+  overscroll-behavior: contain;
+}
+:host ::ng-deep .incident-new-row {
+  isolation: isolate;
+}
+:host ::ng-deep .incident-new-row::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: var(--kbq-background-theme-less);
+  animation: incident-arrival-fade 2000ms linear var(--incident-arrival-progress) both;
+}
+@keyframes incident-arrival-fade {
+  0%,
+  90% {
+    opacity: 1;
+    animation-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  :host ::ng-deep .incident-new-row::after {
+    animation-name: incident-arrival-static;
+  }
+}
+@keyframes incident-arrival-static {
+  0%,
+  99.99% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
 }
 .new-records {
   position: absolute;
