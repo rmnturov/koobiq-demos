@@ -206,7 +206,7 @@ export class GridAutoRefreshDemo {
       lockPosition: 'left',
       suppressMovable: true,
     },
-    { field: 'name', headerName: 'Название', minWidth: 280, flex: 1 },
+    { field: 'name', headerName: 'Название', width: 240 },
     {
       field: 'severity',
       headerName: 'Критичность',
