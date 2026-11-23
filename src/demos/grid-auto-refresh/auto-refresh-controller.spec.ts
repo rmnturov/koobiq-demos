@@ -206,13 +206,13 @@ describe('auto-refresh controller', () => {
       .mockRejectedValueOnce(new Error('offline'))
       .mockRejectedValueOnce(new Error('offline'));
     await c.poll();
-    expect(c.nextCheckAt()).toBe(origin + 30000);
+    expect(c.nextCheckAt()).toBe(origin + 10000);
     await c.poll();
-    expect(c.nextCheckAt()).toBe(origin + 60000);
+    expect(c.nextCheckAt()).toBe(origin + 20000);
     advance(1000);
     await c.poll();
     expect(c.error()).toBeNull();
-    expect(c.nextCheckAt()).toBe(origin + 16000);
+    expect(c.nextCheckAt()).toBe(origin + 6000);
   });
 
   it('ignores an older response and serializes the latest query', async () => {

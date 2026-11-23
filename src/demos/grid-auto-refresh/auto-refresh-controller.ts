@@ -19,7 +19,7 @@ export class AutoRefreshController {
   readonly card = signal<Incident | null>(null);
   readonly pendingCount = signal(0);
   readonly exactCount = signal(true);
-  readonly intervalMs = signal(15000);
+  readonly intervalMs = signal(5000);
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
   readonly lastChecked = signal<number | null>(null);
