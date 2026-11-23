@@ -41,6 +41,17 @@ export function findDrilldownList(element: HTMLElement | null): DrilldownMenuLis
   return element ? lists.get(element) : undefined;
 }
 
+function getDrilldownContentInsets(target: HTMLElement): { top: number; bottom: number } {
+  const content = target.closest<HTMLElement>('.drilldown-content');
+  if (!content) return { top: 0, bottom: 0 };
+
+  const style = getComputedStyle(content);
+  return {
+    top: Number.parseFloat(style.paddingTop) || 0,
+    bottom: Number.parseFloat(style.paddingBottom) || 0,
+  };
+}
+
 export function revealDrilldownTarget(
   viewport: KbqScrollbarViewport | undefined,
   target: HTMLElement,
@@ -55,10 +66,14 @@ export function revealDrilldownTarget(
   }
   const bounds = body.getBoundingClientRect();
   const item = target.getBoundingClientRect();
-  if (item.top < bounds.top) viewport.scrollToElement(target, { behavior });
-  else if (item.bottom > bounds.bottom)
+  const insets = getDrilldownContentInsets(target);
+  const scrollportTop = bounds.top + body.clientTop;
+  const scrollportBottom = scrollportTop + body.clientHeight;
+  if (item.top < scrollportTop + insets.top)
+    viewport.scrollToElement(target, { top: insets.top, behavior });
+  else if (item.bottom > scrollportBottom - insets.bottom)
     viewport.scrollToElement(target, {
-      top: body.clientHeight - target.offsetHeight,
+      top: Math.max(0, body.clientHeight - target.offsetHeight - insets.bottom),
       behavior,
     });
 }
@@ -170,7 +185,10 @@ export class DrilldownMenuList {
         preventScroll: true,
       });
 
-    this.scrollToElement(firstVisible.item.getHostElement());
+    this.scrollToElement(
+      firstVisible.item.getHostElement(),
+      getDrilldownContentInsets(firstVisible.item.getHostElement()).top,
+    );
   }
 
   focusInitial(selector?: string): void {
@@ -267,7 +285,7 @@ export class DrilldownMenuList {
     }
   }
 
-  private scrollToElement(target: HTMLElement): void {
+  private scrollToElement(target: HTMLElement, topGap = 0): void {
     const viewport = this.viewport;
     if (!viewport) return;
 
@@ -279,7 +297,7 @@ export class DrilldownMenuList {
       0,
       Math.min(
         body.scrollHeight - body.clientHeight,
-        start + target.getBoundingClientRect().top - viewportTop - body.clientTop,
+        start + target.getBoundingClientRect().top - viewportTop - body.clientTop - topGap,
       ),
     );
     if (Math.abs(targetTop - start) < 1) return;
