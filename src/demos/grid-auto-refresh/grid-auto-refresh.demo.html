@@ -18,9 +18,10 @@
     >
       <kbq-top-bar class="topbar">
         <div kbqTopBarContainer placement="start" class="title-container">
-          <span kbqTopBarTitle
-            >Инциденты <span class="total">{{ state.snapshot().length }}</span></span
-          >
+          <span kbqTopBarTitle class="incident-title">
+            <span>Инциденты</span>
+            <span class="total">{{ state.snapshot().length }}</span>
+          </span>
         </div>
         <div kbqTopBarContainer placement="end" class="controls-container">
           <div #overflow="kbqOverflowItems" kbqOverflowItems class="controls" [debounceTime]="30">

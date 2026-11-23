@@ -238,11 +238,14 @@ p {
   }
 }
 
+.incident-title {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--kbq-size-xs);
+  white-space: nowrap;
+}
 .total {
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--kbq-foreground-contrast-secondary);
-  padding-left: 8px;
+  color: var(--kbq-foreground-contrast-tertiary);
 }
 .card-actions {
   display: flex;
