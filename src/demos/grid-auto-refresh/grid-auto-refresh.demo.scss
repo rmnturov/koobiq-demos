@@ -73,6 +73,9 @@
   width: 100%;
   justify-content: flex-start;
 }
+.menu-radio-item[aria-checked='false'] .menu-radio-marker {
+  visibility: hidden;
+}
 .filters {
   flex: none;
   padding: 0 24px 16px;

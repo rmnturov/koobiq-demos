@@ -47,7 +47,11 @@
                 @if (overflow.hiddenItemIDs().has(control)) {
                   @switch (control) {
                     @case ('interval') {
-                      <button kbq-dropdown-item [kbqDropdownTriggerFor]="intervalMenu">
+                      <button
+                        kbq-dropdown-item
+                        aria-haspopup="menu"
+                        [kbqDropdownTriggerFor]="intervalMenu"
+                      >
                         <i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }}
                       </button>
                     }
@@ -64,7 +68,11 @@
                       </button>
                     }
                     @case ('count') {
-                      <button kbq-dropdown-item [kbqDropdownTriggerFor]="countMenu">
+                      <button
+                        kbq-dropdown-item
+                        aria-haspopup="menu"
+                        [kbqDropdownTriggerFor]="countMenu"
+                      >
                         {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
                       </button>
                     }
@@ -239,6 +247,7 @@
         kbq-button
         [kbqStyle]="'transparent'"
         [color]="'contrast'"
+        aria-haspopup="menu"
         [kbqDropdownTriggerFor]="intervalMenu"
       >
         <i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }}
@@ -264,6 +273,7 @@
         kbq-button
         [kbqStyle]="'transparent'"
         [color]="'contrast'"
+        aria-haspopup="menu"
         [kbqDropdownTriggerFor]="countMenu"
       >
         {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
@@ -306,19 +316,48 @@
 </ng-template>
 
 <kbq-dropdown #intervalMenu="kbqDropdown">
-  @for (ms of intervals; track ms) {
-    <button kbq-dropdown-item (click)="state.setInterval(ms)">
-      {{ state.intervalMs() === ms ? '✓ ' : '' }}{{ intervalLabel(ms) }}
-    </button>
-  }
+  <div role="menu" aria-label="Интервал автообновления">
+    @for (ms of intervals; track ms) {
+      <button
+        kbq-dropdown-item
+        type="button"
+        class="menu-radio-item"
+        role="menuitemradio"
+        [attr.aria-checked]="state.intervalMs() === ms"
+        (click)="state.setInterval(ms)"
+      >
+        <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
+        {{ intervalLabel(ms) }}
+      </button>
+    }
+  </div>
 </kbq-dropdown>
-<kbq-dropdown #countMenu="kbqDropdown"
-  ><button kbq-dropdown-item (click)="state.exactCount.set(true)">
-    {{ state.exactCount() ? '✓ ' : '' }}Точное число новых</button
-  ><button kbq-dropdown-item (click)="state.exactCount.set(false)">
-    {{ !state.exactCount() ? '✓ ' : '' }}Без точного числа
-  </button></kbq-dropdown
->
+<kbq-dropdown #countMenu="kbqDropdown">
+  <div role="menu" aria-label="Точность счётчика новых записей">
+    <button
+      kbq-dropdown-item
+      type="button"
+      class="menu-radio-item"
+      role="menuitemradio"
+      [attr.aria-checked]="state.exactCount()"
+      (click)="state.exactCount.set(true)"
+    >
+      <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
+      Точное число новых
+    </button>
+    <button
+      kbq-dropdown-item
+      type="button"
+      class="menu-radio-item"
+      role="menuitemradio"
+      [attr.aria-checked]="!state.exactCount()"
+      (click)="state.exactCount.set(false)"
+    >
+      <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
+      Без точного числа
+    </button>
+  </div>
+</kbq-dropdown>
 <kbq-dropdown #scenarioMenu="kbqDropdown"
   ><button kbq-dropdown-item (click)="scenario('observe')">Наблюдение за поступлениями</button
   ><button kbq-dropdown-item (click)="scenario('select')">Работа с выбранными строками</button
