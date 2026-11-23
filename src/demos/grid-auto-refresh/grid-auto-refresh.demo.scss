@@ -44,9 +44,10 @@
 }
 .topbar {
   flex: none;
+  column-gap: var(--kbq-size-xxl);
   --kbq-top-bar-size-content-padding-horizontal: 24px;
 }
-.title-container {
+.topbar .title-container {
   flex: none;
 }
 .controls-container {
@@ -58,7 +59,6 @@
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: 8px;
   width: 100%;
   min-width: 0;
 }
