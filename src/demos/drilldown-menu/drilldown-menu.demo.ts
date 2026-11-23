@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { KbqLuxonDateModule } from '@koobiq/angular-luxon-adapter/adapter';
 import { KbqButtonModule } from '@koobiq/components/button';
 import { KbqDividerModule } from '@koobiq/components/divider';
 import { KbqDropdownItem } from '@koobiq/components/dropdown';
@@ -8,6 +9,7 @@ import { KbqIconModule } from '@koobiq/components/icon';
 import { KbqToolTipModule } from '@koobiq/components/tooltip';
 import { KbqInputModule } from '@koobiq/components/input';
 import { KbqToggleModule } from '@koobiq/components/toggle';
+import { DateAdapter, DateFormatter, KbqFormattersModule } from '@koobiq/components/core';
 import {
   AutoRefreshMenu,
   AutoRefreshPeriod,
@@ -22,6 +24,8 @@ import { DrilldownMenuTrigger } from './menu/drilldown-menu-trigger';
   selector: 'drilldown-menu-demo',
   imports: [
     FormsModule,
+    KbqLuxonDateModule,
+    KbqFormattersModule,
     KbqButtonModule,
     KbqDividerModule,
     KbqDropdownItem,
@@ -41,33 +45,45 @@ import { DrilldownMenuTrigger } from './menu/drilldown-menu-trigger';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DrilldownMenuDemo {
+  private readonly dateAdapter = inject(DateAdapter);
+  private readonly dateFormatter = inject(DateFormatter);
+  private readonly durationOrigin = this.dateAdapter.deserialize(new Date(Date.UTC(2001, 0, 1)))!;
+  private durationEnd(value: number) {
+    return this.dateAdapter.deserialize(new Date(this.durationOrigin.toMillis() + value))!;
+  }
   readonly period = signal<AutoRefreshPeriod>(300000);
   readonly maxHeight = signal(480);
-  readonly longPresets = signal(false);
+  readonly longPresets = signal(true);
   readonly includeAutoRefresh = signal(true);
   readonly autoRefreshAfter = signal(false);
   readonly refreshCount = signal(0);
   readonly helpCount = signal(0);
+  readonly formatPeriod = (value: number): string =>
+    this.dateFormatter.durationLong(this.durationOrigin, this.durationEnd(value));
+  readonly formatShortPeriod = (value: number): string =>
+    this.dateFormatter.durationShort(this.durationOrigin, this.durationEnd(value));
+  private readonly longPresetValues = [
+    5000,
+    10000,
+    15000,
+    30000,
+    45000,
+    ...Array.from({ length: 59 }, (_, index) => (index + 1) * 60000),
+    ...Array.from({ length: 23 }, (_, index) => (index + 1) * 3600000),
+    ...Array.from({ length: 30 }, (_, index) => (index + 1) * 86400000),
+  ];
   readonly presets = computed<readonly AutoRefreshPreset[]>(() =>
     this.longPresets()
-      ? Array.from({ length: 40 }, (_, index) => ({
-          value: (index + 1) * 60000,
-          label: `${index + 1} мин`,
-        }))
+      ? this.longPresetValues.map((value) => ({ value, label: this.formatPeriod(value) }))
       : [
-          { value: 15000, label: '15 с' },
-          { value: 30000, label: '30 с' },
-          { value: 60000, label: '1 мин' },
-          { value: 300000, label: '5 мин' },
-          { value: 600000, label: '10 мин' },
-          { value: 1800000, label: '30 мин' },
-        ],
+          15000, 30000, 60000, 300000, 600000, 1800000,
+        ].map((value) => ({ value, label: this.formatPeriod(value) })),
   );
   readonly periodLabel = computed(() =>
     this.period() === null
       ? 'Отключено'
       : (this.presets().find((preset) => preset.value === this.period())?.label ??
-        `${this.period()! / 1000} с`),
+        this.formatPeriod(this.period()!)),
   );
   readonly leadingItems = [
     { label: 'Столбцы', icon: 'kbq-3-columns_16', caption: '21 из 34' },

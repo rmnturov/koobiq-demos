@@ -104,6 +104,15 @@
 .demo-caption {
   color: var(--kbq-foreground-contrast-secondary);
 }
+button.kbq-dropdown-item:disabled .demo-caption {
+  color: var(--kbq-states-foreground-disabled);
+}
+button.kbq-dropdown-item.kbq-disabled:disabled .kbq-icon:not(
+    .kbq-icon-button,
+    .kbq-icon-item
+  ) {
+  color: var(--kbq-states-icon-disabled);
+}
 .demo-header-action {
   --kbq-button-size-horizontal-padding: 6px;
   min-width: 28px;

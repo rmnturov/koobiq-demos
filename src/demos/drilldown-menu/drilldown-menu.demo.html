@@ -112,7 +112,13 @@
       </button>
       <kbq-divider />
       @if (includeAutoRefresh() && !autoRefreshAfter()) {
-        <demo-auto-refresh-menu [(value)]="period" [presets]="presets()" [defaultValue]="300000" />
+        <demo-auto-refresh-menu
+          [(value)]="period"
+          [presets]="presets()"
+          [defaultValue]="300000"
+          [formatPeriod]="formatPeriod"
+          [formatShortPeriod]="formatShortPeriod"
+        />
       }
       <button
         kbq-dropdown-item
@@ -125,7 +131,13 @@
         <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
       </button>
       @if (includeAutoRefresh() && autoRefreshAfter()) {
-        <demo-auto-refresh-menu [(value)]="period" [presets]="presets()" [defaultValue]="300000" />
+        <demo-auto-refresh-menu
+          [(value)]="period"
+          [presets]="presets()"
+          [defaultValue]="300000"
+          [formatPeriod]="formatPeriod"
+          [formatShortPeriod]="formatShortPeriod"
+        />
       }
       <kbq-divider />
       @for (item of trailingItems; track item.label) {

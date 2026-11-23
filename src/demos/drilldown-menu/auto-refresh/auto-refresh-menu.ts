@@ -1,9 +1,11 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   computed,
   effect,
   inject,
+  Injector,
   input,
   model,
   viewChild,
@@ -38,10 +40,12 @@ export interface AutoRefreshPreset {
 })
 export class AutoRefreshMenu {
   readonly menu = inject(DRILLDOWN_MENU);
+  private readonly injector = inject(Injector);
   readonly presets = input<readonly AutoRefreshPreset[]>([]);
   readonly defaultValue = input<AutoRefreshPeriod>();
   readonly screenId = input('auto-refresh');
   readonly formatPeriod = input<(value: number) => string>();
+  readonly formatShortPeriod = input<(value: number) => string>();
   readonly value = model<AutoRefreshPeriod>(null);
   readonly prefix = computed(() => `${this.menu.id}-${this.screenId()}`);
   readonly options = computed(() => {
@@ -56,6 +60,7 @@ export class AutoRefreshMenu {
     const value = this.value();
     if (value === null) return '';
     return (
+      this.formatShortPeriod()?.(value) ??
       this.options().find((option) => option.value === value)?.label ??
       this.formatPeriod()?.(value) ??
       this.format(value)
@@ -78,7 +83,12 @@ export class AutoRefreshMenu {
 
   reset(): void {
     const value = this.defaultValue();
-    if (value !== undefined) this.value.set(value);
+    if (value === undefined) return;
+    this.value.set(value);
+    afterNextRender(
+      () => this.menu.scrollInitialFocusTarget(this.screenId(), 'smooth'),
+      { injector: this.injector },
+    );
   }
 
   private format(value: number): string {

@@ -22,16 +22,22 @@ export function findDrilldownList(element: HTMLElement | null): DrilldownMenuLis
 export function revealDrilldownTarget(
   viewport: KbqScrollbarViewport | undefined,
   target: HTMLElement,
+  options: { topGap?: number; behavior?: ScrollBehavior } = {},
 ): void {
   if (!viewport) return;
   const body = viewport.getNativeElement();
+  const behavior = options.behavior ?? 'instant';
+  if (options.topGap !== undefined) {
+    viewport.scrollToElement(target, { top: options.topGap, behavior });
+    return;
+  }
   const bounds = body.getBoundingClientRect();
   const item = target.getBoundingClientRect();
-  if (item.top < bounds.top) viewport.scrollToElement(target, { behavior: 'instant' });
+  if (item.top < bounds.top) viewport.scrollToElement(target, { behavior });
   else if (item.bottom > bounds.bottom)
     viewport.scrollToElement(target, {
       top: body.clientHeight - target.offsetHeight,
-      behavior: 'instant',
+      behavior,
     });
 }
 

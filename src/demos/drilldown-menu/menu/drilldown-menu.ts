@@ -28,6 +28,8 @@ import type { DrilldownMenuScreen } from './drilldown-menu-screen';
 import { DRILLDOWN_MENU, DrilldownCloseReason, DrilldownFrame } from './drilldown-menu.types';
 import { DrilldownTransition } from './drilldown-menu-transition';
 
+const INITIAL_MENU_ITEM_TOP_GAP = 80;
+
 interface VisitedScreen {
   id: string;
   definition: DrilldownMenuScreen;
@@ -206,6 +208,17 @@ export class DrilldownMenu {
     );
   }
 
+  scrollInitialFocusTarget(id: string, behavior: ScrollBehavior = 'instant'): void {
+    const selector = this.screens.get(id)?.initialFocus();
+    const screen = this.screenElement(id);
+    const target = selector ? screen?.querySelector<HTMLElement>(selector) : null;
+    if (!screen || !target?.matches('[kbq-dropdown-item]')) return;
+    revealDrilldownTarget(this.viewportFor(screen), target, {
+      topGap: INITIAL_MENU_ITEM_TOP_GAP,
+      behavior,
+    });
+  }
+
   ownsTarget(target: Node): boolean {
     const panel = this.panelElement()?.nativeElement;
     if (!panel) return false;
@@ -322,8 +335,12 @@ export class DrilldownMenu {
             screen
           ).focus({ preventScroll: true });
         }
-        if (document.activeElement instanceof HTMLElement && body.contains(document.activeElement))
-          revealDrilldownTarget(viewport, document.activeElement);
+        if (document.activeElement instanceof HTMLElement && body.contains(document.activeElement)) {
+          const active = document.activeElement;
+          const isInitialMenuItem = preferred === active && active.matches('[kbq-dropdown-item]');
+          if (isInitialMenuItem) this.scrollInitialFocusTarget(id);
+          else revealDrilldownTarget(viewport, active);
+        }
         this.observer?.disconnect();
         if (typeof ResizeObserver !== 'undefined') {
           this.observer ??= new ResizeObserver(() => this.resizeCurrent());
