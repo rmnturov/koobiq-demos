@@ -76,22 +76,9 @@
                         {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
                       </button>
                     }
-                    @case ('error') {
-                      <button
-                        kbq-dropdown-item
-                        [disabled]="server.offline"
-                        (click)="server.offline = true"
-                      >
-                        Ошибка связи
-                      </button>
-                    }
-                    @case ('recover') {
-                      <button
-                        kbq-dropdown-item
-                        [disabled]="!server.offline"
-                        (click)="server.offline = false; state.poll()"
-                      >
-                        Восстановить связь
+                    @case ('connection') {
+                      <button kbq-dropdown-item (click)="toggleConnection()">
+                        {{ server.offline ? 'Восстановить связь' : 'Ошибка связи' }}
                       </button>
                     }
                     @case ('scenario') {
@@ -280,26 +267,14 @@
         <i kbq-icon="kbq-chevron-down-s_16"></i>
       </button>
     }
-    @case ('error') {
+    @case ('connection') {
       <button
         kbq-button
         [kbqStyle]="'transparent'"
         [color]="'contrast'"
-        [disabled]="server.offline"
-        (click)="server.offline = true"
+        (click)="toggleConnection()"
       >
-        Ошибка связи
-      </button>
-    }
-    @case ('recover') {
-      <button
-        kbq-button
-        [kbqStyle]="'transparent'"
-        [color]="'contrast'"
-        [disabled]="!server.offline"
-        (click)="server.offline = false; state.poll()"
-      >
-        Восстановить связь
+        {{ server.offline ? 'Восстановить связь' : 'Ошибка связи' }}
       </button>
     }
     @case ('scenario') {

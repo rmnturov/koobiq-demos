@@ -128,7 +128,7 @@ export class GridAutoRefreshDemo {
   );
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly intervals = [0, 5000, 15000, 30000, 60000];
-  readonly controls = ['refresh', 'interval', 'count', 'error', 'recover', 'scenario'];
+  readonly controls = ['refresh', 'interval', 'count', 'connection', 'scenario'];
   readonly cardActions = [
     { id: 'assign', label: 'Назначить', feedback: 'Назначение ответственного' },
     { id: 'status', label: 'Изменить статус', feedback: 'Изменение статуса' },
@@ -463,6 +463,10 @@ export class GridAutoRefreshDemo {
   }
   acknowledge(action: string): void {
     this.notify(`${action} · Выбрано: ${this.state.selectedIds().length}`);
+  }
+  toggleConnection(): void {
+    this.server.offline = !this.server.offline;
+    if (!this.server.offline) void this.state.poll();
   }
   notify(message: string): void {
     this.toasts()?.show({ title: message, closeButton: true });
