@@ -25,6 +25,7 @@ import { KbqContentPanelModule } from '@koobiq/components/content-panel';
 import { DateFormatter } from '@koobiq/components/core';
 import { KbqDropdownModule } from '@koobiq/components/dropdown';
 import { KbqFilter, KbqFilterBarModule } from '@koobiq/components/filter-bar';
+import { KbqMarkdown } from '@koobiq/components/markdown';
 import { KbqIconModule } from '@koobiq/components/icon';
 import { KbqOverflowItemsModule } from '@koobiq/components/overflow-items';
 import { KbqPopoverModule } from '@koobiq/components/popover';
@@ -63,6 +64,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   selector: 'grid-auto-refresh-demo',
   imports: [
     NgTemplateOutlet,
+    KbqMarkdown,
     KbqLuxonDateModule,
     AgGridAngular,
     KbqAgGridThemeModule,
@@ -82,6 +84,17 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GridAutoRefreshDemo {
+  readonly articlePlaceholder = `# Автообновление в гриде
+
+## Подзаголовок
+
+Приятно, граждане, наблюдать, как базовые сценарии поведения пользователей призывают нас к новым свершениям, которые, в свою очередь, должны быть смешаны с не уникальными данными до степени совершенной неузнаваемости, из-за чего возрастает их статус бесполезности.
+
+## Подзаголовок
+
+Приятно, граждане, наблюдать, как базовые сценарии поведения пользователей призывают нас к новым свершениям, которые, в свою очередь, должны быть смешаны с не уникальными данными до степени совершенной неузнаваемости, из-за чего возрастает их статус бесполезности.
+`;
+
   readonly server = new IncidentServer();
   readonly state = new AutoRefreshController(this.server);
   readonly context: IncidentGridContext = { controller: this.state };
