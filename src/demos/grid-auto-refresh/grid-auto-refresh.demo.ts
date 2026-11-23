@@ -40,6 +40,7 @@ import {
   GridReadyEvent,
   ModuleRegistry,
   RowSelectionOptions,
+  SelectionColumnDef,
   SelectionChangedEvent,
   SortChangedEvent,
   RowClickedEvent,
@@ -135,6 +136,12 @@ export class GridAutoRefreshDemo {
     'Объединить',
     'Связать',
   ];
+  readonly selectionColumn: SelectionColumnDef = {
+    pinned: 'left',
+    lockPinned: true,
+    lockPosition: 'left',
+    suppressMovable: true,
+  };
   readonly selection: RowSelectionOptions<Incident> = {
     mode: 'multiRow',
     enableClickSelection: false,
@@ -184,7 +191,16 @@ export class GridAutoRefreshDemo {
     },
   };
   readonly columns: ColDef<Incident>[] = [
-    { field: 'id', headerName: 'ID', width: 132, cellRenderer: IncidentIdCell },
+    {
+      field: 'id',
+      headerName: 'ID',
+      width: 132,
+      cellRenderer: IncidentIdCell,
+      pinned: 'left',
+      lockPinned: true,
+      lockPosition: 'left',
+      suppressMovable: true,
+    },
     { field: 'name', headerName: 'Название', minWidth: 280, flex: 1 },
     {
       field: 'severity',
