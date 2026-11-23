@@ -37,7 +37,12 @@
                 </button>
               }
             </div>
-            <span class="drilldown-heading">{{ screen.definition.title() }}</span>
+            <span
+              class="drilldown-heading"
+              [class.drilldown-heading-action]="screen.id !== rootScreen()"
+              (click)="scrollListToStart(screen.id)"
+              >{{ screen.definition.title() }}</span
+            >
             <div class="drilldown-header-end">
               <ng-container
                 [ngTemplateOutlet]="screen.definition.headerActions() ?? null"

@@ -9,10 +9,32 @@ import {
   inject,
   Injector,
   Renderer2,
+  runInInjectionContext,
   signal,
 } from '@angular/core';
+import { kbqAnimationsDisabled } from '@koobiq/components/core';
 import { KbqDropdownItem } from '@koobiq/components/dropdown';
 import { KbqScrollbarViewport } from '@koobiq/components/scrollbar';
+
+const HEADER_SCROLL_DURATION = 160;
+
+function easeHeaderScroll(progress: number): number {
+  let low = 0;
+  let high = 1;
+  let t = progress;
+
+  for (let i = 0; i < 8; i++) {
+    const inverse = 1 - t;
+    const x = 3 * inverse * inverse * t * 0.23 + 3 * inverse * t * t * 0.32 + t * t * t;
+    if (Math.abs(x - progress) < 0.001) break;
+    if (x < progress) low = t;
+    else high = t;
+    t = (low + high) / 2;
+  }
+
+  const inverse = 1 - t;
+  return 3 * inverse * inverse * t + 3 * inverse * t * t + t * t * t;
+}
 
 const lists = new WeakMap<HTMLElement, DrilldownMenuList>();
 export function findDrilldownList(element: HTMLElement | null): DrilldownMenuList | undefined {
@@ -48,10 +70,13 @@ class MenuOption {
     private readonly focusTarget: () => void,
   ) {}
   get disabled() {
+    const host = this.item.getHostElement();
     return (
       this.item.disabled() ||
       this.item.progress() ||
-      !this.checker.isFocusable(this.item.getHostElement())
+      host.matches(':disabled') ||
+      !!host.closest('[inert]') ||
+      !this.checker.isFocusable(host)
     );
   }
   focus() {
@@ -62,14 +87,21 @@ class MenuOption {
 @Directive({
   selector: '[drilldownMenuList]',
   exportAs: 'drilldownMenuList',
-  host: { role: 'menu', '(keydown)': 'onKeydown($event)', '(focusin)': 'onFocus($event)' },
+  host: {
+    role: 'menu',
+    '(keydown)': 'onKeydown($event)',
+    '(focusin)': 'onFocus($event)',
+    '(focusout)': 'onFocusOut($event)',
+  },
 })
 export class DrilldownMenuList {
   private readonly element = inject<ElementRef<HTMLElement>>(ElementRef).nativeElement;
   private readonly renderer = inject(Renderer2);
   private readonly focusMonitor = inject(FocusMonitor);
   private readonly checker = inject(InteractivityChecker);
+  private readonly injector = inject(Injector);
   private viewport?: KbqScrollbarViewport;
+  private scrollFrame?: number;
   private readonly queried = contentChildren(KbqDropdownItem, { descendants: true });
   private readonly registered = signal<readonly KbqDropdownItem[]>([]);
   private readonly cache = new WeakMap<KbqDropdownItem, MenuOption>();
@@ -86,6 +118,7 @@ export class DrilldownMenuList {
       let option = this.cache.get(item);
       if (!option) {
         option = new MenuOption(item, this.checker, () => {
+          this.cancelScrollAnimation();
           this.focusMonitor.focusVia(item.getHostElement(), 'keyboard', { preventScroll: true });
           revealDrilldownTarget(this.viewport, item.getHostElement());
         });
@@ -94,7 +127,7 @@ export class DrilldownMenuList {
       return option;
     });
   });
-  private readonly manager = new FocusKeyManager(this.options, inject(Injector))
+  private readonly manager = new FocusKeyManager(this.options, this.injector)
     .withVerticalOrientation()
     .withHomeAndEnd()
     .withWrap(false);
@@ -105,6 +138,7 @@ export class DrilldownMenuList {
     lists.set(this.element, this);
     afterEveryRender(() => this.sync());
     inject(DestroyRef).onDestroy(() => {
+      this.cancelScrollAnimation();
       this.manager.destroy();
       lists.delete(this.element);
     });
@@ -121,6 +155,22 @@ export class DrilldownMenuList {
 
   setViewport(viewport: KbqScrollbarViewport | undefined): void {
     this.viewport = viewport;
+  }
+
+  scrollToStart(): void {
+    const options = this.options();
+    const firstVisible = options.find((option) =>
+      this.checker.isVisible(option.item.getHostElement()),
+    );
+    if (!firstVisible) return;
+
+    const firstFocusable = options.find((option) => !option.disabled);
+    if (firstFocusable)
+      this.focusMonitor.focusVia(firstFocusable.item.getHostElement(), 'keyboard', {
+        preventScroll: true,
+      });
+
+    this.scrollToElement(firstVisible.item.getHostElement());
   }
 
   focusInitial(selector?: string): void {
@@ -152,6 +202,7 @@ export class DrilldownMenuList {
   onFocus(event: FocusEvent): void {
     const option = this.options().find((value) => value.item.getHostElement() === event.target);
     if (option && !option.disabled) {
+      this.cancelScrollAnimation();
       this.lastFocused = option.item.getHostElement();
       this.activeId.set(option.item.getHostElement().id);
       this.manager.updateActiveItem(option);
@@ -159,19 +210,36 @@ export class DrilldownMenuList {
     }
   }
 
+  onFocusOut(event: FocusEvent): void {
+    if (event.relatedTarget instanceof Node && this.element.contains(event.relatedTarget)) return;
+    this.cancelScrollAnimation();
+  }
+
   onKeydown(event: KeyboardEvent): void {
     if (
       event.defaultPrevented ||
+      event.altKey ||
+      event.ctrlKey ||
+      event.metaKey ||
       !this.options().some((value) => value.item.getHostElement() === event.target)
     )
       return;
+    if (event.key === 'PageUp') {
+      event.preventDefault();
+      this.manager.setFirstItemActive();
+      this.sync();
+      return;
+    }
     if (!['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) return;
     this.manager.onKeydown(event);
     this.sync();
   }
 
   private sync(): void {
-    if (this.element.closest('[inert],[hidden]')) return;
+    if (this.element.closest('[inert],[hidden]')) {
+      this.cancelScrollAnimation();
+      return;
+    }
     const enabled = this.options().filter((option) => !option.disabled);
     const current =
       enabled.find((option) => option.item.getHostElement().id === this.activeId()) ?? enabled[0];
@@ -197,5 +265,59 @@ export class DrilldownMenuList {
       else this.element.focus({ preventScroll: true });
       this.lastFocused = current?.item.getHostElement() ?? null;
     }
+  }
+
+  private scrollToElement(target: HTMLElement): void {
+    const viewport = this.viewport;
+    if (!viewport) return;
+
+    this.cancelScrollAnimation();
+    const body = viewport.getNativeElement();
+    const start = body.scrollTop;
+    const viewportTop = body.getBoundingClientRect().top;
+    const targetTop = Math.max(
+      0,
+      Math.min(
+        body.scrollHeight - body.clientHeight,
+        start + target.getBoundingClientRect().top - viewportTop - body.clientTop,
+      ),
+    );
+    if (Math.abs(targetTop - start) < 1) return;
+
+    if (
+      runInInjectionContext(this.injector, kbqAnimationsDisabled) ||
+      typeof requestAnimationFrame === 'undefined'
+    ) {
+      viewport.scrollTo({ top: targetTop, behavior: 'instant' });
+      return;
+    }
+
+    let startedAt: number | undefined;
+    let lastScrollTop = start;
+    const step = (now: number) => {
+      if (Math.abs(body.scrollTop - lastScrollTop) > 1) {
+        this.scrollFrame = undefined;
+        return;
+      }
+
+      startedAt ??= now;
+      const progress = Math.min((now - startedAt) / HEADER_SCROLL_DURATION, 1);
+      const easedProgress = easeHeaderScroll(progress);
+      viewport.scrollTo({
+        top: start + (targetTop - start) * easedProgress,
+        behavior: 'instant',
+      });
+      lastScrollTop = body.scrollTop;
+
+      if (progress < 1) this.scrollFrame = requestAnimationFrame(step);
+      else this.scrollFrame = undefined;
+    };
+    this.scrollFrame = requestAnimationFrame(step);
+  }
+
+  private cancelScrollAnimation(): void {
+    if (this.scrollFrame === undefined) return;
+    cancelAnimationFrame(this.scrollFrame);
+    this.scrollFrame = undefined;
   }
 }

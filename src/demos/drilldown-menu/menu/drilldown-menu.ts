@@ -208,6 +208,16 @@ export class DrilldownMenu {
     );
   }
 
+  scrollListToStart(id: string): void {
+    if (id === this.rootScreen()) return;
+    const screen = this.screenElement(id);
+    if (!screen) return;
+    const listElement = screen.querySelector<HTMLElement>('[drilldownMenuList]');
+    const list = findDrilldownList(listElement ?? null);
+    list?.setViewport(this.viewportFor(screen));
+    list?.scrollToStart();
+  }
+
   scrollInitialFocusTarget(id: string, behavior: ScrollBehavior = 'instant'): void {
     const selector = this.screens.get(id)?.initialFocus();
     const screen = this.screenElement(id);

@@ -62,6 +62,10 @@
   white-space: nowrap;
   text-overflow: ellipsis;
 }
+.drilldown-heading-action {
+  cursor: pointer;
+  user-select: none;
+}
 .drilldown-icon-button {
   --kbq-button-size-horizontal-padding: 6px;
   min-width: 28px;
