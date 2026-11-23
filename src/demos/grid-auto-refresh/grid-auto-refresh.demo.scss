@@ -107,6 +107,11 @@ ag-grid-angular {
 :host ::ng-deep .ag-horizontal-left-spacer,
 :host ::ng-deep .ag-horizontal-right-spacer {
   overflow: hidden;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 :host ::ng-deep .incident-new-row {
   isolation: isolate;
