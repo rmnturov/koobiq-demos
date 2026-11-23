@@ -13,6 +13,7 @@
       @for (screen of visited(); track screen.id) {
         <section
           class="drilldown-screen"
+          [class.drilldown-root-screen]="screen.id === rootScreen()"
           [class.drilldown-screen-with-slots]="screen.definition.beforeContent() || screen.definition.footer()"
           tabindex="-1"
           [attr.data-screen]="screen.id"
@@ -41,7 +42,7 @@
             <span
               class="drilldown-heading"
               [class.drilldown-heading-action]="screen.id !== rootScreen()"
-              (click)="scrollListToStart(screen.id)"
+              (click)="onHeadingClick(screen.id)"
               >{{ screen.definition.title() }}</span
             >
             <div class="drilldown-header-end">

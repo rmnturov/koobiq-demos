@@ -122,9 +122,11 @@ export class DrilldownMenu {
     effect(() => {
       this.maxHeight();
       this.width();
-      this.visited()
-        .find((screen) => screen.id === this.activeScreenId())
-        ?.definition.screenWidth();
+      const definition = this.visited().find(
+        (screen) => screen.id === this.activeScreenId(),
+      )?.definition;
+      definition?.screenWidth();
+      definition?.allowTriggerOverlap();
       afterNextRender(resize, { injector: this.injector });
     });
     inject(DestroyRef).onDestroy(() => {
@@ -208,14 +210,32 @@ export class DrilldownMenu {
     );
   }
 
-  scrollListToStart(id: string): void {
+  onHeadingClick(id: string): void {
     if (id === this.rootScreen()) return;
     const screen = this.screenElement(id);
     if (!screen) return;
+    const viewport = this.viewportFor(screen);
     const listElement = screen.querySelector<HTMLElement>('[drilldownMenuList]');
     const list = findDrilldownList(listElement ?? null);
-    list?.setViewport(this.viewportFor(screen));
-    list?.scrollToStart();
+    if (list) {
+      list.setViewport(viewport);
+      list.scrollToStart();
+      return;
+    }
+
+    const selector = this.screens.get(id)?.initialFocus();
+    const search = selector
+      ? screen.querySelector('.drilldown-before-content')?.querySelector(selector)
+      : null;
+    if (!(search instanceof HTMLInputElement) || !this.checker.isFocusable(search)) return;
+
+    search.focus({ preventScroll: true });
+    search.select();
+    this.revealTarget(search);
+    if (viewport?.getNativeElement().scrollTop) {
+      const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+      viewport.scrollToTop(this.motionDisabled || reduceMotion ? 'instant' : 'smooth');
+    }
   }
 
   scrollInitialFocusTarget(id: string, behavior: ScrollBehavior = 'instant'): void {
@@ -409,18 +429,29 @@ export class DrilldownMenu {
       ),
     );
     screen.style.width = `${targetWidth}px`;
-    const naturalHeight =
+    const chromeHeight =
       (screen.querySelector<HTMLElement>('.drilldown-header')?.offsetHeight ?? 40) +
       (screen.querySelector<HTMLElement>('.drilldown-before-content')?.offsetHeight ?? 0) +
-      (screen.querySelector<HTMLElement>('.drilldown-footer')?.offsetHeight ?? 0) +
+      (screen.querySelector<HTMLElement>('.drilldown-footer')?.offsetHeight ?? 0);
+    const maxHeight = this.resolvedMaxHeight();
+    const windowSpace = window.innerHeight - 16;
+    if (definition.allowTriggerOverlap()) {
+      const bodyHeightLimit = Math.max(0, Math.min(maxHeight, windowSpace) - chromeHeight);
+      screen.style.setProperty('--drilldown-body-height-limit', `${bodyHeightLimit}px`);
+    }
+    const naturalHeight =
+      chromeHeight +
       (screen.querySelector<HTMLElement>('.drilldown-content')?.scrollHeight ?? 0);
     const origin = this.origin?.getBoundingClientRect();
-    const below = origin ? window.innerHeight - origin.bottom - 16 : window.innerHeight - 16;
-    const above = origin ? origin.top - 16 : below;
-    const available = naturalHeight <= below ? below : Math.max(below, above);
+    let available = windowSpace;
+    if (origin && !definition.allowTriggerOverlap()) {
+      const below = available - origin.bottom;
+      const above = origin.top - 16;
+      available = naturalHeight <= below ? below : Math.max(below, above);
+    }
     const targetHeight = Math.max(
       1,
-      Math.min(naturalHeight || 40, this.resolvedMaxHeight(), available),
+      Math.min(naturalHeight || 40, maxHeight, available),
     );
     if (
       onlyIfChanged &&

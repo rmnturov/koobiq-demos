@@ -1,6 +1,7 @@
 <button
   #rootItem
   kbq-dropdown-item
+  class="drilldown-submenu-trigger"
   type="button"
   role="menuitem"
   data-refresh-trigger
@@ -9,12 +10,12 @@
   (click)="menu.navigate(screenId(), rootItem.getHostElement())"
 >
   <i kbq-icon="kbq-arrows-rotate_16"></i>
-  <span class="refresh-row">
-    <span class="refresh-label">Автоматическое обновление</span>
+  <span class="drilldown-submenu-row">
+    <span class="drilldown-submenu-label">Автоматическое обновление</span>
     @if (value() !== null) {
-      <span class="refresh-caption" data-refresh-caption>{{ caption() }}</span>
+      <span class="drilldown-submenu-caption" data-refresh-caption>{{ caption() }}</span>
     }
-    <i kbq-icon="kbq-chevron-right-s_16" class="refresh-chevron"></i>
+    <i kbq-icon="kbq-chevron-right-s_16" color="contrast-fade" class="drilldown-submenu-chevron"></i>
   </span>
 </button>
 

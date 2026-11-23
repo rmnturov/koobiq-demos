@@ -6,6 +6,7 @@ export class DrilldownMenuScreen {
   readonly id = input.required<string>({ alias: 'drilldownMenuScreen' });
   readonly title = input.required<string>();
   readonly screenWidth = input<number>();
+  readonly allowTriggerOverlap = input(false);
   readonly initialFocus = input<string>();
   readonly headerActions = input<TemplateRef<unknown>>();
   readonly beforeContent = input<TemplateRef<unknown>>();

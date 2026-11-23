@@ -62,11 +62,7 @@
   </div>
 </div>
 
-<demo-drilldown-menu
-  #menu="drilldownMenu"
-  [maxHeight]="maxHeight()"
-  (closed)="setIncidentQuery('')"
->
+<demo-drilldown-menu #menu="drilldownMenu" [maxHeight]="maxHeight()">
   <ng-template #rootActions>
     <button
       kbq-button
@@ -87,31 +83,56 @@
     let-api
   >
     <div drilldownMenuList aria-label="Параметры таблицы">
-      @for (item of leadingItems; track item.label; let index = $index) {
-        <button
-          kbq-dropdown-item
-          type="button"
-          role="menuitem"
-          disabled
-          [id]="menu.id + '-leading-' + index"
-        >
-          <i [kbq-icon]="item.icon"></i>
-          <span class="demo-menu-row"
-            ><span class="demo-menu-label">{{ item.label }}</span
-            ><span class="demo-caption">{{ item.caption }}</span
-            ><i kbq-icon="kbq-chevron-right-s_16"></i
-          ></span>
-        </button>
-      }
+      <demo-incident-fields-menu
+        screenId="columns"
+        label="Столбцы"
+        icon="kbq-3-columns_16"
+        [defaultFieldIds]="defaultIncidentFields"
+        [(selectedFieldIds)]="columnFieldIds"
+        showTotal
+      />
+      <demo-incident-fields-menu
+        screenId="sorting"
+        label="Сортировка"
+        icon="kbq-arrow-up-arrow-down_16"
+        [defaultFieldIds]="defaultSortFields"
+        [(selectedFieldIds)]="sortFieldIds"
+      />
+      <demo-incident-fields-menu
+        screenId="grouping"
+        label="Группировка"
+        icon="kbq-grid-group_16"
+        [(selectedFieldIds)]="groupFieldIds"
+      />
       <kbq-divider />
-      <button kbq-dropdown-item type="button" role="menuitem" disabled>
-        <i kbq-icon="kbq-list_16"></i
-        ><span class="demo-menu-row"
-          ><span class="demo-menu-label">Плотность</span><span class="demo-caption">Средняя</span
-          ><i kbq-icon="kbq-chevron-right-s_16"></i
-        ></span>
+      <button
+        #densityOpener
+        kbq-dropdown-item
+        class="drilldown-submenu-trigger"
+        type="button"
+        role="menuitem"
+        data-drilldown-target="density"
+        [id]="menu.id + '-density-trigger'"
+        (click)="api.navigate('density', densityOpener.getHostElement())"
+      >
+        <i kbq-icon="kbq-list_16"></i>
+        <span class="drilldown-submenu-row">
+          <span class="drilldown-submenu-label">Плотность</span>
+          <span class="drilldown-submenu-caption">{{ density() }}</span>
+          <i
+            kbq-icon="kbq-chevron-right-s_16"
+            color="contrast-fade"
+            class="drilldown-submenu-chevron"
+          ></i>
+        </span>
       </button>
-      <button kbq-dropdown-item type="button" role="menuitem" disabled>
+      <button
+        kbq-dropdown-item
+        type="button"
+        role="menuitem"
+        [id]="menu.id + '-word-wrap'"
+        (click)="api.close()"
+      >
         <i kbq-icon="kbq-text-wrap_16"></i>Перенос по словам
       </button>
       <kbq-divider />
@@ -144,124 +165,86 @@
         />
       }
       <kbq-divider />
-      @for (item of trailingItems; track item.label) {
-        <button kbq-dropdown-item type="button" role="menuitem" disabled>
+      @for (item of trailingItems; track item.label; let index = $index) {
+        <button
+          kbq-dropdown-item
+          type="button"
+          role="menuitem"
+          [id]="menu.id + '-command-' + index"
+          (click)="api.close()"
+        >
           <i [kbq-icon]="item.icon"></i>{{ item.label }}
         </button>
       }
       <kbq-divider />
+      <demo-incident-fields-menu
+        screenId="incident-fields"
+        label="Мультивыбор с поиском"
+        icon="kbq-list_16"
+        [defaultFieldIds]="defaultIncidentFields"
+        [(selectedFieldIds)]="testFieldIds"
+      />
       <button
-        #incidentFieldsOpener
         kbq-dropdown-item
+        class="drilldown-submenu-trigger"
         type="button"
         role="menuitem"
-        data-drilldown-target="incident-fields"
-        [id]="menu.id + '-incident-fields'"
-        (click)="api.navigate('incident-fields', incidentFieldsOpener.getHostElement())"
+        disabled
+        [id]="menu.id + '-table-view'"
       >
-        <i kbq-icon="kbq-list_16"></i>
-        <span class="demo-menu-row">
-          <span class="demo-menu-label">Мультивыбор с поиском</span>
-          <i kbq-icon="kbq-chevron-right-s_16"></i>
+        <i kbq-icon="kbq-table_16"></i>
+        <span class="drilldown-submenu-row">
+          <span class="drilldown-submenu-label">Вид таблицы</span>
+          <span class="drilldown-submenu-caption">Стандартный</span>
+          <i
+            kbq-icon="kbq-chevron-right-s_16"
+            color="contrast-fade"
+            class="drilldown-submenu-chevron"
+          ></i>
         </span>
       </button>
     </div>
   </ng-template>
 
-  <ng-template #incidentSearch let-api>
-    @let activeId = activeIncidentField();
-    <kbq-form-field class="incident-search" noBorders [inOverlay]="true">
-      <i kbqPrefix kbq-icon="kbq-magnifying-glass_16" aria-hidden="true"></i>
-      <input
-        #searchInput
-        kbqInput
-        type="text"
-        role="combobox"
-        aria-label="Поиск столбцов"
-        aria-autocomplete="list"
-        autocomplete="off"
-        placeholder="Столбец"
-        data-incident-search
-        [attr.aria-expanded]="incidentGroups().length > 0"
-        [attr.aria-controls]="menu.id + '-incident-field-list'"
-        [attr.aria-activedescendant]="activeId ? incidentOptionId(menu, activeId) : null"
-        [ngModel]="incidentQuery()"
-        (ngModelChange)="setIncidentQuery($event)"
-        (keydown)="onIncidentSearchKeydown($event, api)"
-        (blur)="activeIncidentField.set(null)"
-      />
-      @if (incidentQuery()) {
-        <button
-          kbqSuffix
-          kbq-button
-          kbqStyle="transparent"
-          class="incident-search-clear"
-          type="button"
-          [tabIndex]="-1"
-          aria-label="Очистить поиск"
-          (mousedown)="$event.preventDefault()"
-          (click)="setIncidentQuery(''); searchInput.focus({ preventScroll: true })"
-        >
-          <i kbq-icon="kbq-circle-xmark_16"></i>
-        </button>
-      }
-    </kbq-form-field>
-  </ng-template>
-
-  <ng-template #incidentFooter>
-    <div class="incident-footer">
-      <button
-        kbq-button
-        kbqStyle="transparent"
-        class="incident-reset"
-        type="button"
-        data-incident-fields-reset
-        (click)="resetIncidentFields()"
-      >
-        <i kbq-icon="kbq-circle-xmark_16"></i>Сбросить по умолчанию
-      </button>
-    </div>
+  <ng-template #densityActions let-api>
+    <button
+      kbq-button
+      kbqStyle="transparent"
+      class="demo-header-action"
+      type="button"
+      aria-label="Сбросить плотность"
+      kbqTooltip="Сбросить плотность"
+      (click)="resetDensity(api)"
+    >
+      <i kbq-icon="kbq-undo_16"></i>
+    </button>
   </ng-template>
 
   <ng-template
-    drilldownMenuScreen="incident-fields"
-    title="Мультивыбор с поиском"
-    initialFocus="[data-incident-search]"
-    [beforeContent]="incidentSearch"
-    [footer]="incidentFooter"
+    drilldownMenuScreen="density"
+    title="Плотность"
+    initialFocus="[aria-checked='true']"
+    [headerActions]="densityActions"
     let-api
   >
-    <div
-      role="listbox"
-      aria-label="Поля таблицы инцидентов"
-      aria-multiselectable="true"
-      [id]="menu.id + '-incident-field-list'"
-      [hidden]="incidentGroups().length === 0"
-    >
-      @for (group of incidentGroups(); track group.id) {
-        <kbq-optgroup [label]="group.label">
-          <ng-container>
-            @for (field of group.fields; track field.id) {
-              @let checked = selectedIncidentFields().has(field.id);
-              <div
-                class="incident-option"
-                role="option"
-                [id]="incidentOptionId(menu, field.id)"
-                [attr.aria-checked]="checked"
-                [class.incident-option_active]="activeIncidentField() === field.id"
-                (mousedown)="$event.preventDefault()"
-                (click)="selectIncidentField(field.id, api)"
-              >
-                <kbq-pseudo-checkbox aria-hidden="true" [state]="checked" />
-                <span [innerHTML]="field.label | kbqHighlightBackground: incidentSearchTerm()"></span>
-              </div>
+    <div drilldownMenuList aria-label="Плотность">
+      @for (option of densityOptions; track option; let index = $index) {
+        <button
+          kbq-dropdown-item
+          type="button"
+          role="menuitemradio"
+          [id]="menu.id + '-density-' + index"
+          [attr.aria-checked]="density() === option"
+          (click)="density.set(option); api.back()"
+        >
+          <span class="demo-density-choice">
+            {{ option }}
+            @if (density() === option) {
+              <i kbq-icon="kbq-check_16"></i>
             }
-          </ng-container>
-        </kbq-optgroup>
+          </span>
+        </button>
       }
     </div>
-    @if (incidentGroups().length === 0) {
-      <div role="status" class="incident-empty">Ничего не найдено</div>
-    }
   </ng-template>
 </demo-drilldown-menu>
