@@ -115,10 +115,11 @@ export class GridAutoRefreshDemo {
   readonly severityLabels = SEVERITY_LABELS;
   readonly ready = signal(false);
   readonly workspaceWidth = signal(window.innerWidth);
-  readonly compactCard = computed(() => this.workspaceWidth() < 600);
+  readonly minPanelWidth = 400;
+  readonly compactCard = computed(() => this.workspaceWidth() < this.minPanelWidth + 336);
   readonly panelWidth = computed(() =>
     this.compactCard()
-      ? Math.max(160, this.workspaceWidth() - 16)
+      ? Math.max(this.minPanelWidth, this.workspaceWidth() - 16)
       : Math.min(480, this.workspaceWidth() - 336),
   );
   readonly panelMaxWidth = computed(() =>
@@ -128,6 +129,10 @@ export class GridAutoRefreshDemo {
   readonly feedback = signal('');
   readonly intervals = [0, 5000, 15000, 30000, 60000];
   readonly controls = ['refresh', 'interval', 'count', 'error', 'recover', 'scenario', 'state'];
+  readonly cardActions = [
+    { id: 'assign', label: 'Назначить', feedback: 'Назначение ответственного' },
+    { id: 'status', label: 'Изменить статус', feedback: 'Изменение статуса' },
+  ];
   readonly actions = [
     'Назначить',
     'Изменить статус',

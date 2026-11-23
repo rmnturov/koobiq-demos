@@ -269,9 +269,13 @@ p {
 }
 .card-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
-  flex-wrap: wrap;
+  gap: var(--kbq-size-s);
+  margin-top: var(--kbq-size-l);
+  min-width: 0;
+  width: 100%;
+}
+.card-actions > div {
+  flex: none;
 }
 
 kbq-filter-bar {

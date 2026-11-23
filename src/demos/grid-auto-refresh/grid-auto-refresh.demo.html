@@ -3,7 +3,7 @@
     class="workspace"
     [opened]="!!state.card()"
     [width]="panelWidth()"
-    [minWidth]="compactCard() ? 160 : 240"
+    [minWidth]="minPanelWidth"
     [maxWidth]="panelMaxWidth()"
     [disableResizer]="compactCard()"
     [useStateSaving]="false"
@@ -196,12 +196,31 @@
         @if (state.card(); as card) {
           <div class="card-caption">{{ card.id }} · {{ formatDate(card.createdAt) }}</div>
         }
-        <div class="card-actions">
-          <button kbq-button (click)="notify('Назначение ответственного: ' + state.card()?.id)">
-            Назначить</button
-          ><button kbq-button (click)="notify('Изменение статуса: ' + state.card()?.id)">
-            Изменить статус
-          </button>
+        <div #cardOverflow="kbqOverflowItems" kbqOverflowItems class="card-actions">
+          @for (action of cardActions; track action.id) {
+            <div [kbqOverflowItem]="action.id">
+              <button kbq-button (click)="notify(action.feedback + ': ' + state.card()?.id)">
+                {{ action.label }}
+              </button>
+            </div>
+          }
+          @if (cardOverflow.hiddenItemIDs().size) {
+            <button kbq-button kbqOverflowItemsResult [kbqDropdownTriggerFor]="moreCardActions">
+              Ещё <i kbq-icon="kbq-chevron-down-s_16"></i>
+            </button>
+          }
+          <kbq-dropdown #moreCardActions="kbqDropdown">
+            @for (action of cardActions; track action.id) {
+              @if (cardOverflow.hiddenItemIDs().has(action.id)) {
+                <button
+                  kbq-dropdown-item
+                  (click)="notify(action.feedback + ': ' + state.card()?.id)"
+                >
+                  {{ action.label }}
+                </button>
+              }
+            }
+          </kbq-dropdown>
         </div>
       </kbq-content-panel-header>
       <kbq-content-panel-body>
