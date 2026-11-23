@@ -34,6 +34,16 @@
 .drilldown-screen[hidden] {
   display: none;
 }
+.drilldown-screen-with-slots {
+  overflow-y: auto;
+}
+.drilldown-screen-with-slots .drilldown-body {
+  min-height: min(var(--kbq-size-3xl), 100%);
+}
+.drilldown-before-content,
+.drilldown-footer {
+  flex: 0 0 auto;
+}
 .drilldown-header {
   display: flex;
   align-items: center;

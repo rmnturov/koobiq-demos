@@ -13,6 +13,7 @@
       @for (screen of visited(); track screen.id) {
         <section
           class="drilldown-screen"
+          [class.drilldown-screen-with-slots]="screen.definition.beforeContent() || screen.definition.footer()"
           tabindex="-1"
           [attr.data-screen]="screen.id"
           [hidden]="screen.id !== activeScreenId()"
@@ -50,6 +51,14 @@
               />
             </div>
           </header>
+          @if (screen.definition.beforeContent(); as beforeContent) {
+            <div class="drilldown-before-content">
+              <ng-container
+                [ngTemplateOutlet]="beforeContent"
+                [ngTemplateOutletContext]="{ $implicit: this }"
+              />
+            </div>
+          }
           <div kbqScrollbarViewport class="drilldown-body">
             <div class="drilldown-content">
               <ng-container
@@ -58,6 +67,14 @@
               />
             </div>
           </div>
+          @if (screen.definition.footer(); as footer) {
+            <footer class="drilldown-footer">
+              <ng-container
+                [ngTemplateOutlet]="footer"
+                [ngTemplateOutletContext]="{ $implicit: this }"
+              />
+            </footer>
+          }
         </section>
       }
     </div>

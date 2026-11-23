@@ -34,10 +34,10 @@
 
 **Interfaces** — `beforeContent` and `footer` are optional `TemplateRef<unknown>` inputs with the menu exposed as `$implicit`. `DrilldownMenu.revealTarget(target: HTMLElement): void` reveals only content in the active viewport. The input owns focus and refers to the results by ID. Options report their selection state and do not enter the tab order.
 
-- [ ] Add a demo test that opens «Мультивыбор с поиском», expects the combobox to be focused, enters «дАтА» and checks marked text. Navigate to two results and toggle them, verify the input remains focused and Tab goes to «Сбросить по умолчанию». Enter `[` and verify the empty state and cleared active-descendant reference.
-- [ ] Add a demo test that searches for «закрытия», clicks the matching option, returns by Esc and verifies root focus. Check query reset after closing and opening the menu, then restore defaults and verify the option is unmarked.
-- [ ] Run `npm test -- --watch=false --include=src/demos/drilldown-menu/drilldown-menu.demo.spec.ts`. Expect both new tests to fail because the test section is missing.
-- [ ] Render the fixed slots and include their heights in shell layout. Resolve `initialFocus` across the screen. Only reveal targets inside the scrolling viewport.
-- [ ] Add the screen in the demo. Bind case-insensitive filtering and Koobiq match highlighting to the query, use `aria-controls` and `aria-activedescendant` for the editable input, and keep selection in the demo outside the lifetime of the screen. The query «дата» matches «Дата обнаружения», «Дата регистрации» and «Дата закрытия».
-- [ ] Run `npm test -- --watch=false --include=src/demos/drilldown-menu/**/*.spec.ts` and `npm run build`. Verify the focus sequence, filtering, empty state and fixed controls in Chromium. Expect the drilldown tests and build to pass.
-- [ ] Commit the tested changes in the worktree.
+- [x] Add a demo test that opens «Мультивыбор с поиском», expects the combobox to be focused, enters «дАтА» and checks marked text. Navigate to two results and toggle them, verify the input remains focused and Tab goes to «Сбросить по умолчанию». Enter `[` and verify the empty state and cleared active-descendant reference.
+- [x] Add a demo test that searches for «закрытия», clicks the matching option, returns by Esc and verifies root focus. Check query reset after closing and opening the menu, then restore defaults and verify the option is unmarked.
+- [x] Run `npm test -- --watch=false --include=src/demos/drilldown-menu/drilldown-menu.demo.spec.ts`. Expect both new tests to fail because the test section is missing.
+- [x] Render the fixed slots and include their heights in shell layout. Resolve `initialFocus` across the screen. Only reveal targets inside the scrolling viewport.
+- [x] Add the screen in the demo. Bind case-insensitive filtering and Koobiq match highlighting to the query, use `aria-controls` and `aria-activedescendant` for the editable input, and keep selection in the demo outside the lifetime of the screen. The query «дата» matches «Дата обнаружения», «Дата регистрации» and «Дата закрытия».
+- [x] Run `npm test -- --watch=false --include=src/demos/drilldown-menu/**/*.spec.ts` and `npm run build`. Verify the focus sequence, filtering, empty state and fixed controls in Chromium. Expect the drilldown tests and build to pass.
+- [x] Commit the tested changes in the worktree.

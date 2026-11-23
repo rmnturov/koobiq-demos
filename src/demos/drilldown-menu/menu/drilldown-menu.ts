@@ -223,10 +223,30 @@ export class DrilldownMenu {
     const screen = this.screenElement(id);
     const target = selector ? screen?.querySelector<HTMLElement>(selector) : null;
     if (!screen || !target?.matches('[kbq-dropdown-item]')) return;
-    revealDrilldownTarget(this.viewportFor(screen), target, {
+    const viewport = this.viewportFor(screen);
+    if (!viewport?.getNativeElement().contains(target)) return;
+    revealDrilldownTarget(viewport, target, {
       topGap: INITIAL_MENU_ITEM_TOP_GAP,
       behavior,
     });
+  }
+
+  revealTarget(target: HTMLElement): void {
+    const screen = this.screenElement();
+    if (!screen?.contains(target)) return;
+    const viewport = this.viewportFor(screen);
+    if (viewport?.getNativeElement().contains(target)) revealDrilldownTarget(viewport, target);
+
+    // A very short panel can also scroll its fixed controls into view.
+    if (screen.scrollHeight > screen.clientHeight) {
+      const screenBounds = screen.getBoundingClientRect();
+      const targetBounds = target.getBoundingClientRect();
+      if (targetBounds.top < screenBounds.top) {
+        screen.scrollTop += targetBounds.top - screenBounds.top;
+      } else if (targetBounds.bottom > screenBounds.bottom) {
+        screen.scrollTop += targetBounds.bottom - screenBounds.bottom;
+      }
+    }
   }
 
   ownsTarget(target: Node): boolean {
@@ -245,7 +265,8 @@ export class DrilldownMenu {
   }
 
   onKeydown(event: KeyboardEvent): void {
-    if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
+    if (event.defaultPrevented || event.isComposing || event.altKey || event.ctrlKey || event.metaKey)
+      return;
     const target = event.target;
     if (!(target instanceof HTMLElement) || !this.screenElement()?.contains(target)) return;
     if (event.key === 'Escape') {
@@ -273,7 +294,7 @@ export class DrilldownMenu {
       event.preventDefault();
       event.stopPropagation();
       (next ?? screen).focus({ preventScroll: true });
-      if (next) revealDrilldownTarget(this.viewportFor(screen), next);
+      if (next) this.revealTarget(next);
     } else if (target.matches('[kbq-dropdown-item]') && target.closest('[drilldownMenuList]')) {
       if (event.key === 'ArrowLeft' && this.depth()) {
         event.preventDefault();
@@ -316,7 +337,7 @@ export class DrilldownMenu {
         const viewport = this.viewportFor(screen);
         list?.setViewport(viewport);
         const selector = definition.initialFocus();
-        const preferred = selector ? body.querySelector<HTMLElement>(selector) : null;
+        const preferred = selector ? screen.querySelector<HTMLElement>(selector) : null;
         if (
           opener?.isConnected &&
           !opener.matches(':disabled,[aria-disabled="true"]') &&
@@ -345,11 +366,11 @@ export class DrilldownMenu {
             screen
           ).focus({ preventScroll: true });
         }
-        if (document.activeElement instanceof HTMLElement && body.contains(document.activeElement)) {
+        if (document.activeElement instanceof HTMLElement && screen.contains(document.activeElement)) {
           const active = document.activeElement;
           const isInitialMenuItem = preferred === active && active.matches('[kbq-dropdown-item]');
           if (isInitialMenuItem) this.scrollInitialFocusTarget(id);
-          else revealDrilldownTarget(viewport, active);
+          else this.revealTarget(active);
         }
         this.observer?.disconnect();
         if (typeof ResizeObserver !== 'undefined') {
@@ -390,6 +411,8 @@ export class DrilldownMenu {
     screen.style.width = `${targetWidth}px`;
     const naturalHeight =
       (screen.querySelector<HTMLElement>('.drilldown-header')?.offsetHeight ?? 40) +
+      (screen.querySelector<HTMLElement>('.drilldown-before-content')?.offsetHeight ?? 0) +
+      (screen.querySelector<HTMLElement>('.drilldown-footer')?.offsetHeight ?? 0) +
       (screen.querySelector<HTMLElement>('.drilldown-content')?.scrollHeight ?? 0);
     const origin = this.origin?.getBoundingClientRect();
     const below = origin ? window.innerHeight - origin.bottom - 16 : window.innerHeight - 16;

@@ -1,7 +1,7 @@
 <div class="demo">
   <div class="demo-intro">
     <h1 class="kbq-headline">Меню с переходами</h1>
-    <p>Откройте параметры таблицы и выберите период автообновления.</p>
+    <p>В параметрах таблицы можно выбрать период автообновления или проверить мультивыбор с поиском.</p>
   </div>
   <div class="demo-layout">
     <div class="demo-stage">
@@ -62,7 +62,11 @@
   </div>
 </div>
 
-<demo-drilldown-menu #menu="drilldownMenu" [maxHeight]="maxHeight()">
+<demo-drilldown-menu
+  #menu="drilldownMenu"
+  [maxHeight]="maxHeight()"
+  (closed)="setIncidentQuery('')"
+>
   <ng-template #rootActions>
     <button
       kbq-button
@@ -145,6 +149,119 @@
           <i [kbq-icon]="item.icon"></i>{{ item.label }}
         </button>
       }
+      <kbq-divider />
+      <button
+        #incidentFieldsOpener
+        kbq-dropdown-item
+        type="button"
+        role="menuitem"
+        data-drilldown-target="incident-fields"
+        [id]="menu.id + '-incident-fields'"
+        (click)="api.navigate('incident-fields', incidentFieldsOpener.getHostElement())"
+      >
+        <i kbq-icon="kbq-list_16"></i>
+        <span class="demo-menu-row">
+          <span class="demo-menu-label">Мультивыбор с поиском</span>
+          <i kbq-icon="kbq-chevron-right-s_16"></i>
+        </span>
+      </button>
     </div>
+  </ng-template>
+
+  <ng-template #incidentSearch let-api>
+    @let activeId = activeIncidentField();
+    <kbq-form-field class="incident-search" noBorders [inOverlay]="true">
+      <i kbqPrefix kbq-icon="kbq-magnifying-glass_16" aria-hidden="true"></i>
+      <input
+        #searchInput
+        kbqInput
+        type="text"
+        role="combobox"
+        aria-label="Поиск столбцов"
+        aria-autocomplete="list"
+        autocomplete="off"
+        placeholder="Столбец"
+        data-incident-search
+        [attr.aria-expanded]="incidentGroups().length > 0"
+        [attr.aria-controls]="menu.id + '-incident-field-list'"
+        [attr.aria-activedescendant]="activeId ? incidentOptionId(menu, activeId) : null"
+        [ngModel]="incidentQuery()"
+        (ngModelChange)="setIncidentQuery($event)"
+        (keydown)="onIncidentSearchKeydown($event, api)"
+        (blur)="activeIncidentField.set(null)"
+      />
+      @if (incidentQuery()) {
+        <button
+          kbqSuffix
+          kbq-button
+          kbqStyle="transparent"
+          class="incident-search-clear"
+          type="button"
+          [tabIndex]="-1"
+          aria-label="Очистить поиск"
+          (mousedown)="$event.preventDefault()"
+          (click)="setIncidentQuery(''); searchInput.focus({ preventScroll: true })"
+        >
+          <i kbq-icon="kbq-circle-xmark_16"></i>
+        </button>
+      }
+    </kbq-form-field>
+  </ng-template>
+
+  <ng-template #incidentFooter>
+    <div class="incident-footer">
+      <button
+        kbq-button
+        kbqStyle="transparent"
+        class="incident-reset"
+        type="button"
+        data-incident-fields-reset
+        (click)="resetIncidentFields()"
+      >
+        <i kbq-icon="kbq-circle-xmark_16"></i>Сбросить по умолчанию
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template
+    drilldownMenuScreen="incident-fields"
+    title="Мультивыбор с поиском"
+    initialFocus="[data-incident-search]"
+    [beforeContent]="incidentSearch"
+    [footer]="incidentFooter"
+    let-api
+  >
+    <div
+      role="listbox"
+      aria-label="Поля таблицы инцидентов"
+      aria-multiselectable="true"
+      [id]="menu.id + '-incident-field-list'"
+      [hidden]="incidentGroups().length === 0"
+    >
+      @for (group of incidentGroups(); track group.id) {
+        <kbq-optgroup [label]="group.label">
+          <ng-container>
+            @for (field of group.fields; track field.id) {
+              @let checked = selectedIncidentFields().has(field.id);
+              <div
+                class="incident-option"
+                role="option"
+                [id]="incidentOptionId(menu, field.id)"
+                [attr.aria-checked]="checked"
+                [class.incident-option_active]="activeIncidentField() === field.id"
+                (mousedown)="$event.preventDefault()"
+                (click)="selectIncidentField(field.id, api)"
+              >
+                <kbq-pseudo-checkbox aria-hidden="true" [state]="checked" />
+                <span [innerHTML]="field.label | kbqHighlightBackground: incidentSearchTerm()"></span>
+              </div>
+            }
+          </ng-container>
+        </kbq-optgroup>
+      }
+    </div>
+    @if (incidentGroups().length === 0) {
+      <div role="status" class="incident-empty">Ничего не найдено</div>
+    }
   </ng-template>
 </demo-drilldown-menu>

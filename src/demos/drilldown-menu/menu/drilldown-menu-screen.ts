@@ -8,6 +8,8 @@ export class DrilldownMenuScreen {
   readonly screenWidth = input<number>();
   readonly initialFocus = input<string>();
   readonly headerActions = input<TemplateRef<unknown>>();
+  readonly beforeContent = input<TemplateRef<unknown>>();
+  readonly footer = input<TemplateRef<unknown>>();
   readonly template = inject<TemplateRef<unknown>>(TemplateRef);
 
   constructor() {
