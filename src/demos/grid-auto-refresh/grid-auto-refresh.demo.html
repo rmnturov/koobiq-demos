@@ -25,7 +25,7 @@
         <div kbqTopBarContainer placement="end" class="controls-container">
           <div #overflow="kbqOverflowItems" kbqOverflowItems class="controls" [debounceTime]="30">
             @for (control of controls; track control) {
-              <div [kbqOverflowItem]="control" [alwaysVisible]="control === 'state'">
+              <div [kbqOverflowItem]="control">
                 <ng-container
                   *ngTemplateOutlet="controlTemplate; context: { $implicit: control }"
                 />
@@ -89,20 +89,6 @@
                     @case ('scenario') {
                       <button kbq-dropdown-item [kbqDropdownTriggerFor]="scenarioMenu">
                         Сценарий
-                      </button>
-                    }
-                    @case ('state') {
-                      <button
-                        kbq-dropdown-item
-                        kbqPopover
-                        [kbqTrigger]="'click'"
-                        [kbqPopoverHeader]="'Состояние автообновления'"
-                        [kbqPopoverContent]="stateDetails"
-                        [kbqPopoverSize]="'medium'"
-                        [class.critical]="state.error()"
-                      >
-                        <span class="state-dot" [class.protected]="state.protectedMode()"></span
-                        >Состояние
                       </button>
                     }
                   }
@@ -326,21 +312,6 @@
         Сценарий <i kbq-icon="kbq-chevron-down-s_16"></i>
       </button>
     }
-    @case ('state') {
-      <button
-        kbq-button
-        [kbqStyle]="'transparent'"
-        [color]="'contrast'"
-        kbqPopover
-        [kbqTrigger]="'click'"
-        [kbqPopoverHeader]="'Состояние автообновления'"
-        [kbqPopoverContent]="stateDetails"
-        [kbqPopoverSize]="'medium'"
-        [class.critical]="state.error()"
-      >
-        <span class="state-dot" [class.protected]="state.protectedMode()"></span>Состояние
-      </button>
-    }
   }
 </ng-template>
 
@@ -363,36 +334,6 @@
   ><button kbq-dropdown-item (click)="scenario('select')">Работа с выбранными строками</button
   ><button kbq-dropdown-item (click)="scenario('card')">Просмотр инцидента</button></kbq-dropdown
 >
-<ng-template #stateDetails>
-  <div class="state-details">
-    <strong>{{ state.protectedMode() ? 'Защищённый режим' : 'Режим наблюдения' }}</strong>
-    <p>
-      {{
-        state.intervalMs()
-          ? 'Проверка: ' + intervalLabel(state.intervalMs()).toLowerCase()
-          : 'Автообновление выключено'
-      }}
-    </p>
-    @for (reason of state.reasons(); track reason) {
-      <p>{{ reason }}</p>
-    }
-    <p>
-      Последняя проверка:
-      {{ formatDate(state.lastChecked()) }}
-    </p>
-    <p>
-      Следующая проверка:
-      {{
-        state.secondsUntilCheck() === null
-          ? 'выключена'
-          : 'через ' + state.secondsUntilCheck() + ' с'
-      }}
-    </p>
-    @if (state.error()) {
-      <p class="critical">{{ state.error() }}</p>
-    }
-  </div>
-</ng-template>
 <ng-template #actionsPanel>
   <div #actionOverflow="kbqOverflowItems" kbqOverflowItems class="selection-actions">
     <span [kbqOverflowItem]="'counter'" [alwaysVisible]="true" class="selection-count"

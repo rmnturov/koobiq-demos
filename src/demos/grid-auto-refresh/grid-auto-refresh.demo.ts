@@ -28,7 +28,6 @@ import { KbqFilter, KbqFilterBarModule } from '@koobiq/components/filter-bar';
 import { KbqMarkdown } from '@koobiq/components/markdown';
 import { KbqIconModule } from '@koobiq/components/icon';
 import { KbqOverflowItemsModule } from '@koobiq/components/overflow-items';
-import { KbqPopoverModule } from '@koobiq/components/popover';
 import { KbqTopBarModule } from '@koobiq/components/top-bar';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
@@ -76,7 +75,6 @@ ModuleRegistry.registerModules([AllCommunityModule]);
     KbqFilterBarModule,
     KbqIconModule,
     KbqOverflowItemsModule,
-    KbqPopoverModule,
     KbqTopBarModule,
   ],
   providers: [KbqActionsPanel, DateFormatter],
@@ -128,7 +126,7 @@ export class GridAutoRefreshDemo {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly feedback = signal('');
   readonly intervals = [0, 5000, 15000, 30000, 60000];
-  readonly controls = ['refresh', 'interval', 'count', 'error', 'recover', 'scenario', 'state'];
+  readonly controls = ['refresh', 'interval', 'count', 'error', 'recover', 'scenario'];
   readonly cardActions = [
     { id: 'assign', label: 'Назначить', feedback: 'Назначение ответственного' },
     { id: 'status', label: 'Изменить статус', feedback: 'Изменение статуса' },

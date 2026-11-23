@@ -174,21 +174,6 @@ ag-grid-angular {
 .error-message {
   color: var(--kbq-foreground-error);
 }
-.state-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--kbq-icon-success);
-}
-.state-dot.protected {
-  background: var(--kbq-icon-warning);
-}
-.state-details {
-  max-width: 320px;
-}
-.state-details p {
-  margin: 12px 0 0;
-}
 .card-title {
   font-size: 20px;
   line-height: 28px;
