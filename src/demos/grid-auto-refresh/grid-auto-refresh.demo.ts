@@ -126,7 +126,7 @@ export class GridAutoRefreshDemo {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly feedback = signal('');
   readonly intervals = [0, 5000, 15000, 30000, 60000];
-  readonly controls = ['interval', 'refresh', 'count', 'error', 'recover', 'scenario', 'state'];
+  readonly controls = ['refresh', 'interval', 'count', 'error', 'recover', 'scenario', 'state'];
   readonly actions = [
     'Назначить',
     'Изменить статус',
@@ -149,7 +149,7 @@ export class GridAutoRefreshDemo {
   readonly rowClasses: RowClassRules<Incident> = {
     'incident-new-row': ({ data }) =>
       !!data &&
-      Date.now() - (this.state.lastApplied() ?? 0) < 2000 &&
+      Date.now() - (this.state.lastApplied() ?? 0) < 1000 &&
       this.state.newlyAppliedIds().includes(data.id),
   };
   readonly arrivalStyle = () => ({

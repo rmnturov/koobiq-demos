@@ -197,10 +197,12 @@
         [kbqStyle]="'transparent'"
         [color]="'contrast'"
         [disabled]="state.busy()"
+        [class.kbq-progress]="state.busy()"
+        [attr.aria-busy]="state.busy()"
         data-control="refresh"
         (click)="state.refresh()"
       >
-        <i kbq-icon="kbq-arrow-rotate-right_16"></i>{{ state.busy() ? 'Обновление…' : 'Обновить' }}
+        <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
       </button>
     }
     @case ('count') {
@@ -275,10 +277,12 @@
       <button
         kbq-dropdown-item
         [disabled]="state.busy()"
+        [class.kbq-progress]="state.busy()"
+        [attr.aria-busy]="state.busy()"
         data-control="refresh"
         (click)="state.refresh()"
       >
-        <i kbq-icon="kbq-arrow-rotate-right_16"></i>{{ state.busy() ? 'Обновление…' : 'Обновить' }}
+        <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
       </button>
     }
     @case ('count') {
