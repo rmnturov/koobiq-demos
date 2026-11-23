@@ -7,6 +7,7 @@ import {
   DestroyRef,
   effect,
   ElementRef,
+  EnvironmentInjector,
   inject,
   Injector,
   signal,
@@ -28,6 +29,7 @@ import { KbqFilter, KbqFilterBarModule } from '@koobiq/components/filter-bar';
 import { KbqMarkdown } from '@koobiq/components/markdown';
 import { KbqIconModule } from '@koobiq/components/icon';
 import { KbqOverflowItemsModule } from '@koobiq/components/overflow-items';
+import { KbqToastService, KbqToastStyle } from '@koobiq/components/toast';
 import { KbqTopBarModule } from '@koobiq/components/top-bar';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
@@ -57,6 +59,7 @@ import {
   STATUS_LABELS,
 } from './incident-model';
 import { IncidentServer } from './incident-server';
+import { createDemoToastScope } from './demo-toast-scope';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -124,7 +127,6 @@ export class GridAutoRefreshDemo {
     this.compactCard() ? this.panelWidth() : Math.min(680, this.workspaceWidth() - 336),
   );
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  readonly feedback = signal('');
   readonly intervals = [0, 5000, 15000, 30000, 60000];
   readonly controls = ['refresh', 'interval', 'count', 'error', 'recover', 'scenario'];
   readonly cardActions = [
@@ -241,7 +243,13 @@ export class GridAutoRefreshDemo {
   private panelRef: KbqActionsPanelRef | null = null;
   private syncing = false;
   private appliedRevision = -1;
-  private feedbackTimer?: ReturnType<typeof setTimeout>;
+  private readonly environmentInjector = inject(EnvironmentInjector);
+  private readonly previewCard = viewChild<ElementRef<HTMLElement>>('previewCard');
+  private readonly toasts = signal<KbqToastService | null>(null);
+  private toastScope?: EnvironmentInjector;
+  private errorToast: ReturnType<KbqToastService['show']> | null = null;
+  private previousToastBusy = false;
+  private previousToastError: string | null = null;
 
   constructor() {
     const destroy = inject(DestroyRef);
@@ -251,6 +259,9 @@ export class GridAutoRefreshDemo {
       );
       resize.observe(this.host.nativeElement);
       destroy.onDestroy(() => resize.disconnect());
+      const preview = this.previewCard()!;
+      this.toastScope = createDemoToastScope(preview.nativeElement, this.environmentInjector);
+      this.toasts.set(this.toastScope.get(KbqToastService));
       this.ready.set(true);
       this.state.start();
       void this.state.setVisibility(document.hidden);
@@ -260,8 +271,39 @@ export class GridAutoRefreshDemo {
     destroy.onDestroy(() => {
       this.state.destroy();
       document.removeEventListener('visibilitychange', visibility);
-      clearTimeout(this.feedbackTimer);
+      this.toastScope?.destroy();
       this.panelRef?.close();
+    });
+    effect(() => {
+      const toasts = this.toasts();
+      const error = this.state.error();
+      const busy = this.state.busy();
+      const automatic = this.state.intervalMs() > 0;
+      const requestFinished = this.previousToastBusy && !busy;
+      this.previousToastBusy = busy;
+      if (!toasts) return;
+      if (!error) {
+        if (this.errorToast) toasts.hide(this.errorToast.id);
+        this.errorToast = null;
+        this.previousToastError = null;
+        return;
+      }
+      if (busy) return;
+      const active = this.errorToast && toasts.toasts.includes(this.errorToast.ref);
+      if (!active && (requestFinished || error !== this.previousToastError)) {
+        this.errorToast = toasts.show({
+          style: KbqToastStyle.Error,
+          title: error,
+          closeButton: true,
+        });
+      }
+      if (this.errorToast && toasts.toasts.includes(this.errorToast.ref)) {
+        this.errorToast.ref.instance.data.caption = automatic
+          ? 'Повторим автоматически'
+          : 'Автообновление выключено';
+        this.errorToast.ref.changeDetectorRef.markForCheck();
+      }
+      this.previousToastError = error;
     });
     effect(() => {
       const api = this.grid();
@@ -423,9 +465,7 @@ export class GridAutoRefreshDemo {
     this.notify(`${action} · Выбрано: ${this.state.selectedIds().length}`);
   }
   notify(message: string): void {
-    this.feedback.set(message);
-    clearTimeout(this.feedbackTimer);
-    this.feedbackTimer = setTimeout(() => this.feedback.set(''), 4000);
+    this.toasts()?.show({ title: message, closeButton: true });
   }
   formatDate(value: number | null): string {
     return value === null

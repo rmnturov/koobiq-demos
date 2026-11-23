@@ -1,4 +1,4 @@
-<article class="preview-card" aria-label="Интерактивный пример автообновления">
+<article #previewCard class="preview-card" aria-label="Интерактивный пример автообновления">
   <kbq-content-panel-container
     class="workspace"
     [opened]="!!state.card()"
@@ -164,15 +164,6 @@
               Показать
             </button>
           </div>
-        }
-        @if (state.error()) {
-          <div class="error-message" role="status">
-            {{ state.error() }}.
-            {{ state.intervalMs() ? 'Повторим автоматически' : 'Автообновление выключено' }}
-          </div>
-        }
-        @if (feedback()) {
-          <div class="action-feedback" role="status">{{ feedback() }}</div>
         }
       </div>
     </section>
