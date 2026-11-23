@@ -16,6 +16,7 @@ import { KbqFormFieldModule } from '@koobiq/components/form-field';
 import { KbqIconModule } from '@koobiq/components/icon';
 import { KbqToolTipModule } from '@koobiq/components/tooltip';
 import { KbqInputModule } from '@koobiq/components/input';
+import { KbqSkeletonTable } from '@koobiq/components/skeleton';
 import { KbqToggleModule } from '@koobiq/components/toggle';
 import { DateAdapter, DateFormatter, KbqFormattersModule } from '@koobiq/components/core';
 import {
@@ -45,6 +46,7 @@ const DEFAULT_DENSITY = DENSITY_OPTIONS[1];
     KbqIconModule,
     KbqToolTipModule,
     KbqInputModule,
+    KbqSkeletonTable,
     KbqToggleModule,
     DrilldownMenu,
     DrilldownMenuScreen,
@@ -66,7 +68,7 @@ export class DrilldownMenuDemo {
     return this.dateAdapter.deserialize(new Date(this.durationOrigin.toMillis() + value))!;
   }
   readonly period = signal<AutoRefreshPeriod>(300000);
-  readonly maxHeight = signal(480);
+  readonly maxHeight = signal<number | null>(480);
   readonly longPresets = signal(true);
   readonly includeAutoRefresh = signal(true);
   readonly autoRefreshAfter = signal(false);

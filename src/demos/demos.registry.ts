@@ -7,7 +7,7 @@ import { DemoEntry } from './demo.types';
 export const DEMOS: readonly DemoEntry[] = [
     {
         slug: 'drilldown-menu',
-        title: 'Меню с переходами',
+        title: 'Меню настройки грида',
         description: 'Настройка автообновления с переходами между экранами',
         loadComponent: () => import('./drilldown-menu/drilldown-menu.demo').then((m) => m.DrilldownMenuDemo)
     },

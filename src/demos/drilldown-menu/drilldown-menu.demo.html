@@ -1,8 +1,5 @@
 <div class="demo">
-  <div class="demo-intro">
-    <h1 class="kbq-headline">Меню с переходами</h1>
-    <p>В параметрах таблицы можно выбрать период автообновления или проверить мультивыбор с поиском.</p>
-  </div>
+  <h1 class="kbq-headline demo-heading">Меню настройки грида</h1>
   <div class="demo-layout">
     <div class="demo-stage">
       <div class="demo-toolbar">
@@ -11,17 +8,12 @@
           <i kbq-icon="kbq-sliders_16"></i>Параметры таблицы
         </button>
       </div>
-      <div class="demo-table" aria-hidden="true">
-        <div class="demo-table-head">
-          <span>Событие</span><span>Источник</span><span>Время</span>
-        </div>
-        @for (row of [1, 2, 3, 4, 5]; track row) {
-          <div class="demo-table-row">
-            <span class="demo-skeleton"></span><span class="demo-skeleton"></span
-            ><span class="demo-skeleton"></span>
-          </div>
-        }
-      </div>
+      <kbq-skeleton-table
+        class="demo-table"
+        aria-hidden="true"
+        rows="5"
+        [columns]="['2fr', '1fr', '1fr']"
+      />
       <div class="demo-status" aria-live="polite">
         <span>Автообновление: {{ periodLabel() }}</span
         ><span>Обновлений: {{ refreshCount() }}</span>
@@ -32,37 +24,38 @@
     </div>
     <aside class="demo-settings" aria-label="Параметры демонстрации">
       <h2 class="kbq-subheading">Параметры примера</h2>
-      <div class="demo-height">
-        <label for="menu-max-height">Максимальная высота, px</label>
-        <kbq-form-field
-          ><input
-            kbqInput
-            id="menu-max-height"
-            type="number"
-            min="80"
-            max="1200"
-            [ngModel]="maxHeight()"
-            (ngModelChange)="maxHeight.set($event)"
-        /></kbq-form-field>
+      <kbq-form-field class="demo-height">
+        <kbq-label>Макс. высота, px</kbq-label>
+        <input
+          kbqNumberInput
+          id="menu-max-height"
+          integer
+          min="80"
+          max="1200"
+          [(ngModel)]="maxHeight"
+        />
+        <kbq-stepper />
+      </kbq-form-field>
+      <div class="demo-toggles">
+        <kbq-toggle [checked]="longPresets()" (change)="longPresets.set($event.checked)">
+          Длинный список периодов
+        </kbq-toggle>
+        <kbq-toggle [checked]="includeAutoRefresh()" (change)="includeAutoRefresh.set($event.checked)">
+          Раздел автообновления
+        </kbq-toggle>
+        <kbq-toggle
+          [checked]="autoRefreshAfter()"
+          [disabled]="!includeAutoRefresh()"
+          (change)="autoRefreshAfter.set($event.checked)"
+        >
+          Автообновление после команды «Обновить»
+        </kbq-toggle>
       </div>
-      <kbq-toggle [checked]="longPresets()" (change)="longPresets.set($event.checked)"
-        >Длинный список периодов</kbq-toggle
-      >
-      <kbq-toggle [checked]="includeAutoRefresh()" (change)="includeAutoRefresh.set($event.checked)"
-        >Раздел автообновления</kbq-toggle
-      >
-      <kbq-toggle
-        [checked]="autoRefreshAfter()"
-        [disabled]="!includeAutoRefresh()"
-        (change)="autoRefreshAfter.set($event.checked)"
-        >Автообновление после команды «Обновить»</kbq-toggle
-      >
-      <p class="demo-hint">Во вложенном экране Esc возвращает назад. В корне — закрывает меню.</p>
     </aside>
   </div>
 </div>
 
-<demo-drilldown-menu #menu="drilldownMenu" [maxHeight]="maxHeight()">
+<demo-drilldown-menu #menu="drilldownMenu" [maxHeight]="maxHeight() ?? 480">
   <ng-template #rootActions>
     <button
       kbq-button

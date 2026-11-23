@@ -34,11 +34,16 @@ describe('drilldown menu demo', () => {
   });
 
   it('registers a working demo and refreshes without the optional section', async () => {
-    expect(findDemo('drilldown-menu')?.title).toBe('Меню с переходами');
+    expect(findDemo('drilldown-menu')?.title).toBe('Меню настройки грида');
     const fixture = TestBed.createComponent(DrilldownMenuDemo);
     fixture.detectChanges();
     await fixture.whenStable();
     const host = fixture.componentInstance;
+    const element = fixture.nativeElement as HTMLElement;
+    expect(element.querySelector('h1')?.textContent?.trim()).toBe('Меню настройки грида');
+    expect(element.querySelector('#menu-max-height[kbqNumberInput]')).not.toBeNull();
+    expect(element.querySelector('kbq-skeleton-table')).not.toBeNull();
+    expect(element.querySelector('.kbq-skeleton-table__cell_pinned-edge')).toBeNull();
     host.includeAutoRefresh.set(false);
     fixture.detectChanges();
     await fixture.whenStable();
