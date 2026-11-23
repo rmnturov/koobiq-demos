@@ -100,6 +100,11 @@ ag-grid-angular {
 :host ::ng-deep .ag-body-viewport {
   overscroll-behavior: contain;
 }
+// Pinned-column spacers reserve space beside the real scrollbar; they never scroll.
+:host ::ng-deep .ag-horizontal-left-spacer,
+:host ::ng-deep .ag-horizontal-right-spacer {
+  overflow: hidden;
+}
 :host ::ng-deep .incident-new-row {
   isolation: isolate;
 }
