@@ -45,9 +45,67 @@
             <kbq-dropdown #moreControls="kbqDropdown">
               @for (control of controls; track control) {
                 @if (overflow.hiddenItemIDs().has(control)) {
-                  <ng-container
-                    *ngTemplateOutlet="menuControlTemplate; context: { $implicit: control }"
-                  />
+                  @switch (control) {
+                    @case ('interval') {
+                      <button kbq-dropdown-item [kbqDropdownTriggerFor]="intervalMenu">
+                        <i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }}
+                      </button>
+                    }
+                    @case ('refresh') {
+                      <button
+                        kbq-dropdown-item
+                        [disabled]="state.busy()"
+                        [class.kbq-progress]="state.busy()"
+                        [attr.aria-busy]="state.busy()"
+                        data-control="refresh"
+                        (click)="state.refresh()"
+                      >
+                        <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
+                      </button>
+                    }
+                    @case ('count') {
+                      <button kbq-dropdown-item [kbqDropdownTriggerFor]="countMenu">
+                        {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
+                      </button>
+                    }
+                    @case ('error') {
+                      <button
+                        kbq-dropdown-item
+                        [disabled]="server.offline"
+                        (click)="server.offline = true"
+                      >
+                        Ошибка связи
+                      </button>
+                    }
+                    @case ('recover') {
+                      <button
+                        kbq-dropdown-item
+                        [disabled]="!server.offline"
+                        (click)="server.offline = false; state.poll()"
+                      >
+                        Восстановить связь
+                      </button>
+                    }
+                    @case ('scenario') {
+                      <button kbq-dropdown-item [kbqDropdownTriggerFor]="scenarioMenu">
+                        Сценарий
+                      </button>
+                    }
+                    @case ('state') {
+                      <button
+                        kbq-dropdown-item
+                        kbqPopover
+                        [kbqTrigger]="'click'"
+                        [kbqPopoverHeader]="'Состояние автообновления'"
+                        [kbqPopoverContent]="stateDetails"
+                        [kbqPopoverSize]="'medium'"
+                        [class.critical]="state.error()"
+                      >
+                        <span class="state-dot" [class.protected]="state.protectedMode()"></span
+                        >Состояние
+                      </button>
+                    }
+                  }
                 }
               }
             </kbq-dropdown>
@@ -265,66 +323,7 @@
     }
   }
 </ng-template>
-<ng-template #menuControlTemplate let-control>
-  @switch (control) {
-    @case ('interval') {
-      <button kbq-dropdown-item [kbqDropdownTriggerFor]="intervalMenu">
-        <i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }}
-        <i kbq-icon="kbq-chevron-down-s_16"></i>
-      </button>
-    }
-    @case ('refresh') {
-      <button
-        kbq-dropdown-item
-        [disabled]="state.busy()"
-        [class.kbq-progress]="state.busy()"
-        [attr.aria-busy]="state.busy()"
-        data-control="refresh"
-        (click)="state.refresh()"
-      >
-        <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
-      </button>
-    }
-    @case ('count') {
-      <button kbq-dropdown-item [kbqDropdownTriggerFor]="countMenu">
-        {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
-        <i kbq-icon="kbq-chevron-down-s_16"></i>
-      </button>
-    }
-    @case ('error') {
-      <button kbq-dropdown-item [disabled]="server.offline" (click)="server.offline = true">
-        Ошибка связи
-      </button>
-    }
-    @case ('recover') {
-      <button
-        kbq-dropdown-item
-        [disabled]="!server.offline"
-        (click)="server.offline = false; state.poll()"
-      >
-        Восстановить связь
-      </button>
-    }
-    @case ('scenario') {
-      <button kbq-dropdown-item [kbqDropdownTriggerFor]="scenarioMenu">
-        Сценарий <i kbq-icon="kbq-chevron-down-s_16"></i>
-      </button>
-    }
-    @case ('state') {
-      <button
-        kbq-dropdown-item
-        kbqPopover
-        [kbqTrigger]="'click'"
-        [kbqPopoverHeader]="'Состояние автообновления'"
-        [kbqPopoverContent]="stateDetails"
-        [kbqPopoverSize]="'medium'"
-        [class.critical]="state.error()"
-      >
-        <span class="state-dot" [class.protected]="state.protectedMode()"></span>Состояние
-      </button>
-    }
-  }
-</ng-template>
+
 <kbq-dropdown #intervalMenu="kbqDropdown">
   @for (ms of intervals; track ms) {
     <button kbq-dropdown-item (click)="state.setInterval(ms)">
