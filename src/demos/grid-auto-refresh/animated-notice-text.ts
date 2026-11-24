@@ -18,12 +18,15 @@ const EASING = 'cubic-bezier(0.23, 1, 0.32, 1)';
   template: `
     <span class="label-content">
       <span #numberSlot class="number-slot">
-        <span #currentNumber class="number-current">{{ parts().number }}</span>
-        <span #outgoingNumber class="number-outgoing"></span>
+        <span #currentNumber class="number-current kbq-tabular-normal">{{ parts().number }}</span>
+        <span #outgoingNumber class="number-outgoing kbq-tabular-normal"></span>
       </span>
       <span class="suffix">{{ parts().suffix }}</span>
     </span>
-    <span #measurement class="measurement">{{ text() }}</span>
+    <span #measurement class="measurement"
+      ><span class="kbq-tabular-normal">{{ parts().number }}</span
+      ><span>{{ parts().suffix }}</span></span
+    >
   `,
   styleUrl: './animated-notice-text.scss',
   host: { 'aria-hidden': 'true' },
