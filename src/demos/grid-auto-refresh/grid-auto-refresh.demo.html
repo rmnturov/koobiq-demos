@@ -222,14 +222,14 @@
               <dd [class.critical]="card.severity === 4">{{ severityLabels[card.severity] }}</dd>
               <dt>Статус</dt>
               <dd>{{ statusLabels[card.status] }}</dd>
-              <dt>Ответственный</dt>
+              <dt>Оператор</dt>
               <dd>{{ card.assignee }}</dd>
               <dt>Источник</dt>
               <dd>{{ card.source }}</dd>
               <dt>Тип</dt>
               <dd>Инцидент информационной безопасности</dd>
             </dl>
-            <h3>Описание</h3>
+            <h3 class="description-title">Описание</h3>
             <p>{{ card.description }}</p>
             <h3>Метки</h3>
             <div class="tags">

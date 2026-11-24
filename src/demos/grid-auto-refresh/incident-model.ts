@@ -13,7 +13,8 @@ export interface Incident {
   readonly description: string;
 }
 
-export type IncidentSortField = 'createdAt' | 'name' | 'id' | 'severity' | 'status' | 'source';
+export type IncidentSortField =
+  'createdAt' | 'name' | 'id' | 'severity' | 'status' | 'assignee' | 'source';
 export interface IncidentQuery {
   readonly search: string;
   readonly status: IncidentStatus | null;

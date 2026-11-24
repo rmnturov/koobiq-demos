@@ -138,7 +138,7 @@ export class GridAutoRefreshDemo {
   readonly intervals = [0, 5000, 15000, 30000, 60000];
   readonly controls = ['refresh', 'interval', 'count', 'connection', 'scenario'];
   readonly cardActions = [
-    { id: 'assign', label: 'Назначить', feedback: 'Назначение ответственного' },
+    { id: 'assign', label: 'Назначить', feedback: 'Назначение оператора' },
     { id: 'status', label: 'Изменить статус', feedback: 'Изменение статуса' },
   ];
   readonly actions = [
@@ -232,6 +232,7 @@ export class GridAutoRefreshDemo {
       width: 138,
       valueFormatter: ({ data }) => (data ? STATUS_LABELS[data.status] : ''),
     },
+    { field: 'assignee', headerName: 'Оператор', width: 180 },
     { field: 'source', headerName: 'Источник', width: 185 },
     {
       field: 'createdAt',

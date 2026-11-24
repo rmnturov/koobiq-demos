@@ -17,7 +17,7 @@ export const FILTER_TEMPLATES: KbqPipeTemplate[] = [
   { id: 'severity', name: 'Критичность', values: options(SEVERITY_LABELS), removable: true },
   {
     id: 'assignee',
-    name: 'Ответственный',
+    name: 'Оператор',
     values: ASSIGNEES.map((name) => ({ name, value: name, id: name })),
     removable: true,
   },
