@@ -24,6 +24,7 @@ import {
 import { KbqButtonModule } from '@koobiq/components/button';
 import { KbqContentPanelModule } from '@koobiq/components/content-panel';
 import { DateFormatter } from '@koobiq/components/core';
+import { KbqDlModule } from '@koobiq/components/dl';
 import { KbqDropdownModule } from '@koobiq/components/dropdown';
 import { KbqFilter, KbqFilterBarModule } from '@koobiq/components/filter-bar';
 import { KbqMarkdown } from '@koobiq/components/markdown';
@@ -80,6 +81,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
     KbqActionsPanelModule,
     KbqButtonModule,
     KbqContentPanelModule,
+    KbqDlModule,
     KbqDropdownModule,
     KbqFilterBarModule,
     KbqIconModule,

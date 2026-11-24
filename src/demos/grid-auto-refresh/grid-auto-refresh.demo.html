@@ -247,18 +247,20 @@
       <kbq-content-panel-body>
         @if (state.card(); as card) {
           <div class="card-body">
-            <dl>
-              <dt>Критичность</dt>
-              <dd [class.critical]="card.severity === 4">{{ severityLabels[card.severity] }}</dd>
-              <dt>Статус</dt>
-              <dd>{{ statusLabels[card.status] }}</dd>
-              <dt>Оператор</dt>
-              <dd>{{ card.assignee }}</dd>
-              <dt>Источник</dt>
-              <dd>{{ card.source }}</dd>
-              <dt>Тип</dt>
-              <dd>Инцидент информационной безопасности</dd>
-            </dl>
+            <kbq-dl [verticalBreakpoint]="400">
+              <kbq-dt>Критичность</kbq-dt>
+              <kbq-dd [class.critical]="card.severity === 4">{{
+                severityLabels[card.severity]
+              }}</kbq-dd>
+              <kbq-dt>Статус</kbq-dt>
+              <kbq-dd>{{ statusLabels[card.status] }}</kbq-dd>
+              <kbq-dt>Оператор</kbq-dt>
+              <kbq-dd>{{ card.assignee }}</kbq-dd>
+              <kbq-dt>Источник</kbq-dt>
+              <kbq-dd>{{ card.source }}</kbq-dd>
+              <kbq-dt>Тип</kbq-dt>
+              <kbq-dd>Инцидент информационной безопасности</kbq-dd>
+            </kbq-dl>
             <h3 class="description-title">Описание</h3>
             <p>{{ card.description }}</p>
             <h3>Метки</h3>

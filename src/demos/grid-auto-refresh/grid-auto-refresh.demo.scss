@@ -240,18 +240,8 @@ ag-grid-angular {
 .card-body {
   padding-block-end: var(--kbq-size-xxl);
 }
-dl {
-  display: grid;
-  grid-template-columns: 140px minmax(0, 1fr);
-  gap: 16px;
-  margin: 24px 0;
-}
-dt {
-  color: var(--kbq-foreground-contrast-secondary);
-}
-dd {
-  margin: 0;
-  overflow-wrap: anywhere;
+kbq-dl {
+  margin-block: var(--kbq-size-xxl);
 }
 h3 {
   margin: 28px 0 12px;
@@ -332,13 +322,6 @@ kbq-filter-bar {
 @media (max-width: 1000px) {
   .with-card .title-container {
     display: none;
-  }
-  .card-body dl {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  .card-body dd {
-    margin-bottom: 8px;
   }
 }
 
