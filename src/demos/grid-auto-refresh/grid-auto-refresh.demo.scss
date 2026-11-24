@@ -107,6 +107,9 @@ ag-grid-angular {
 .has-selection ::ng-deep .ag-body-viewport {
   padding-block-end: 72px;
 }
+:host ::ng-deep .kbq-actions-panel-overlay {
+  --kbq-actions-panel-margin: var(--kbq-size-s) var(--kbq-size-s) var(--kbq-size-xxl);
+}
 :host ::ng-deep .ag-body-viewport {
   overscroll-behavior: contain;
 }
