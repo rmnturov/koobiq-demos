@@ -6,6 +6,7 @@ import { KbqBreadcrumbsModule } from '@koobiq/components/breadcrumbs';
 import { KbqButtonModule, KbqButtonStyles } from '@koobiq/components/button';
 import { KbqComponentColors, PopUpPlacements } from '@koobiq/components/core';
 import { KbqIconModule } from '@koobiq/components/icon';
+import { KbqScrollbar } from '@koobiq/components/scrollbar';
 import { KbqToolTipModule } from '@koobiq/components/tooltip';
 import { KbqTopBarModule } from '@koobiq/components/top-bar';
 import { filter, map, startWith } from 'rxjs';
@@ -25,6 +26,7 @@ import { ThemeToggleComponent } from '../theme/theme-toggle.component';
         KbqBreadcrumbsModule,
         KbqButtonModule,
         KbqIconModule,
+        KbqScrollbar,
         KbqToolTipModule,
         KbqTopBarModule,
         ThemeToggleComponent
