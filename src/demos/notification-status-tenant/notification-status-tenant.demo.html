@@ -1,0 +1,150 @@
+<article class="demo" [ngStyle]="surfaceStyles()">
+  <div class="demo__workspace">
+    <section class="geometry-controls" aria-label="Геометрия бейджа">
+      @for (control of geometryControls; track control.key) {
+        <div class="geometry-controls__field">
+          <label [for]="'badge-' + control.key">{{ control.label }}</label>
+          <output [for]="'badge-' + control.key">{{ geometry()[control.key] }} px</output>
+          <input
+            #slider
+            type="range"
+            [id]="'badge-' + control.key"
+            [min]="control.min"
+            [max]="geometryControlMax(control.key, geometry(), squircle())"
+            [value]="geometry()[control.key]"
+            step="1"
+            (input)="updateGeometry(control.key, slider.valueAsNumber)"
+          />
+        </div>
+      }
+    </section>
+
+    <section class="feed-preview" aria-label="Пример центра уведомлений">
+      <notification-feed [badgeTemplate]="notificationBadge" />
+    </section>
+
+    <section class="preview" aria-label="Примеры бейджей">
+      <ul class="preview__grid">
+        @for (sample of samples; track $index) {
+          <li>
+            <ng-container
+              [ngTemplateOutlet]="notificationBadge"
+              [ngTemplateOutletContext]="{ $implicit: sample }"
+            />
+          </li>
+        }
+      </ul>
+    </section>
+  </div>
+
+  <ng-template #notificationBadge let-sample>
+    <span
+      class="notification-badge"
+      data-notification-badge
+      role="img"
+      [attr.aria-label]="sample.status.label + (sample.tenant ? ' · ' + sample.tenant.name : '')"
+      [attr.data-tenant]="sample.tenant?.name"
+      [attr.data-category]="sample.tenant?.category"
+      [attr.data-status]="sample.status.id"
+      [attr.title]="sample.status.label + (sample.tenant ? ' · ' + sample.tenant.name : '')"
+      [style.--notification-status-bg]="'var(--notification-status-bg-' + sample.status.id + ')'"
+      [style.--notification-status-icon]="
+        'var(--notification-status-icon-' + sample.status.id + ')'
+      "
+      [style.--notification-tenant-bg]="
+        sample.tenant ? 'var(--notification-tenant-bg-' + sample.tenant.category + ')' : null
+      "
+      [style.--notification-tenant-icon]="
+        sample.tenant ? 'var(--notification-tenant-icon-' + sample.tenant.category + ')' : null
+      "
+    >
+      <span
+        class="notification-badge__status"
+        [class.notification-badge__status_unbadged]="!sample.tenant"
+        aria-hidden="true"
+      >
+        <i [kbq-icon]="sample.status.icon"></i>
+      </span>
+      @if (sample.tenant) {
+        <span class="notification-badge__tenant" aria-hidden="true">
+          <span>{{ sample.initial }}</span>
+        </span>
+      }
+    </span>
+  </ng-template>
+
+  <section class="variables" aria-labelledby="variables-title">
+    <div class="variables__intro">
+      <h2 id="variables-title">CSS-переменные</h2>
+      <p>Цвета связаны с токенами Koobiq.</p>
+    </div>
+    <div class="variables__group">
+      <h3>Геометрия</h3>
+      <p>Вынос одинаков по горизонтали и вертикали. Контур маски повторяет скругление тенанта.</p>
+      <div
+        class="variables__scroll"
+        role="region"
+        aria-label="CSS-переменные: Геометрия"
+        tabindex="0"
+      >
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">Переменная</th>
+              <th scope="col">Значение</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (control of geometryVariables; track control.key) {
+              <tr>
+                <th scope="row">
+                  <code>{{ control.variable }}</code>
+                </th>
+                <td>
+                  <code>{{ geometry()[control.key] }}px</code>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+    @for (group of variableGroups; track group.label) {
+      <div class="variables__group">
+        <h3>{{ group.label }}</h3>
+        <p>{{ group.description }}</p>
+        <div
+          class="variables__scroll"
+          role="region"
+          [attr.aria-label]="'CSS-переменные: ' + group.label"
+          tabindex="0"
+        >
+          <table>
+            <thead>
+              <tr>
+                <th scope="col">Переменная</th>
+                <th scope="col">Светлая тема</th>
+                <th scope="col">Тёмная тема</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of group.rows; track row.name) {
+                <tr [attr.data-color-variable]="row.name">
+                  <th scope="row">
+                    <code>{{ row.name }}</code>
+                  </th>
+                  <td>
+                    <code>var({{ row.lightToken }})</code>
+                  </td>
+                  <td>
+                    <code>var({{ row.darkToken }})</code>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  </section>
+</article>

@@ -1,0 +1,177 @@
+@if (opened()) {
+  <section class="feed" aria-labelledby="feed-title">
+    <header class="feed__header">
+      <div class="feed__heading">
+        <h2 id="feed-title">Уведомления</h2>
+        <button
+          kbq-button
+          type="button"
+          [kbqStyle]="'transparent'"
+          [color]="'contrast'"
+          aria-label="Не беспокоить"
+          [attr.aria-pressed]="silent()"
+          (click)="silent.set(!silent())"
+        >
+          <i [kbq-icon]="silent() ? 'kbq-bell-slash_16' : 'kbq-bell_16'"></i>
+        </button>
+      </div>
+      <div class="feed__toolbar">
+        @if (notifications().length) {
+          <button
+            kbq-button
+            type="button"
+            [kbqStyle]="'transparent'"
+            [color]="'contrast'"
+            aria-label="Удалить все уведомления"
+            (click)="clear()"
+          >
+            <i kbq-icon="kbq-trash_16"></i>
+          </button>
+          <span class="feed__divider" aria-hidden="true"></span>
+        }
+        <button
+          kbq-button
+          type="button"
+          [kbqStyle]="'transparent'"
+          [color]="'contrast'"
+          aria-label="Закрыть центр уведомлений"
+          (click)="close()"
+        >
+          <i kbq-icon="kbq-xmark_16"></i>
+        </button>
+      </div>
+    </header>
+
+    <div
+      #body
+      class="feed__body"
+      kbqScrollbarViewport
+      kbqScrollbarMode="hover"
+      role="region"
+      aria-label="Лента уведомлений"
+      tabindex="0"
+    >
+      @for (group of groups(); track group.day; let index = $index) {
+        <section [attr.aria-labelledby]="'feed-day-' + index">
+          <div class="feed__day">
+            <h3 [id]="'feed-day-' + index">{{ group.day }}</h3>
+            <button
+              class="feed__remove-day"
+              kbq-button
+              type="button"
+              [kbqStyle]="'transparent'"
+              [color]="'contrast'"
+              [attr.aria-label]="'Удалить уведомления за ' + group.day"
+              (click)="removeDay(group.day)"
+            >
+              <i kbq-icon="kbq-trash_16"></i>
+            </button>
+          </div>
+          <ul class="feed__list">
+            @for (notification of group.items; track notification.id) {
+              <li>
+                <article
+                  class="feed__item"
+                  [class.feed__item_with-tenant]="!!notification.badge.tenant"
+                  [attr.data-feed-notification]="notification.id"
+                  [attr.aria-label]="notification.title"
+                >
+                  <div class="feed__badge">
+                    <ng-container
+                      [ngTemplateOutlet]="badgeTemplate()"
+                      [ngTemplateOutletContext]="{ $implicit: notification.badge }"
+                    />
+                  </div>
+                  <div class="feed__content">
+                    <div class="feed__headline">
+                      <p class="feed__title">{{ notification.title }}</p>
+                      <div class="feed__time" [class.feed__time_unread]="!notification.read">
+                        <time
+                          [attr.datetime]="
+                            group.day === '9 апреля'
+                              ? '2026-04-09T09:01:00+07:00'
+                              : '2026-04-08T09:01:00+07:00'
+                          "
+                          >09:01</time
+                        >
+                        @if (!notification.read) {
+                          <span class="feed__unread" aria-label="Не прочитано"></span>
+                        }
+                      </div>
+                    </div>
+                    @if (notification.content) {
+                      <p class="feed__caption">{{ notification.content }}</p>
+                    }
+                    @if (notification.badge.tenant) {
+                      <p class="feed__organization">
+                        {{ notification.organization || notification.badge.tenant.name }}
+                      </p>
+                    }
+                    @if (notification.action) {
+                      <button
+                        class="feed__action"
+                        kbqLink
+                        type="button"
+                        (click)="showDetails(notification)"
+                      >
+                        {{ notification.action }}
+                      </button>
+                    }
+                  </div>
+                  <button
+                    class="feed__remove"
+                    kbq-button
+                    type="button"
+                    [kbqStyle]="'transparent'"
+                    [color]="'contrast'"
+                    [attr.aria-label]="'Удалить уведомление: ' + notification.title"
+                    (click)="remove(notification.id)"
+                  >
+                    <i kbq-icon="kbq-trash_16"></i>
+                  </button>
+                </article>
+              </li>
+            }
+          </ul>
+        </section>
+      } @empty {
+        <div class="feed__empty" role="status">
+          <i kbq-icon="kbq-bell_24"></i>
+          <p>Нет уведомлений</p>
+        </div>
+      }
+    </div>
+  </section>
+} @else {
+  <button #opener kbq-button type="button" (click)="reopen()">
+    <i kbq-icon="kbq-bell_16"></i>Показать уведомления
+  </button>
+}
+
+<dialog
+  #details
+  class="feed__details"
+  aria-labelledby="notification-details-title"
+  (close)="selected.set(null)"
+>
+  <div class="feed__details-header">
+    <h3 id="notification-details-title">{{ selected()?.title }}</h3>
+    <button
+      kbq-button
+      type="button"
+      [kbqStyle]="'transparent'"
+      [color]="'contrast'"
+      aria-label="Закрыть подробности уведомления"
+      (click)="closeDetails()"
+    >
+      <i kbq-icon="kbq-xmark_16"></i>
+    </button>
+  </div>
+  @if (selected()?.badge?.tenant; as tenant) {
+    <p class="feed__organization">{{ selected()?.organization || tenant.name }}</p>
+  }
+  @if (selected()?.content) {
+    <p class="feed__caption">{{ selected()?.content }}</p>
+  }
+  <p class="feed__details-date">{{ selected()?.day }}, 09:01</p>
+</dialog>

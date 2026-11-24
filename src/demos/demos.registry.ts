@@ -6,6 +6,13 @@ import { DemoEntry } from './demo.types';
 /** The only place where demos are wired into the app. One entry per demo. */
 export const DEMOS: readonly DemoEntry[] = [
     {
+        slug: 'notification-status-tenant',
+        title: 'Статус и тенант',
+        description: 'Бейджи уведомлений с цветами тенантов и CSS-переменными',
+        loadComponent: () =>
+            import('./notification-status-tenant/notification-status-tenant.demo').then((m) => m.NotificationStatusTenantDemo)
+    },
+    {
         slug: 'grid-auto-refresh',
         title: 'Автообновление в гриде',
         description: 'Поток инцидентов, защищённое обновление и бесконечная прокрутка',
