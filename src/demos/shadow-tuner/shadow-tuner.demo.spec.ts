@@ -1,5 +1,7 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { By } from '@angular/platform-browser';
 import { KbqThemeService, kbqThemeProvider } from '@koobiq/components/core';
+import { AgGridAngular } from 'ag-grid-angular';
 
 import { ShadowTunerDemo } from './shadow-tuner.demo';
 
@@ -166,7 +168,34 @@ describe('shadow tuner', () => {
 
         expect(
             [...root.querySelectorAll<HTMLElement>('.scene__title')].map((title) => title.textContent?.trim())
-        ).toEqual(['Уровни', 'Плитка и карточки', 'Выпадашка селекта', 'Контент-панель и грид', 'Модалка']);
+        ).toEqual([
+            'Уровни',
+            'Плитка и карточки',
+            'Выпадашка селекта',
+            'Контент-панель и грид событий',
+            'Контент-панель и грид',
+            'Модалка'
+        ]);
+    });
+
+    it('renders twelve populated text columns in each workspace grid', async () => {
+        const { fixture } = await render();
+        const grids = fixture.debugElement.queryAll(By.directive(AgGridAngular)).map(({ componentInstance }) =>
+            componentInstance as AgGridAngular<Record<string, string>>
+        );
+
+        expect(grids).toHaveLength(2);
+
+        for (const grid of grids) {
+            const fields = grid.columnDefs?.flatMap((column) => 'field' in column && column.field ? [column.field] : []);
+
+            expect(fields).toHaveLength(12);
+            expect(grid.rowData).toHaveLength(40);
+
+            for (const row of grid.rowData ?? []) {
+                expect(fields?.every((field) => typeof row[field] === 'string' && row[field].trim().length > 0)).toBe(true);
+            }
+        }
     });
 
     it('scrolls the preview column with the Koobiq overlay scrollbar', async () => {

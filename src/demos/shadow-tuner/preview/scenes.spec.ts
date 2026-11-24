@@ -4,7 +4,7 @@ import { By } from '@angular/platform-browser';
 import { kbqThemeProvider } from '@koobiq/components/core';
 import { KbqModalRef, KbqModalService } from '@koobiq/components/modal';
 import { AgGridAngular } from 'ag-grid-angular';
-import { CellClickedEvent, ColDef } from 'ag-grid-community';
+import { CellClickedEvent, ColDef, SELECTION_COLUMN_ID } from 'ag-grid-community';
 
 import { ShadowStore } from '../model/shadow-store';
 import { CardsScene } from './cards-scene';
@@ -83,7 +83,17 @@ function texts(root: HTMLElement, selector: string): string[] {
 }
 
 describe('shadow scenes', () => {
+    const nativeGetComputedStyle = window.getComputedStyle;
+
     beforeEach(() => {
+        // jsdom throws on some Koobiq CSS selectors during CDK and AG Grid setup.
+        window.getComputedStyle = (element, pseudoElement) => {
+            try {
+                return nativeGetComputedStyle.call(window, element, pseudoElement);
+            } catch {
+                return (element as HTMLElement).style;
+            }
+        };
         localStorage.clear();
     });
 
@@ -92,6 +102,7 @@ describe('shadow scenes', () => {
             if (!fixture.componentRef.hostView.destroyed) fixture.destroy();
         }
 
+        window.getComputedStyle = nativeGetComputedStyle;
         document.body.removeAttribute('style');
         history.replaceState(null, '', '/');
     });
@@ -165,7 +176,7 @@ describe('shadow scenes', () => {
         ]);
     });
 
-    it('feeds forty events to the grid and shows the clicked one in the panel title', async () => {
+    it('renders the rule grid and shows the clicked row in the panel title', async () => {
         const { fixture, root } = await render(WorkspaceScene);
         const grid = fixture.debugElement.query(By.directive(AgGridAngular)).componentInstance as AgGridAngular<
             Record<string, string>
@@ -173,13 +184,21 @@ describe('shadow scenes', () => {
 
         // Строки и колонки отданы гриду: в jsdom он их не рисует, поэтому читаем его входы.
         expect(grid.rowData?.length).toBe(40);
-        expect((grid.columnDefs as ColDef[]).map((column) => column.field)).toEqual([
-            'time',
-            'host',
-            'event',
-            'severity',
-            'source'
+        expect((grid.columnDefs as ColDef[]).map((column) => column.field ?? column.colId)).toEqual([
+            'name',
+            'scope',
+            'rule',
+            'category',
+            'status',
+            'source',
+            'owner',
+            'schedule',
+            'updatedAt',
+            'description',
+            'nextStep',
+            'channel'
         ]);
+        expect(root.querySelector('.panel-title')?.textContent?.trim()).toBe('Title');
 
         // Скроллбары таблицы красит директива Кубика: классы видны на хосте грида.
         const gridHost = root.querySelector<HTMLElement>('ag-grid-angular')!;
@@ -189,12 +208,47 @@ describe('shadow scenes', () => {
 
         const row = grid.rowData![7];
 
-        grid.cellClicked.emit({ data: row } as CellClickedEvent<Record<string, string>>);
+        grid.cellClicked.emit({
+            api: grid.api,
+            colDef: grid.columnDefs![0],
+            data: row
+        } as CellClickedEvent<Record<string, string>>);
         fixture.detectChanges();
         await fixture.whenStable();
         fixture.detectChanges();
 
-        expect(root.querySelector('.panel-title')?.textContent?.trim()).toBe(row['event']);
+        expect(root.querySelector('.panel-title')?.textContent?.trim()).toBe(row['name']);
+    });
+
+    it('locks the selection and Name columns together at the left edge', async () => {
+        const { fixture } = await render(WorkspaceScene);
+        const grid = fixture.debugElement.query(By.directive(AgGridAngular)).componentInstance as AgGridAngular;
+        const pinned = grid.api.getDisplayedLeftColumns();
+
+        expect(pinned.map((column) => column.getColId())).toEqual([SELECTION_COLUMN_ID, 'name']);
+
+        for (const column of pinned) {
+            expect(column.getColDef()).toMatchObject({
+                lockPinned: true,
+                lockPosition: 'left',
+                suppressMovable: true
+            });
+        }
+    });
+
+    it('keeps the popup and overlay surfaces visible for shadow comparison', async () => {
+        const { fixture, root } = await render(WorkspaceScene);
+
+        expect(root.querySelector('[data-target="filter-menu"]')).toBeTruthy();
+        expect(root.querySelector('[data-target="rule-popover"]')).toBeTruthy();
+        expect(root.querySelector('[data-target="panel-menu"]')).toBeTruthy();
+        expect(root.querySelector('.selection-bar__count')?.textContent?.trim()).toBe('Selected: 2');
+        expect(declared('.preview-menu')).toMatch(/box-shadow:\s*var\(--kbq-shadow-popup\)/);
+        expect(declared('.rule-popover')).toMatch(/box-shadow:\s*var\(--kbq-shadow-popup\)/);
+        expect(declared('.selection-bar')).toMatch(/box-shadow:\s*var\(--kbq-shadow-overlay\)/);
+
+        await click(fixture, root.querySelector<HTMLElement>('[aria-label="Меню фильтра"]')!);
+        expect(root.querySelector('[data-target="filter-menu"]')).toBeNull();
     });
 
     it('wears the overlay level in the after view and keeps the chosen one', async () => {

@@ -70,11 +70,8 @@ export function stockShadows(scheme: Scheme): SchemeShadows {
     return { colors: { ...STOCK_COLORS[scheme] }, elevations: structuredClone(STOCK_ELEVATIONS) };
 }
 
-/**
- * Пресет светлой темы — с него начинается «Стало» и куда возвращают сбросы. Ключевой и фоновый слои
- * взяты цветом обводки, обводки уровней тоньше стока: так пример показывает подгонку теней, а не сток.
- */
-const LIGHT_PRESET_COLORS: Partial<Record<Layer, ShadowColor>> = { key: 'a1', ambient: 'a1' };
+/** Светлый пресет для первого открытия «Стало» и сброса настроек. */
+const LIGHT_PRESET_COLORS: Record<Layer, ShadowColor> = { outline: 'a1', key: 'a2', ambient: 'a1' };
 const LIGHT_PRESET_GEOMETRY: Partial<Record<Elevation, Partial<Record<Layer, LayerGeometry>>>> = {
     card: { key: { x: 0, y: 1, blur: 4, spread: 0 } },
     popup: { outline: { x: 0, y: 0, blur: 0, spread: 0.5 } },
@@ -87,11 +84,7 @@ export function baseShadows(scheme: Scheme): SchemeShadows {
 
     if (scheme !== 'light') return set;
 
-    for (const layer of LAYERS) {
-        const color = LIGHT_PRESET_COLORS[layer];
-
-        if (color) set.colors[layer] = color;
-    }
+    set.colors = { ...LIGHT_PRESET_COLORS };
 
     for (const elevation of ELEVATIONS) {
         for (const layer of LAYERS) {

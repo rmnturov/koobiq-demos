@@ -34,3 +34,38 @@
         font-size: 0.9em;
     }
 }
+
+// Koobiq places the panel beside its own scrollbar. At narrow widths both surfaces need the full column.
+@mixin stack-content-panel($main-height, $panel-height) {
+    .workspace {
+        height: auto;
+    }
+
+    .workspace__container {
+        height: auto;
+        flex-direction: column;
+    }
+
+    .workspace ::ng-deep {
+        .kbq-content-panel-container__scrollbar {
+            flex: none;
+            width: 100%;
+            height: $main-height;
+            margin-right: 0 !important;
+        }
+
+        .kbq-content-panel-container__panel {
+            position: relative;
+            flex: none;
+            width: auto !important;
+            min-width: 0 !important;
+            max-width: none !important;
+            height: $panel-height;
+            padding-inline-start: var(--kbq-size-s);
+        }
+
+        .kbq-content-panel-container__panel-resizer {
+            display: none;
+        }
+    }
+}

@@ -36,6 +36,7 @@
 .tuner__preview > app-levels-scene,
 .tuner__preview > app-cards-scene,
 .tuner__preview > app-select-scene,
+.tuner__preview > app-events-workspace-scene,
 .tuner__preview > app-workspace-scene,
 .tuner__preview > app-modal-scene {
     padding-inline: var(--kbq-size-l);
@@ -47,6 +48,7 @@
  */
 .tuner__preview > app-cards-scene,
 .tuner__preview > app-select-scene,
+.tuner__preview > app-events-workspace-scene,
 .tuner__preview > app-workspace-scene,
 .tuner__preview > app-modal-scene {
     margin-top: var(--kbq-size-7xl);

@@ -1,0 +1,345 @@
+<section class="scene">
+    <div class="scene__head">
+        <h2 class="scene__title">Контент-панель и грид</h2>
+        <kbq-button-toggle-group
+            data-target="panel-elevation"
+            aria-label="Тень контент-панели правил"
+            [value]="store.panel()"
+            [disabled]="store.locked()"
+            (change)="store.setPanel($event.value)"
+        >
+            <kbq-button-toggle value="none">Обводка</kbq-button-toggle>
+            <kbq-button-toggle value="card">Card</kbq-button-toggle>
+            <kbq-button-toggle value="popup">Popup</kbq-button-toggle>
+            <kbq-button-toggle value="overlay">Overlay</kbq-button-toggle>
+        </kbq-button-toggle-group>
+    </div>
+    <p class="scene__note">
+        Меню и поповер показывают тень Popup, панель массовых действий — Overlay. Для контент-панели в «Стало» можно
+        выбрать обводку или уровень тени. В «Было» контент-панель с обводкой.
+    </p>
+
+    <div class="workspace">
+        <kbq-top-bar class="workspace__topbar">
+            <div kbqTopBarContainer placement="start">
+                <span kbqTopBarTitle class="workspace__page-title"
+                    >Page <span class="workspace__total">13 294</span></span
+                >
+            </div>
+            <div kbqTopBarContainer placement="end" class="workspace__topbar-actions" inert>
+                <span class="workspace__updated"><i kbq-icon="kbq-arrows-rotate_16"></i> Updated Recently</span>
+                <button type="button" kbq-button kbqStyle="transparent" aria-label="Поиск">
+                    <i kbq-icon="kbq-magnifying-glass_16"></i>
+                </button>
+                <button type="button" kbq-button kbqStyle="transparent" aria-label="Вид списка">
+                    <i kbq-icon="kbq-list-ul_16"></i>
+                </button>
+                <button type="button" kbq-button kbqStyle="transparent" aria-label="Фильтры">
+                    <i kbq-icon="kbq-filter_16"></i>
+                </button>
+                <button type="button" kbq-button>Shade</button>
+                <button type="button" kbq-button color="contrast">
+                    <i kbq-icon="kbq-plus_16" kbqButtonPrefix></i> Create
+                </button>
+                <button type="button" kbq-button kbqStyle="transparent" aria-label="Другие действия">
+                    <i kbq-icon="kbq-ellipsis-horizontal_16"></i>
+                </button>
+            </div>
+        </kbq-top-bar>
+
+        <kbq-content-panel-container
+            class="workspace__container"
+            [width]="488"
+            [minWidth]="320"
+            [maxWidth]="680"
+            [useStateSaving]="false"
+            [(opened)]="opened"
+        >
+            <div class="workspace__main">
+                <div class="workspace__filters">
+                    <div class="filter-preset">
+                        <button
+                            type="button"
+                            kbq-button
+                            [attr.aria-expanded]="filterMenuOpen()"
+                            (click)="filterMenuOpen.update(toggle)"
+                        >
+                            <i kbq-icon="kbq-list-ul_16" kbqButtonPrefix></i> Filter name
+                        </button>
+                        <button
+                            type="button"
+                            kbq-button
+                            aria-label="Меню фильтра"
+                            [attr.aria-expanded]="filterMenuOpen()"
+                            (click)="filterMenuOpen.update(toggle)"
+                        >
+                            <i kbq-icon="kbq-ellipsis-vertical_16"></i>
+                        </button>
+                    </div>
+                    <i class="filter-arrow" kbq-icon="kbq-chevron-right-s_16" aria-hidden="true"></i>
+                    <kbq-form-field class="workspace__search">
+                        <i kbq-icon="kbq-magnifying-glass_16" kbqPrefix></i>
+                        <input
+                            #searchInput
+                            kbqInput
+                            type="search"
+                            placeholder="Search"
+                            aria-label="Поиск по гриду"
+                            (input)="search.set(searchInput.value)"
+                        />
+                    </kbq-form-field>
+                    <div class="workspace__filter-value" inert>
+                        <button type="button" kbq-button><span class="filter-label">Filter name</span> Value</button>
+                        <button type="button" kbq-button kbqStyle="outline" aria-label="Добавить фильтр">
+                            <i kbq-icon="kbq-plus_16"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="workspace__grid-area">
+                    <ag-grid-angular
+                        #grid
+                        class="workspace__grid"
+                        kbqAgGridTheme
+                        kbqNativeScrollbar
+                        kbqNativeScrollbarDescendants
+                        [rowHeight]="40"
+                        [headerHeight]="40"
+                        [rowSelection]="rowSelection"
+                        [selectionColumnDef]="selectionColumn"
+                        [columnDefs]="columnDefs"
+                        [rowClassRules]="rowClassRules"
+                        [rowData]="rows"
+                        [quickFilterText]="search()"
+                        (firstDataRendered)="selectInitialRows($event)"
+                        (selectionChanged)="updateSelection($event)"
+                        (cellClicked)="activateCell($event)"
+                        (cellKeyDown)="activateCellWithKeyboard($event)"
+                    />
+                    <button
+                        type="button"
+                        kbq-button
+                        kbqStyle="transparent"
+                        class="workspace__grid-settings"
+                        aria-label="Сведения о правиле"
+                        [attr.aria-expanded]="popoverOpen()"
+                        (click)="popoverOpen.update(toggle)"
+                    >
+                        <i kbq-icon="kbq-sliders_16"></i>
+                    </button>
+
+                    @if (selectedCount()) {
+                        <div class="selection-bar">
+                            <span class="selection-bar__count">Selected: {{ selectedCount() }}</span>
+                            <div class="selection-bar__actions" inert>
+                                <button type="button" kbq-button kbqStyle="transparent">
+                                    <i kbq-icon="kbq-diamond_16" kbqButtonPrefix></i> Action One
+                                </button>
+                                <button type="button" kbq-button kbqStyle="transparent">
+                                    <i kbq-icon="kbq-user-secret_16" kbqButtonPrefix></i> Second Action
+                                </button>
+                                <button type="button" kbq-button kbqStyle="transparent">
+                                    <i kbq-icon="kbq-plus_16" kbqButtonPrefix></i> Применить
+                                </button>
+                            </div>
+                            <button
+                                type="button"
+                                kbq-button
+                                kbqStyle="transparent"
+                                aria-label="Снять выбор строк"
+                                (click)="grid.api.deselectAll()"
+                            >
+                                <i kbq-icon="kbq-circle-xmark_16"></i>
+                            </button>
+                        </div>
+                    }
+                </div>
+
+                @if (filterMenuOpen()) {
+                    <div class="kbq-dropdown__panel preview-menu filter-menu" data-target="filter-menu">
+                        <div class="kbq-dropdown__content" inert>
+                            @for (action of filterActions; track action.text; let first = $first) {
+                                @if (action.divider) {
+                                    <hr class="preview-divider" />
+                                }
+                                <button type="button" kbq-dropdown-item>
+                                    <i [kbq-icon]="action.icon"></i>
+                                    {{ action.text }}
+                                    @if (first) {
+                                        <span class="preview-menu__dirty"></span>
+                                    }
+                                </button>
+                            }
+                        </div>
+                    </div>
+                }
+
+                @if (popoverOpen()) {
+                    <div class="rule-popover" data-target="rule-popover">
+                        <div inert>
+                            <div class="rule-popover__head">
+                                <div>
+                                    <div class="filter-label">subject.account.name</div>
+                                    <strong>operator_soc</strong>
+                                </div>
+                                <div class="rule-popover__icons" aria-hidden="true">
+                                    <i kbq-icon="kbq-square-multiple-o_16"></i>
+                                    <span>=</span>
+                                    <span>≠</span>
+                                </div>
+                            </div>
+                            <div class="rule-popover__details">
+                                <span class="service-label">SIEM</span>
+                                <div>
+                                    <a kbqLink pseudo underline="always">113 событий за все время</a>
+                                    <div class="rule-popover__search">
+                                        Найти события с этой учетной записью
+                                        <a kbqLink pseudo underline="always" size="compact">в subject</a>
+                                        <a kbqLink pseudo underline="always" size="compact">в object</a>
+                                        <a kbqLink pseudo underline="always" size="compact">в subject или object</a>
+                                        <a kbqLink pseudo size="compact"
+                                            >еще <i kbq-icon="kbq-chevron-down-s_16"></i
+                                        ></a>
+                                    </div>
+                                </div>
+                                <span class="service-label">360</span>
+                                <div class="rule-popover__metric">
+                                    <a kbqLink pseudo underline="always">Инциденты за все время</a>
+                                    <span class="metric-counts">
+                                        <span class="metric-counts__error">1</span>
+                                        <span class="metric-counts__warning">2</span>
+                                        <span class="metric-counts__info">15</span>
+                                        <span class="metric-counts__neutral">50</span>
+                                    </span>
+                                </div>
+                                <span class="service-label">BAD</span>
+                                <div class="rule-popover__metric">
+                                    <a kbqLink pseudo underline="always">Подозрительная учетная запись</a>
+                                    <span class="metric-counts"><span class="metric-counts__warning">2</span></span>
+                                </div>
+                            </div>
+                            <div class="rule-popover__actions">
+                                <button type="button" kbq-dropdown-item>
+                                    <i kbq-icon="kbq-code_16"></i> Добавить переменную
+                                </button>
+                                <button type="button" kbq-dropdown-item>
+                                    <i kbq-icon="kbq-grid-squares_16"></i> Настроить интеграции
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <kbq-content-panel
+                class="workspace__panel"
+                [class.workspace__panel_elevated]="panelShadow()"
+                [style.box-shadow]="panelShadow()"
+            >
+                <kbq-content-panel-header>
+                    <div kbqContentPanelHeaderTitle class="panel-title">{{ selectedRow()?.name ?? 'Title' }}</div>
+                    <button
+                        kbqContentPanelHeaderActions
+                        type="button"
+                        kbq-button
+                        kbqStyle="transparent"
+                        aria-label="Действия с записью"
+                        [attr.aria-expanded]="panelMenuOpen()"
+                        (click)="panelMenuOpen.update(toggle)"
+                    >
+                        <i kbq-icon="kbq-ellipsis-vertical_16"></i>
+                    </button>
+                    <div class="panel-actions">
+                        <button type="button" kbq-button inert>
+                            <i kbq-icon="kbq-user_16" kbqButtonPrefix></i> Назначить
+                        </button>
+                        <button type="button" kbq-button inert>
+                            <i kbq-icon="kbq-box-archive_16" kbqButtonPrefix></i> Закрыть
+                        </button>
+                        <button
+                            type="button"
+                            kbq-button
+                            [class.panel-actions__expanded]="panelMenuOpen()"
+                            [attr.aria-expanded]="panelMenuOpen()"
+                            (click)="panelMenuOpen.update(toggle)"
+                        >
+                            Еще <i kbq-icon="kbq-chevron-down-s_16" kbqButtonSuffix></i>
+                        </button>
+                        @if (panelMenuOpen()) {
+                            <div class="kbq-dropdown__panel preview-menu panel-menu" data-target="panel-menu">
+                                <div class="kbq-dropdown__content" inert>
+                                    @for (label of panelMenuLabels; track $index) {
+                                        <button
+                                            type="button"
+                                            kbq-dropdown-item
+                                            [class.preview-menu__highlighted]="$index === 4"
+                                        >
+                                            {{ label }}
+                                        </button>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </kbq-content-panel-header>
+                <kbq-content-panel-body>
+                    <dl class="panel-details">
+                        <dt>Ключ</dt>
+                        <dd>
+                            <span kbqLink pseudo underline="always" [tabIndex]="-1"
+                                >ID-20261119-{{ 136 + (selectedRow()?.id ?? 0) }}</span
+                            >
+                        </dd>
+                        <dt>Status</dt>
+                        <dd><kbq-badge badgeColor="fade-theme">New</kbq-badge></dd>
+                        <dt>Incident type</dt>
+                        <dd>Malware infection</dd>
+                        <dt>Assignee</dt>
+                        <dd>John Smith</dd>
+                        <dt>Tags</dt>
+                        <dd class="panel-tags">
+                            @for (tag of tags; track tag; let last = $last) {
+                                <span kbqLink pseudo underline="always" [tabIndex]="-1">{{ tag }}</span>
+                                @if (!last) {
+                                    <span> · </span>
+                                }
+                            }
+                        </dd>
+                        <dt>Description</dt>
+                        <dd>
+                            <p class="panel-description" [class.panel-description_collapsed]="!descriptionExpanded()">
+                                An employee accidentally opened an attachment that came with a phishing email, not
+                                realizing it was malicious. This action triggered harmful code to run on their
+                                workstation, which immediately compromised the security of their computer and put
+                                confidential information at risk.
+                            </p>
+                            <button
+                                type="button"
+                                class="panel-description__toggle"
+                                kbqLink
+                                pseudo
+                                [attr.aria-expanded]="descriptionExpanded()"
+                                (click)="descriptionExpanded.update(toggle)"
+                            >
+                                <i
+                                    kbqLinkPrefix
+                                    [kbq-icon]="descriptionExpanded() ? 'kbq-chevron-up-s_16' : 'kbq-chevron-down-s_16'"
+                                ></i>
+                                {{ descriptionExpanded() ? 'Свернуть' : 'Развернуть' }}
+                            </button>
+                        </dd>
+                    </dl>
+                    <p class="panel-copy">
+                        В Windows есть вещи, известные как системные переменные. Это переменные, от которых зависит
+                        функционирование Windows, потому что Windows всегда будет знать, что означают переменные и где
+                        они находятся, даже когда мы перемещаем биты и байты повсюду. Системная переменная MAX_PATH —
+                        это та, которая ограничивает имена файлов и пути к файлам до 260 символов. Будучи переменной, вы
+                        думаете, мы могли бы изменить это. Нет, мы не должны. Это все равно что выдернуть нитку из
+                        свитера. Как только одна системная переменная изменяется, другие системные переменные и
+                        зависимые от них компоненты начинают распадаться.
+                    </p>
+                </kbq-content-panel-body>
+            </kbq-content-panel>
+        </kbq-content-panel-container>
+    </div>
+</section>

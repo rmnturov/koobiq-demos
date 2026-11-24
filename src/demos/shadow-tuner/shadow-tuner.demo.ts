@@ -4,6 +4,7 @@ import { KbqScrollbarViewport } from '@koobiq/components/scrollbar';
 
 import { ShadowStore } from './model/shadow-store';
 import { CardsScene } from './preview/cards-scene';
+import { EventsWorkspaceScene } from './preview/events-workspace-scene';
 import { LevelsScene } from './preview/levels-scene';
 import { ModalScene } from './preview/modal-scene';
 import { SelectScene } from './preview/select-scene';
@@ -20,7 +21,16 @@ import { SettingsPanel } from './settings/settings-panel';
  */
 @Component({
     selector: 'shadow-tuner-demo',
-    imports: [CardsScene, KbqScrollbarViewport, LevelsScene, ModalScene, SelectScene, SettingsPanel, WorkspaceScene],
+    imports: [
+        CardsScene,
+        EventsWorkspaceScene,
+        KbqScrollbarViewport,
+        LevelsScene,
+        ModalScene,
+        SelectScene,
+        SettingsPanel,
+        WorkspaceScene
+    ],
     template: `
         <div class="tuner" data-shadow-tuner>
             <app-settings-panel class="tuner__settings" />
@@ -29,6 +39,7 @@ import { SettingsPanel } from './settings/settings-panel';
                 <app-levels-scene />
                 <app-cards-scene />
                 <app-select-scene />
+                <app-events-workspace-scene />
                 <app-workspace-scene />
                 <app-modal-scene />
             </main>

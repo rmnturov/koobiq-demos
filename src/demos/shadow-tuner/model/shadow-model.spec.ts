@@ -48,7 +48,7 @@ describe('shadow model', () => {
         const base = baseShadows('light');
 
         expect(base.colors.outline).toBe('a1');
-        expect(base.colors.key).toBe('a1');
+        expect(base.colors.key).toBe('a2');
         expect(base.colors.ambient).toBe('a1');
         expect(base.elevations.card.key).toEqual({ x: 0, y: 1, blur: 4, spread: 0, color: 'token' });
         expect(base.elevations.popup.outline.spread).toBe(0.5);
