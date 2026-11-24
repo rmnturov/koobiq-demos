@@ -241,13 +241,37 @@ describe('auto-refresh controller', () => {
       .mockRejectedValueOnce(new Error('offline'))
       .mockRejectedValueOnce(new Error('offline'));
     await c.poll();
+    expect(c.failedAttempts()).toBe(1);
+    expect(c.retryDelayMs()).toBe(10000);
     expect(c.nextCheckAt()).toBe(origin + 10000);
     await c.poll();
+    expect(c.failedAttempts()).toBe(2);
+    expect(c.retryDelayMs()).toBe(20000);
     expect(c.nextCheckAt()).toBe(origin + 20000);
     advance(1000);
     await c.poll();
     expect(c.error()).toBeNull();
+    expect(c.failedAttempts()).toBe(0);
+    expect(c.retryDelayMs()).toBe(5000);
     expect(c.nextCheckAt()).toBe(origin + 6000);
+  });
+
+  it('caps automatic retries and keeps counting manual attempts while checks are off', async () => {
+    const { controller: c, source } = setup();
+    source.read.mockRejectedValue(new Error('offline'));
+    for (let attempt = 1; attempt <= 8; attempt++) await c.refresh();
+    expect(c.failedAttempts()).toBe(8);
+    expect(c.retryDelayMs()).toBe(120000);
+    c.setInterval(0);
+    expect(c.retryDelayMs()).toBe(0);
+    expect(c.nextCheckAt()).toBeNull();
+    await c.refresh();
+    expect(c.failedAttempts()).toBe(9);
+    source.read.mockResolvedValue(source.initialRows);
+    await c.refresh();
+    expect(c.failedAttempts()).toBe(0);
+    expect(c.error()).toBeNull();
+    expect(c.nextCheckAt()).toBeNull();
   });
 
   it('ignores an older response and serializes the latest query', async () => {

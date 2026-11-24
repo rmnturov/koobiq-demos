@@ -28,6 +28,7 @@ import { KbqDropdownModule } from '@koobiq/components/dropdown';
 import { KbqFilter, KbqFilterBarModule } from '@koobiq/components/filter-bar';
 import { KbqMarkdown } from '@koobiq/components/markdown';
 import { KbqIconModule } from '@koobiq/components/icon';
+import { KbqLink } from '@koobiq/components/link';
 import { KbqOverflowItemsModule } from '@koobiq/components/overflow-items';
 import { KbqToastService, KbqToastStyle } from '@koobiq/components/toast';
 import { KbqTopBarModule } from '@koobiq/components/top-bar';
@@ -79,6 +80,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
     KbqDropdownModule,
     KbqFilterBarModule,
     KbqIconModule,
+    KbqLink,
     KbqOverflowItemsModule,
     KbqTopBarModule,
   ],
@@ -88,15 +90,57 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class GridAutoRefreshDemo {
-  readonly articlePlaceholder = `# Автообновление в гриде
+  readonly articleText = `# Автообновление в таблице
 
-## Подзаголовок
+Автообновление помогает следить за новыми инцидентами и сохраняет список на месте, пока человек с ним работает. В примере инциденты поступают сами: иногда по несколько сразу, иногда с паузами.
 
-Приятно, граждане, наблюдать, как базовые сценарии поведения пользователей призывают нас к новым свершениям, которые, в свою очередь, должны быть смешаны с не уникальными данными до степени совершенной неузнаваемости, из-за чего возрастает их статус бесполезности.
+## Новые записи сверху
 
-## Подзаголовок
+По умолчанию таблица проверяет новые данные каждые 5 секунд. Если список еще не трогали, новые инциденты появляются сверху. Добавленные строки один раз плавно подсвечиваются голубым: фон появляется и гаснет. Остальные строки не мигают.
 
-Приятно, граждане, наблюдать, как базовые сценарии поведения пользователей призывают нас к новым свершениям, которые, в свою очередь, должны быть смешаны с не уникальными данными до степени совершенной неузнаваемости, из-за чего возрастает их статус бесполезности.
+Интервал проверки можно изменить в верхней панели или выключить автообновление. Кнопка **Обновить** работает в любом режиме. Проверка не означает, что обязательно появятся новые записи: за это время могло ничего не поступить.
+
+## Список сохраняется во время работы
+
+Когда человек прокручивает таблицу, выбирает строки или открывает карточку, новые записи перестают вставляться сами. Строки остаются на месте, чтобы не сбить чтение и выбор. Сортировка, отличная от новых записей сверху, тоже приостанавливает автоматическую вставку.
+
+Проверки продолжаются. О новых инцидентах сообщает компактная панель под заголовками колонок. Она остается видимой при прокрутке. Возврат к началу списка, снятие выбора или закрытие карточки сами по себе не включают вставку новых строк: сначала нужно обновить список.
+
+## Панель новых записей
+
+Число в панели показывает, сколько новых инцидентов подходит под текущие фильтры. Повторная проверка не считает одну запись дважды. При новых поступлениях число меняется с анимацией, а ширина панели плавно подстраивается под текст.
+
+Нажатие на часть панели с числом показывает новые записи и возвращает к началу таблицы. Крестик скрывает сообщение, но сохраняет накопленные записи. Панель появится снова, когда поступит еще хотя бы один подходящий инцидент.
+
+В меню **Точное число** можно выбрать вариант **Без точного числа**. Тогда вместо счетчика будет сообщение «Есть новые записи»; остальные действия работают так же.
+
+## Обновление по команде
+
+Кнопка **Обновить** и панель новых записей загружают актуальный список с прежними фильтрами и сортировкой. Таблица плавно возвращается к началу. Сначала видны 50 строк; следующие появляются по мере прокрутки вниз.
+
+Выбор сохраняется, если все выбранные инциденты остались среди первых 50 строк. Если хотя бы один оказался за их пределами, снимается весь выбор. Открытая карточка остается на месте. Пока есть выбранные строки, открытая карточка или сортировка, отличная от новых записей сверху, последующие поступления снова накапливаются в панели.
+
+Во время обновления кнопка **Обновить** показывает ход загрузки и сохраняет подпись. Панель новых записей остается доступной: ее можно нажать, даже если проверка уже идет.
+
+## Фильтры, выбор и карточка
+
+Поиск и фильтры обновляют список под выбранные условия и возвращают к началу таблицы. Счетчик рядом с заголовком показывает число инцидентов в текущей выборке, включая те, до которых еще не прокрутили. При прокрутке вправо флажки и ID остаются видимыми.
+
+Нажатие на строку открывает карточку справа. Нажатие на другую строку меняет содержимое карточки. Флажки выбирают инциденты для массовых действий; панель действий появляется поверх нижней части таблицы. Действия в этом примере демонстрационные: они показывают уведомление и не меняют инциденты.
+
+## Ошибка связи
+
+При ошибке таблица сохраняет строки, выбор, карточку и число новых записей. В правом верхнем углу примера появляется тост с кнопкой **Повторить** и номером попытки.
+
+Если автообновление включено, следующая попытка пройдет автоматически. После каждой ошибки пауза увеличивается, но не превышает двух минут. Тост остается между попытками: текст обновляется в том же сообщении, а отсчет до закрытия начинается заново. Наведение и фокус приостанавливают этот отсчет.
+
+Кнопка **Повторить** обновляет список сразу, без ожидания. Крестик закрывает сообщение, но не отменяет автоматические попытки. При следующей ошибке сообщение появится снова. После успешного обновления тост закрывается, номер попытки сбрасывается, проверки возвращаются к выбранному интервалу.
+
+Если автообновление выключено, тост содержит подпись «Автообновление выключено», а повтор запускается по кнопке. Без взаимодействия тост закроется через 5 секунд.
+
+## Возврат на вкладку
+
+Пока вкладка скрыта, проверки приостановлены. При возвращении данные проверяются сразу, если автообновление включено. Если до ухода человек работал со списком, новые записи попадут в панель, а строки сохранят положение.
 `;
 
   readonly server = new IncidentServer();
@@ -257,8 +301,11 @@ export class GridAutoRefreshDemo {
   private readonly toasts = signal<KbqToastService | null>(null);
   private toastScope?: EnvironmentInjector;
   private errorToast: ReturnType<KbqToastService['show']> | null = null;
-  private previousToastBusy = false;
-  private previousToastError: string | null = null;
+  private readonly retryToastActions =
+    viewChild.required<TemplateRef<unknown>>('retryToastActions');
+  private previousToastAttempt = 0;
+  private previousToastRetryDelay = 0;
+  private errorToastRemainingMs = 0;
 
   constructor() {
     const destroy = inject(DestroyRef);
@@ -277,7 +324,15 @@ export class GridAutoRefreshDemo {
       destroy.onDestroy(() => resize.disconnect());
       const preview = this.previewCard()!;
       this.toastScope = createDemoToastScope(preview.nativeElement, this.environmentInjector);
-      this.toasts.set(this.toastScope.get(KbqToastService));
+      const toasts = this.toastScope.get(KbqToastService);
+      this.toasts.set(toasts);
+      const toastTimer = toasts.timer.subscribe(() => {
+        if (!this.errorToast || !toasts.toasts.includes(this.errorToast.ref)) return;
+        if (this.state.busy() || document.hidden) return;
+        this.errorToastRemainingMs -= 500;
+        if (this.errorToastRemainingMs <= 0) toasts.hide(this.errorToast.id);
+      });
+      destroy.onDestroy(() => toastTimer.unsubscribe());
       this.ready.set(true);
       this.state.start();
       void this.state.setVisibility(document.hidden);
@@ -294,32 +349,43 @@ export class GridAutoRefreshDemo {
       const toasts = this.toasts();
       const error = this.state.error();
       const busy = this.state.busy();
-      const automatic = this.state.intervalMs() > 0;
-      const requestFinished = this.previousToastBusy && !busy;
-      this.previousToastBusy = busy;
+      const attempt = this.state.failedAttempts();
+      const retryDelay = this.state.retryDelayMs();
+      const failed = attempt > this.previousToastAttempt;
       if (!toasts) return;
       if (!error) {
         if (this.errorToast) toasts.hide(this.errorToast.id);
         this.errorToast = null;
-        this.previousToastError = null;
+        this.previousToastAttempt = 0;
+        this.previousToastRetryDelay = 0;
+        this.errorToastRemainingMs = 0;
         return;
       }
-      if (busy) return;
       const active = this.errorToast && toasts.toasts.includes(this.errorToast.ref);
-      if (!active && (requestFinished || error !== this.previousToastError)) {
-        this.errorToast = toasts.show({
-          style: KbqToastStyle.Error,
-          title: error,
-          closeButton: true,
-        });
+      if (!active && failed && !busy) {
+        this.errorToast = toasts.show(
+          {
+            style: KbqToastStyle.Error,
+            title: error,
+            actions: this.retryToastActions(),
+            closeButton: true,
+          },
+          0,
+        );
       }
       if (this.errorToast && toasts.toasts.includes(this.errorToast.ref)) {
-        this.errorToast.ref.instance.data.caption = automatic
-          ? 'Повторим автоматически'
-          : 'Автообновление выключено';
+        const status = busy
+          ? 'Повторное обновление'
+          : retryDelay
+            ? 'Следующая попытка пройдет автоматически'
+            : 'Автообновление выключено';
+        this.errorToast.ref.instance.data.caption = `Попытка ${attempt + Number(busy)}. ${status}`;
         this.errorToast.ref.changeDetectorRef.markForCheck();
+        if (failed || retryDelay !== this.previousToastRetryDelay)
+          this.errorToastRemainingMs = Math.max(5000, retryDelay + 5000);
       }
-      this.previousToastError = error;
+      this.previousToastAttempt = attempt;
+      this.previousToastRetryDelay = retryDelay;
     });
     effect(() => {
       const api = this.grid();
@@ -510,6 +576,9 @@ export class GridAutoRefreshDemo {
   }
   acknowledge(action: string): void {
     this.notify(`${action} · Выбрано: ${this.state.selectedIds().length}`);
+  }
+  retryUpdate(): void {
+    if (!this.state.busy()) void this.state.refresh();
   }
   toggleConnection(): void {
     this.server.offline = !this.server.offline;

@@ -244,8 +244,20 @@
   </kbq-content-panel-container>
 </article>
 <article class="article-copy">
-  <kbq-markdown [markdownText]="articlePlaceholder" />
+  <kbq-markdown [markdownText]="articleText" />
 </article>
+
+<ng-template #retryToastActions>
+  <a
+    kbqLink
+    pseudo
+    [attr.aria-disabled]="state.busy()"
+    [class.kbq-progress]="state.busy()"
+    (click)="retryUpdate()"
+  >
+    Повторить
+  </a>
+</ng-template>
 
 <ng-template #controlTemplate let-control>
   @switch (control) {

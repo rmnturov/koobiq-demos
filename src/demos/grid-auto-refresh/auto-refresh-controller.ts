@@ -22,6 +22,7 @@ export class AutoRefreshController {
   readonly intervalMs = signal(5000);
   readonly busy = signal(false);
   readonly error = signal<string | null>(null);
+  readonly failedAttempts = signal(0);
   readonly lastChecked = signal<number | null>(null);
   readonly lastApplied = signal<number | null>(null);
   readonly nextCheckAt = signal<number | null>(null);
@@ -59,7 +60,9 @@ export class AutoRefreshController {
   private requestId = 0;
   private inFlight: Promise<boolean> | null = null;
   private timer: ReturnType<typeof setInterval> | null = null;
-  private failures = 0;
+  readonly retryDelayMs = computed(() =>
+    this.intervalMs() ? Math.min(this.intervalMs() * 2 ** this.failedAttempts(), 120000) : 0,
+  );
   private destroyed = false;
   private readonly now: () => number;
 
@@ -170,7 +173,7 @@ export class AutoRefreshController {
       this.currentTime.set(now);
       this.lastChecked.set(now);
       this.error.set(null);
-      this.failures = 0;
+      this.failedAttempts.set(0);
       if (kind !== 'poll') {
         this.applySnapshot(rows, query);
       } else {
@@ -186,7 +189,7 @@ export class AutoRefreshController {
     } catch {
       if (id !== this.requestId || this.destroyed) return false;
       this.error.set('Не удалось обновить данные');
-      this.failures++;
+      this.failedAttempts.update((count) => count + 1);
       this.schedule();
       return false;
     } finally {
@@ -219,9 +222,7 @@ export class AutoRefreshController {
   }
 
   private schedule(): void {
-    const interval = this.intervalMs();
-    this.nextCheckAt.set(
-      interval ? this.now() + Math.min(interval * 2 ** this.failures, 120000) : null,
-    );
+    const delay = this.retryDelayMs();
+    this.nextCheckAt.set(delay ? this.now() + delay : null);
   }
 }
