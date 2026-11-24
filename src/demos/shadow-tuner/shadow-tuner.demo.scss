@@ -8,6 +8,7 @@
 .tuner {
     display: grid;
     grid-template-columns: 400px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
     box-sizing: border-box;
     height: 100%;
     /* Справа отступа нет: трек оверлейного скролла Кубика встаёт вплотную к краю окна. */
@@ -54,18 +55,10 @@
     margin-top: var(--kbq-size-7xl);
 }
 
-/* На узком экране сцены идут за формой, а прокручивает страница. */
+/* На узком экране настройки и примеры делят высоту окна. */
 @media (max-width: 960px) {
     .tuner {
         grid-template-columns: minmax(0, 1fr);
-        height: auto;
-    }
-
-    .tuner__settings {
-        height: 70vh;
-    }
-
-    .tuner__preview {
-        overflow: visible;
+        grid-template-rows: repeat(2, minmax(0, 1fr));
     }
 }
