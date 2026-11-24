@@ -1,0 +1,243 @@
+<div class="demo">
+  <h1 class="kbq-headline demo-heading">Меню настройки грида</h1>
+  <div class="demo-layout">
+    <div class="demo-stage">
+      <div class="demo-toolbar">
+        <span class="kbq-title">События</span>
+        <button kbq-button type="button" data-menu-trigger [drilldownMenuTriggerFor]="menu">
+          <i kbq-icon="kbq-sliders_16"></i>Параметры таблицы
+        </button>
+      </div>
+      <kbq-skeleton-table
+        class="demo-table"
+        aria-hidden="true"
+        rows="5"
+        [columns]="['2fr', '1fr', '1fr']"
+      />
+      <div class="demo-status" aria-live="polite">
+        <span>Автообновление: {{ periodLabel() }}</span
+        ><span>Обновлений: {{ refreshCount() }}</span>
+        @if (helpCount()) {
+          <span>Нажатий на «Справка»: {{ helpCount() }}</span>
+        }
+      </div>
+    </div>
+    <aside class="demo-settings" aria-label="Параметры демонстрации">
+      <h2 class="kbq-subheading">Параметры примера</h2>
+      <kbq-form-field class="demo-height">
+        <kbq-label>Макс. высота, px</kbq-label>
+        <input
+          kbqNumberInput
+          id="menu-max-height"
+          integer
+          min="80"
+          max="1200"
+          [(ngModel)]="maxHeight"
+        />
+        <kbq-stepper />
+      </kbq-form-field>
+      <div class="demo-toggles">
+        <kbq-toggle [checked]="longPresets()" (change)="longPresets.set($event.checked)">
+          Длинный список периодов
+        </kbq-toggle>
+        <kbq-toggle [checked]="includeAutoRefresh()" (change)="includeAutoRefresh.set($event.checked)">
+          Раздел автообновления
+        </kbq-toggle>
+        <kbq-toggle
+          [checked]="autoRefreshAfter()"
+          [disabled]="!includeAutoRefresh()"
+          (change)="autoRefreshAfter.set($event.checked)"
+        >
+          Автообновление после команды «Обновить»
+        </kbq-toggle>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<demo-drilldown-menu #menu="drilldownMenu" [maxHeight]="maxHeight() ?? 480">
+  <ng-template #rootActions>
+    <button
+      kbq-button
+      kbqStyle="transparent"
+      type="button"
+      class="demo-header-action"
+      aria-label="Справка"
+      kbqTooltip="Справка"
+      (click)="helpCount.set(helpCount() + 1)"
+    >
+      <i kbq-icon="kbq-circle-info_16"></i>
+    </button>
+  </ng-template>
+  <ng-template
+    drilldownMenuScreen="root"
+    title="Параметры таблицы"
+    [headerActions]="rootActions"
+    let-api
+  >
+    <div drilldownMenuList aria-label="Параметры таблицы">
+      <demo-incident-fields-menu
+        screenId="columns"
+        label="Столбцы"
+        icon="kbq-3-columns_16"
+        [defaultFieldIds]="defaultIncidentFields"
+        [(selectedFieldIds)]="columnFieldIds"
+        showTotal
+      />
+      <demo-incident-fields-menu
+        screenId="sorting"
+        label="Сортировка"
+        icon="kbq-arrow-up-arrow-down_16"
+        [defaultFieldIds]="defaultSortFields"
+        [(selectedFieldIds)]="sortFieldIds"
+      />
+      <demo-incident-fields-menu
+        screenId="grouping"
+        label="Группировка"
+        icon="kbq-grid-group_16"
+        [(selectedFieldIds)]="groupFieldIds"
+      />
+      <kbq-divider />
+      <button
+        #densityOpener
+        kbq-dropdown-item
+        class="drilldown-submenu-trigger"
+        type="button"
+        role="menuitem"
+        data-drilldown-target="density"
+        [id]="menu.id + '-density-trigger'"
+        (click)="api.navigate('density', densityOpener.getHostElement())"
+      >
+        <i kbq-icon="kbq-list_16"></i>
+        <span class="drilldown-submenu-row">
+          <span class="drilldown-submenu-label">Плотность</span>
+          <span class="drilldown-submenu-caption">{{ density() }}</span>
+          <i
+            kbq-icon="kbq-chevron-right-s_16"
+            color="contrast-fade"
+            class="drilldown-submenu-chevron"
+          ></i>
+        </span>
+      </button>
+      <button
+        kbq-dropdown-item
+        type="button"
+        role="menuitem"
+        [id]="menu.id + '-word-wrap'"
+        (click)="api.close()"
+      >
+        <i kbq-icon="kbq-text-wrap_16"></i>Перенос по словам
+      </button>
+      <kbq-divider />
+      @if (includeAutoRefresh() && !autoRefreshAfter()) {
+        <demo-auto-refresh-menu
+          [(value)]="period"
+          [presets]="presets()"
+          [defaultValue]="300000"
+          [formatPeriod]="formatPeriod"
+          [formatShortPeriod]="formatShortPeriod"
+        />
+      }
+      <button
+        kbq-dropdown-item
+        type="button"
+        role="menuitem"
+        data-refresh-now
+        [id]="menu.id + '-refresh-now'"
+        (click)="refresh(api)"
+      >
+        <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
+      </button>
+      @if (includeAutoRefresh() && autoRefreshAfter()) {
+        <demo-auto-refresh-menu
+          [(value)]="period"
+          [presets]="presets()"
+          [defaultValue]="300000"
+          [formatPeriod]="formatPeriod"
+          [formatShortPeriod]="formatShortPeriod"
+        />
+      }
+      <kbq-divider />
+      @for (item of trailingItems; track item.label; let index = $index) {
+        <button
+          kbq-dropdown-item
+          type="button"
+          role="menuitem"
+          [id]="menu.id + '-command-' + index"
+          (click)="api.close()"
+        >
+          <i [kbq-icon]="item.icon"></i>{{ item.label }}
+        </button>
+      }
+      <kbq-divider />
+      <demo-incident-fields-menu
+        screenId="incident-fields"
+        label="Мультивыбор с поиском"
+        icon="kbq-list_16"
+        [defaultFieldIds]="defaultIncidentFields"
+        [(selectedFieldIds)]="testFieldIds"
+      />
+      <button
+        kbq-dropdown-item
+        class="drilldown-submenu-trigger"
+        type="button"
+        role="menuitem"
+        disabled
+        [id]="menu.id + '-table-view'"
+      >
+        <i kbq-icon="kbq-table_16"></i>
+        <span class="drilldown-submenu-row">
+          <span class="drilldown-submenu-label">Вид таблицы</span>
+          <span class="drilldown-submenu-caption">Стандартный</span>
+          <i
+            kbq-icon="kbq-chevron-right-s_16"
+            color="contrast-fade"
+            class="drilldown-submenu-chevron"
+          ></i>
+        </span>
+      </button>
+    </div>
+  </ng-template>
+
+  <ng-template #densityActions let-api>
+    <button
+      kbq-button
+      kbqStyle="transparent"
+      class="demo-header-action"
+      type="button"
+      aria-label="Сбросить плотность"
+      kbqTooltip="Сбросить плотность"
+      (click)="resetDensity(api)"
+    >
+      <i kbq-icon="kbq-undo_16"></i>
+    </button>
+  </ng-template>
+
+  <ng-template
+    drilldownMenuScreen="density"
+    title="Плотность"
+    initialFocus="[aria-checked='true']"
+    [headerActions]="densityActions"
+    let-api
+  >
+    <div drilldownMenuList aria-label="Плотность">
+      @for (option of densityOptions; track option; let index = $index) {
+        <button
+          kbq-dropdown-item
+          type="button"
+          role="menuitemradio"
+          [id]="menu.id + '-density-' + index"
+          [attr.aria-checked]="density() === option"
+          (click)="density.set(option); api.back()"
+        >
+          <span class="demo-density-choice">
+            {{ option }}
+            @if (density() === option) {
+              <i kbq-icon="kbq-check_16"></i>
+            }
+          </span>
+        </button>
+      }
+    </div>
+  </ng-template>
+</demo-drilldown-menu>

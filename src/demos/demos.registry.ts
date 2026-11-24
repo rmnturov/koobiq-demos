@@ -12,6 +12,12 @@ export const DEMOS: readonly DemoEntry[] = [
         loadComponent: () => import('./grid-auto-refresh/grid-auto-refresh.demo').then(m => m.GridAutoRefreshDemo)
     },
     {
+        slug: 'drilldown-menu',
+        title: 'Меню настройки грида',
+        description: 'Настройка автообновления с переходами между экранами',
+        loadComponent: () => import('./drilldown-menu/drilldown-menu.demo').then((m) => m.DrilldownMenuDemo)
+    },
+    {
         slug: 'hello',
         title: 'Hello',
         description: 'Проверка каркаса: тема и компонент Koobiq',

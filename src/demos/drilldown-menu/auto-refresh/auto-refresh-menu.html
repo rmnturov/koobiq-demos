@@ -1,0 +1,79 @@
+<button
+  #rootItem
+  kbq-dropdown-item
+  class="drilldown-submenu-trigger"
+  type="button"
+  role="menuitem"
+  data-refresh-trigger
+  [id]="prefix() + '-trigger'"
+  [attr.data-drilldown-target]="screenId()"
+  (click)="menu.navigate(screenId(), rootItem.getHostElement())"
+>
+  <i kbq-icon="kbq-arrows-rotate_16"></i>
+  <span class="drilldown-submenu-row">
+    <span class="drilldown-submenu-label">Автоматическое обновление</span>
+    @if (value() !== null) {
+      <span class="drilldown-submenu-caption" data-refresh-caption>{{ caption() }}</span>
+    }
+    <i kbq-icon="kbq-chevron-right-s_16" color="contrast-fade" class="drilldown-submenu-chevron"></i>
+  </span>
+</button>
+
+<ng-template #resetActions>
+  <button
+    kbq-button
+    kbqStyle="transparent"
+    type="button"
+    class="refresh-reset"
+    aria-label="Сбросить период обновления"
+    kbqTooltip="Сбросить период обновления"
+    data-refresh-reset
+    (click)="reset()"
+  >
+    <i kbq-icon="kbq-undo_16"></i>
+  </button>
+</ng-template>
+
+<ng-template
+  [drilldownMenuScreen]="screenId()"
+  title="Автоматическое обновление"
+  initialFocus="[aria-checked='true']"
+  [headerActions]="defaultValue() !== undefined ? resetActions : undefined"
+>
+  <div drilldownMenuList aria-label="Период автообновления">
+    <button
+      kbq-dropdown-item
+      type="button"
+      role="menuitemradio"
+      data-period="off"
+      [id]="prefix() + '-off'"
+      [attr.aria-checked]="value() === null"
+      (click)="select(null)"
+    >
+      <span class="refresh-choice"
+        >Отключено
+        @if (value() === null) {
+          <i kbq-icon="kbq-check_16"></i>
+        }
+      </span>
+    </button>
+    @for (option of options(); track option.value) {
+      <button
+        kbq-dropdown-item
+        type="button"
+        role="menuitemradio"
+        [id]="prefix() + '-' + option.value"
+        [attr.data-period]="option.value"
+        [attr.aria-checked]="value() === option.value"
+        (click)="select(option.value)"
+      >
+        <span class="refresh-choice"
+          >{{ option.label }}
+          @if (value() === option.value) {
+            <i kbq-icon="kbq-check_16"></i>
+          }
+        </span>
+      </button>
+    }
+  </div>
+</ng-template>

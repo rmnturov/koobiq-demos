@@ -1,0 +1,134 @@
+@use '@koobiq/components/core/styles/functions/timing' as timing;
+@use '@koobiq/components/dropdown/dropdown-theme' as dropdown;
+@use '@koobiq/components/list/list-tokens' as list;
+:host {
+  display: contents;
+}
+.drilldown-panel {
+  @include list.list-theme-tokens;
+  --kbq-dropdown-item-border-radius: var(--kbq-size-xs);
+  --kbq-dropdown-item-caption-color: var(--kbq-foreground-contrast-secondary);
+  --drilldown-easing: #{timing.$ease-in-out-quad};
+  position: relative;
+  color: var(--kbq-foreground-contrast);
+  background: var(--kbq-background-card);
+  border-radius: var(--kbq-size-border-radius);
+  box-shadow: var(--kbq-shadow-popup);
+  overflow: clip;
+  font: inherit;
+}
+
+// Projected menu items belong to consumer views; keep Koobiq's theme inside this panel.
+.drilldown-panel ::ng-deep {
+  @include dropdown.kbq-dropdown-theme();
+  @include dropdown.kbq-dropdown-typography();
+
+  .drilldown-submenu-trigger {
+    padding-inline-end: calc(var(--kbq-size-s) - var(--kbq-size-3xs));
+  }
+  .drilldown-submenu-row {
+    display: flex;
+    align-items: center;
+    gap: var(--kbq-size-xxs);
+  }
+  .drilldown-submenu-label {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .drilldown-submenu-caption {
+    flex: 0 0 auto;
+    margin-inline-start: var(--kbq-size-xxs);
+    color: var(--kbq-foreground-contrast-secondary);
+  }
+  .drilldown-submenu-chevron {
+    flex: 0 0 var(--kbq-size-l);
+    text-align: center;
+  }
+}
+.drilldown-screen {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  outline: none;
+}
+.drilldown-screen[hidden] {
+  display: none;
+}
+.drilldown-screen-with-slots {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.drilldown-screen-with-slots .drilldown-body {
+  min-height: min(var(--kbq-size-3xl), 100%);
+}
+.drilldown-before-content,
+.drilldown-footer {
+  flex: 0 0 auto;
+}
+.drilldown-header {
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 var(--kbq-size-xs);
+  border-bottom: 1px solid var(--kbq-line-contrast-less);
+  box-sizing: border-box;
+}
+.drilldown-screen-with-slots .drilldown-header {
+  box-sizing: content-box;
+}
+.drilldown-header-start,
+.drilldown-header-end {
+  display: flex;
+  align-items: center;
+  width: 32px;
+  flex: 0 0 32px;
+}
+.drilldown-header-end {
+  justify-content: flex-end;
+}
+.drilldown-heading {
+  flex: 1;
+  min-width: 0;
+  text-align: center;
+  font-weight: var(--kbq-typography-text-normal-strong-font-weight);
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.drilldown-heading-action {
+  cursor: pointer;
+  user-select: none;
+}
+.drilldown-icon-button {
+  --kbq-button-size-horizontal-padding: 6px;
+  min-width: 28px;
+}
+.drilldown-body {
+  position: relative;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.drilldown-content {
+  padding: var(--kbq-size-xxs);
+}
+.drilldown-root-screen .drilldown-content {
+  padding-inline: 0;
+
+  ::ng-deep .kbq-dropdown-item {
+    width: calc(100% - 2 * var(--kbq-size-xxs));
+    margin-inline: var(--kbq-size-xxs);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .drilldown-panel,
+  .drilldown-screen {
+    transition: none !important;
+  }
+}

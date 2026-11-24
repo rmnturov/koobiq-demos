@@ -1,0 +1,134 @@
+<button
+  #rootItem
+  kbq-dropdown-item
+  class="drilldown-submenu-trigger"
+  type="button"
+  role="menuitem"
+  [id]="prefix() + '-trigger'"
+  [attr.data-drilldown-target]="screenId()"
+  (click)="menu.navigate(screenId(), rootItem.getHostElement())"
+>
+  <i [kbq-icon]="icon()"></i>
+  <span class="drilldown-submenu-row">
+    <span class="drilldown-submenu-label">{{ label() }}</span>
+    @if (caption()) {
+      <span class="drilldown-submenu-caption">{{ caption() }}</span>
+    }
+    <i
+      kbq-icon="kbq-chevron-right-s_16"
+      color="contrast-fade"
+      class="drilldown-submenu-chevron"
+    ></i>
+  </span>
+</button>
+
+<ng-template #incidentHeaderActions>
+  <button
+    kbq-button
+    kbqStyle="transparent"
+    class="incident-header-action"
+    type="button"
+    aria-label="Очистить выбор и поиск"
+    kbqTooltip="Сбросить по умолчанию"
+    (click)="clearSelection()"
+  >
+    <i kbq-icon="kbq-undo_16"></i>
+  </button>
+</ng-template>
+
+<ng-template #incidentSearch>
+  @let activeId = activeFieldId();
+  <kbq-form-field class="incident-search" noBorders [inOverlay]="true">
+    <i kbqPrefix kbq-icon="kbq-magnifying-glass_16" aria-hidden="true"></i>
+    <input
+      #searchInput
+      kbqInput
+      no-trim
+      type="text"
+      role="combobox"
+      aria-label="Поиск столбцов"
+      aria-autocomplete="list"
+      autocomplete="off"
+      placeholder="Столбец"
+      data-incident-search
+      [attr.aria-expanded]="groups().length > 0"
+      [attr.aria-controls]="prefix() + '-list'"
+      [attr.aria-activedescendant]="activeId ? optionId(activeId) : null"
+      [ngModel]="query()"
+      (ngModelChange)="setQuery($event)"
+      (keydown)="onSearchKeydown($event)"
+      (blur)="activeFieldId.set(null)"
+    />
+    @if (query()) {
+      <button
+        kbqSuffix
+        kbq-icon-button="kbq-circle-xmark_16"
+        color="contrast-fade"
+        size="compact"
+        type="button"
+        [tabindex]="-1"
+        aria-label="Очистить поиск"
+        (mousedown)="$event.preventDefault()"
+        (click)="clearQuery(); searchInput.focus({ preventScroll: true })"
+      ></button>
+    }
+  </kbq-form-field>
+</ng-template>
+
+<ng-template #incidentFooter>
+  <div class="incident-footer">
+    <button
+      kbq-button
+      kbqStyle="transparent"
+      class="incident-reset"
+      type="button"
+      data-incident-fields-reset
+      (click)="resetSelection()"
+    >
+      <i kbq-icon="kbq-circle-xmark_16"></i>Сбросить по умолчанию
+    </button>
+  </div>
+</ng-template>
+
+<ng-template
+  [drilldownMenuScreen]="screenId()"
+  [title]="label()"
+  initialFocus="[data-incident-search]"
+  [allowTriggerOverlap]="true"
+  [headerActions]="incidentHeaderActions"
+  [beforeContent]="incidentSearch"
+  [footer]="incidentFooter"
+>
+  <div
+    role="listbox"
+    aria-label="Поля таблицы инцидентов"
+    aria-multiselectable="true"
+    [id]="prefix() + '-list'"
+    [hidden]="groups().length === 0"
+  >
+    @for (group of groups(); track group.id) {
+      <kbq-optgroup [label]="group.label">
+        <ng-container>
+          @for (field of group.fields; track field.id) {
+            @let checked = selectedFieldIds().has(field.id);
+            <div
+              class="incident-option"
+              role="option"
+              [id]="optionId(field.id)"
+              [attr.aria-checked]="checked"
+              [class.incident-option_active]="activeFieldId() === field.id"
+              (mousedown)="$event.preventDefault()"
+              (click)="selectField(field.id)"
+            >
+              <kbq-pseudo-checkbox aria-hidden="true" [state]="checked" />
+              <span [innerHTML]="field.label | kbqHighlightBackground: searchTerm()"></span>
+            </div>
+          }
+        </ng-container>
+      </kbq-optgroup>
+    }
+  </div>
+  @if (groups().length === 0) {
+    <div role="status" class="incident-empty">Ничего не найдено</div>
+  }
+</ng-template>

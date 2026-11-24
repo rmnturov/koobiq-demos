@@ -2,7 +2,7 @@ import { DOCUMENT } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { KbqButtonModule, KbqButtonStyles } from '@koobiq/components/button';
 import { KbqButtonToggleModule } from '@koobiq/components/button-toggle';
-import { KbqCodeBlockFile, KbqCodeBlockModule } from '@koobiq/components/code-block';
+import { KbqCodeBlockFile, KbqCodeBlockModule, kbqCodeBlockHighlightJsConfigProvider } from '@koobiq/components/code-block';
 import { KbqContentPanelContainer, KbqContentPanelModule } from '@koobiq/components/content-panel';
 import { KbqComponentColors, PopUpPlacements } from '@koobiq/components/core';
 import { KbqDropdownModule } from '@koobiq/components/dropdown';
@@ -82,7 +82,12 @@ async function copyText(browser: Window, text: string): Promise<boolean> {
         PaletteSelect,
         ShadowNumberField
     ],
-    providers: [SETTINGS_PANEL_CONTAINER],
+    providers: [
+        SETTINGS_PANEL_CONTAINER,
+        kbqCodeBlockHighlightJsConfigProvider({
+            languages: { css: () => import('highlight.js/lib/languages/css') }
+        })
+    ],
     templateUrl: './settings-panel.html',
     styleUrl: './settings-panel.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

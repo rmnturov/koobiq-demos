@@ -1,0 +1,83 @@
+<ng-content />
+<ng-template #panelTemplate>
+  @if (isOpen()) {
+    <div
+      #panelElement
+      class="drilldown-panel"
+      role="dialog"
+      [id]="id"
+      [attr.aria-label]="activeTitle()"
+      (keydown)="onKeydown($event)"
+      [style.max-height.px]="resolvedMaxHeight()"
+    >
+      @for (screen of visited(); track screen.id) {
+        <section
+          class="drilldown-screen"
+          [class.drilldown-root-screen]="screen.id === rootScreen()"
+          [class.drilldown-screen-with-slots]="screen.definition.beforeContent() || screen.definition.footer()"
+          tabindex="-1"
+          [attr.data-screen]="screen.id"
+          [hidden]="screen.id !== activeScreenId()"
+          [attr.inert]="screen.id !== activeScreenId() ? '' : null"
+          [attr.aria-hidden]="screen.id !== activeScreenId() ? 'true' : null"
+          [attr.aria-label]="screen.definition.title()"
+          role="region"
+        >
+          <header class="drilldown-header">
+            <div class="drilldown-header-start">
+              @if (screen.id !== rootScreen()) {
+                <button
+                  kbq-button
+                  kbqStyle="transparent"
+                  class="drilldown-icon-button"
+                  type="button"
+                  aria-label="Назад"
+                  kbqTooltip="Назад"
+                  (click)="back()"
+                >
+                  <i kbq-icon="kbq-arrow-left_16"></i>
+                </button>
+              }
+            </div>
+            <span
+              class="drilldown-heading"
+              [class.drilldown-heading-action]="screen.id !== rootScreen()"
+              (click)="onHeadingClick(screen.id)"
+              >{{ screen.definition.title() }}</span
+            >
+            <div class="drilldown-header-end">
+              <ng-container
+                [ngTemplateOutlet]="screen.definition.headerActions() ?? null"
+                [ngTemplateOutletContext]="{ $implicit: this }"
+              />
+            </div>
+          </header>
+          @if (screen.definition.beforeContent(); as beforeContent) {
+            <div class="drilldown-before-content">
+              <ng-container
+                [ngTemplateOutlet]="beforeContent"
+                [ngTemplateOutletContext]="{ $implicit: this }"
+              />
+            </div>
+          }
+          <div kbqScrollbarViewport class="drilldown-body">
+            <div class="drilldown-content">
+              <ng-container
+                [ngTemplateOutlet]="screen.definition.template"
+                [ngTemplateOutletContext]="{ $implicit: this }"
+              />
+            </div>
+          </div>
+          @if (screen.definition.footer(); as footer) {
+            <footer class="drilldown-footer">
+              <ng-container
+                [ngTemplateOutlet]="footer"
+                [ngTemplateOutletContext]="{ $implicit: this }"
+              />
+            </footer>
+          }
+        </section>
+      }
+    </div>
+  }
+</ng-template>

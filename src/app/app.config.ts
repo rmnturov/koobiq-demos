@@ -5,9 +5,9 @@ import { kbqThemeProvider } from '@koobiq/components/core';
 import { routes } from './app.routes';
 
 export const appConfig: ApplicationConfig = {
-    providers: [
-        provideBrowserGlobalErrorListeners(),
-        provideRouter(routes),
-        kbqThemeProvider({ mode: 'auto', storageKey: 'koobiq-demos-theme' })
-    ]
+  providers: [
+    provideBrowserGlobalErrorListeners(),
+    provideRouter(routes),
+    kbqThemeProvider({ mode: 'auto', storageKey: 'koobiq-demos-theme' }),
+  ],
 };
