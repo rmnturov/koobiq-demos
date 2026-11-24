@@ -116,6 +116,37 @@ describe('auto-refresh controller', () => {
     expect(c.pendingCount()).toBe(4);
   });
 
+  it('agrees the notice caption with the current count as new incidents accumulate', async () => {
+    const { controller: c, append } = setup();
+    c.protect('Прокрутка таблицы');
+    let previous = 0;
+    const captions: [number, string][] = [
+      [1, '1 новая запись'],
+      [2, '2 новые записи'],
+      [4, '4 новые записи'],
+      [5, '5 новых записей'],
+      [11, '11 новых записей'],
+      [12, '12 новых записей'],
+      [14, '14 новых записей'],
+      [21, '21 новая запись'],
+      [22, '22 новые записи'],
+      [24, '24 новые записи'],
+      [25, '25 новых записей'],
+      [101, '101 новая запись'],
+      [111, '111 новых записей'],
+      [112, '112 новых записей'],
+      [121, '121 новая запись'],
+      [122, '122 новые записи'],
+      [125, '125 новых записей'],
+    ];
+    for (const [count, caption] of captions) {
+      append(count - previous);
+      await c.poll();
+      expect(c.pendingText()).toBe(caption);
+      previous = count;
+    }
+  });
+
   it('explicit refresh resets protection and pending records when there are no blockers', async () => {
     const { controller: c, append } = setup();
     c.protect('Прокрутка таблицы');
