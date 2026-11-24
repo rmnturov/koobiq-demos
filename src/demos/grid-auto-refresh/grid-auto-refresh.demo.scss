@@ -151,25 +151,41 @@ ag-grid-angular {
 }
 .new-records {
   position: absolute;
-  top: 48px;
+  top: calc(40px + var(--kbq-size-l));
   left: 50%;
   transform: translateX(-50%);
   z-index: 3;
   display: flex;
   align-items: center;
-  gap: 12px;
   width: max-content;
-  max-width: calc(100% - 32px);
-  padding: 6px 8px 6px 16px;
-  border-radius: 8px;
+  max-width: calc(100% - var(--kbq-size-xxl) * 2);
+  border-radius: var(--kbq-size-s);
   background: var(--kbq-background-card);
   box-shadow: var(--kbq-shadow-popup);
-  border: 1px solid var(--kbq-line-contrast-less);
   white-space: nowrap;
 }
-.new-records span {
-  overflow: hidden;
-  text-overflow: ellipsis;
+.new-records::after {
+  content: '';
+  position: absolute;
+  inset-inline-end: var(--kbq-size-3xl);
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--kbq-size-border-width);
+  height: var(--kbq-size-m);
+  background: var(--kbq-line-contrast-less);
+  pointer-events: none;
+}
+.new-records:has(> button:is(:hover, :active, :focus))::after {
+  visibility: hidden;
+}
+.new-records-show {
+  --kbq-button-size-content-padding: 5px;
+  min-width: 0;
+}
+:host .new-records > .new-records-close {
+  margin-inline-start: 0;
+  inline-size: var(--kbq-size-3xl);
+  flex: none;
 }
 .card-title {
   font-size: 20px;

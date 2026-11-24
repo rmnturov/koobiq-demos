@@ -364,6 +364,16 @@ export class GridAutoRefreshDemo {
   async showNewRecords(): Promise<void> {
     const button = document.activeElement;
     if (!(await this.state.refresh())) return;
+    this.restoreFocusAfterNoticeRemoval(button);
+  }
+
+  dismissNewRecords(): void {
+    const button = document.activeElement;
+    this.state.dismissPendingNotice();
+    this.restoreFocusAfterNoticeRemoval(button);
+  }
+
+  private restoreFocusAfterNoticeRemoval(button: Element | null): void {
     afterNextRender(
       () => {
         if (

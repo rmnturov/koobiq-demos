@@ -147,16 +147,32 @@
           (bodyScroll)="scrolled($event)"
           (bodyScrollEnd)="scrollEnded($event)"
         />
-        @if (state.pendingCount()) {
-          <div class="new-records" role="region" aria-label="Новые инциденты">
-            <i kbq-icon="kbq-arrow-up_16"></i><span>{{ state.pendingText() }}</span
-            ><button
+        @if (state.pendingNoticeVisible()) {
+          <div
+            kbq-button-group
+            class="new-records"
+            [color]="'contrast'"
+            [kbqStyle]="'transparent'"
+            aria-label="Новые инциденты"
+          >
+            <button
               kbq-button
-              [color]="'contrast'"
-              [kbqStyle]="'transparent'"
+              type="button"
+              class="new-records-show"
+              [attr.aria-label]="'Показать: ' + state.pendingText()"
               (click)="showNewRecords()"
             >
-              Показать
+              <i kbq-icon="kbq-arrow-up_16" kbqButtonPrefix></i>
+              {{ state.pendingText() }}
+            </button>
+            <button
+              kbq-button
+              type="button"
+              class="new-records-close"
+              aria-label="Скрыть уведомление о новых записях"
+              (click)="dismissNewRecords()"
+            >
+              <i kbq-icon="kbq-xmark_16"></i>
             </button>
           </div>
         }

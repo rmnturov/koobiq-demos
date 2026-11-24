@@ -71,6 +71,41 @@ describe('auto-refresh controller', () => {
     expect(c.newlyAppliedIds()).toEqual([]);
   });
 
+  it('dismisses only the current notice, preserving pending data until more records arrive', async () => {
+    const { controller: c, append } = setup();
+    c.protect('Прокрутка таблицы');
+    c.exactCount.set(false);
+    const snapshot = c.snapshot();
+    append();
+    await c.poll();
+    expect(c.pendingNoticeVisible()).toBe(true);
+    c.dismissPendingNotice();
+    expect(c.pendingNoticeVisible()).toBe(false);
+    expect(c.pendingCount()).toBe(3);
+    expect(c.snapshot()).toBe(snapshot);
+    await c.poll();
+    expect(c.pendingNoticeVisible()).toBe(false);
+    append(1);
+    await c.poll();
+    expect(c.pendingNoticeVisible()).toBe(true);
+    expect(c.pendingCount()).toBe(4);
+  });
+
+  it('allows a fresh notice after applying a previously dismissed batch', async () => {
+    const { controller: c, append } = setup();
+    c.protect('Прокрутка таблицы');
+    append();
+    await c.poll();
+    c.dismissPendingNotice();
+    await c.refresh();
+    expect(c.pendingNoticeVisible()).toBe(false);
+    c.protect('Прокрутка таблицы');
+    append(1);
+    await c.poll();
+    expect(c.pendingCount()).toBe(1);
+    expect(c.pendingNoticeVisible()).toBe(true);
+  });
+
   it('only counts new records matching active filters', async () => {
     const { controller: c, append } = setup();
     await c.setQuery({ ...DEFAULT_QUERY, status: 'new' });

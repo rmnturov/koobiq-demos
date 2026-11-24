@@ -30,6 +30,10 @@ export class AutoRefreshController {
   private readonly visibleCount = signal(BLOCK_SIZE);
   private readonly interaction = signal<string | null>(null);
   private readonly hidden = signal(false);
+  private readonly dismissedPendingCount = signal(0);
+  readonly pendingNoticeVisible = computed(
+    () => this.pendingCount() > this.dismissedPendingCount(),
+  );
   readonly visibleRows = computed(() => this.snapshot().slice(0, this.visibleCount()));
   readonly safeSort = computed(
     () => this.query().sort.field === 'createdAt' && this.query().sort.direction === 'desc',
@@ -88,6 +92,10 @@ export class AutoRefreshController {
 
   protect(reason: string): void {
     if (!this.interaction()) this.interaction.set(reason);
+  }
+
+  dismissPendingNotice(): void {
+    this.dismissedPendingCount.set(this.pendingCount());
   }
 
   setSelection(ids: readonly string[]): void {
@@ -204,6 +212,7 @@ export class AutoRefreshController {
     this.snapshot.set(next);
     this.visibleCount.set(BLOCK_SIZE);
     this.pendingCount.set(0);
+    this.dismissedPendingCount.set(0);
     this.interaction.set(null);
     this.lastApplied.set(this.now());
     this.revision.update((value) => value + 1);
