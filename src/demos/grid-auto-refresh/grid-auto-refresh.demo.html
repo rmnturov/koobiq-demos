@@ -279,6 +279,8 @@
   <kbq-markdown [markdownText]="articleText" />
 </article>
 
+<ng-template #retryToastCaption>{{ retryCaption() }}</ng-template>
+
 <ng-template #retryToastActions>
   <a kbqLink pseudo (click)="retryUpdate()">Повторить</a>
 </ng-template>

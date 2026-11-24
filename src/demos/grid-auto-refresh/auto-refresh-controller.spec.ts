@@ -306,6 +306,28 @@ describe('auto-refresh controller', () => {
     expect(c.nextCheckAt()).toBeNull();
   });
 
+  it('counts down to the actual retry deadline and resets after each failure', async () => {
+    vi.useFakeTimers();
+    const { controller: c, source, advance } = setup();
+    source.read.mockRejectedValue(new Error('offline'));
+    advance(750);
+    await c.refresh();
+    expect(c.secondsUntilCheck()).toBe(10);
+    c.start();
+    advance(3000);
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(c.secondsUntilCheck()).toBe(7);
+    advance(7000);
+    await vi.advanceTimersByTimeAsync(7000);
+    expect(c.failedAttempts()).toBe(2);
+    expect(c.secondsUntilCheck()).toBe(20);
+    c.setInterval(15000);
+    expect(c.secondsUntilCheck()).toBe(60);
+    c.setInterval(0);
+    expect(c.secondsUntilCheck()).toBeNull();
+    c.destroy();
+  });
+
   it('ignores an older response and serializes the latest query', async () => {
     const { controller: c, source, append } = setup();
     let resolve!: (rows: readonly Incident[]) => void;

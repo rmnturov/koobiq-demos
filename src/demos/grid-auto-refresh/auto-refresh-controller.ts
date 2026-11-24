@@ -223,6 +223,8 @@ export class AutoRefreshController {
 
   private schedule(): void {
     const delay = this.retryDelayMs();
-    this.nextCheckAt.set(delay ? this.now() + delay : null);
+    const now = this.now();
+    this.currentTime.set(now);
+    this.nextCheckAt.set(delay ? now + delay : null);
   }
 }

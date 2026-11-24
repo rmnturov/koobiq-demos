@@ -136,9 +136,9 @@ export class GridAutoRefreshDemo {
 
 ## Ошибка связи
 
-При ошибке таблица сохраняет строки, выбор, карточку и число новых записей. В правом верхнем углу таблицы появляется тост с кнопкой **Повторить** и номером попытки.
+При ошибке таблица сохраняет строки, выбор, карточку и число новых записей. В правом верхнем углу таблицы появляется тост с кнопкой **Повторить**. Номер попытки показывается начиная со второй.
 
-Если автообновление включено, следующая попытка пройдет автоматически. После каждой ошибки пауза увеличивается, но не превышает двух минут. Тост остается между автоматическими попытками: текст обновляется в том же сообщении, а отсчет до закрытия начинается заново. Наведение и фокус приостанавливают этот отсчет.
+Если автообновление включено, в серой подписи идет обратный отсчет до следующей попытки. После каждой ошибки пауза увеличивается, но не превышает двух минут. Тост остается между автоматическими попытками: текст обновляется в том же сообщении, а отсчет до закрытия начинается заново. Наведение и фокус приостанавливают закрытие тоста, но не автоматическую попытку.
 
 Кнопка **Повторить** закрывает тост и сразу запускает обновление. Если попытка снова не удалась, появляется новый тост с ошибкой. При успехе сообщение остается закрытым.
 
@@ -169,6 +169,17 @@ export class GridAutoRefreshDemo {
 
   readonly server = new IncidentServer();
   readonly state = new AutoRefreshController(this.server);
+  protected readonly retryCaption = computed(() => {
+    const busy = this.state.busy();
+    const attempt = this.state.failedAttempts() + Number(busy);
+    const seconds = this.state.secondsUntilCheck();
+    const status = busy
+      ? 'Повторное обновление'
+      : seconds !== null
+        ? `Следующая попытка через ${seconds} с`
+        : 'Автообновление выключено';
+    return attempt > 1 ? `Попытка ${attempt}. ${status}` : status;
+  });
   readonly context: IncidentGridContext = { controller: this.state };
   readonly savedFilters: KbqFilter[] = [
     { ...filterFromQuery(DEFAULT_QUERY), name: 'Все инциденты', readonly: true, saved: true },
@@ -349,6 +360,8 @@ export class GridAutoRefreshDemo {
   private errorToast: ReturnType<KbqToastService['show']> | null = null;
   private readonly retryToastActions =
     viewChild.required<TemplateRef<unknown>>('retryToastActions');
+  private readonly retryToastCaption =
+    viewChild.required<TemplateRef<unknown>>('retryToastCaption');
   private previousToastAttempt = 0;
   private previousToastRetryDelay = 0;
   private errorToastRemainingMs = 0;
@@ -413,6 +426,7 @@ export class GridAutoRefreshDemo {
           {
             style: KbqToastStyle.Error,
             title: error,
+            caption: this.retryToastCaption(),
             actions: this.retryToastActions(),
             closeButton: true,
           },
@@ -420,13 +434,6 @@ export class GridAutoRefreshDemo {
         );
       }
       if (this.errorToast && toasts.toasts.includes(this.errorToast.ref)) {
-        const status = busy
-          ? 'Повторное обновление'
-          : retryDelay
-            ? 'Следующая попытка пройдет автоматически'
-            : 'Автообновление выключено';
-        this.errorToast.ref.instance.data.caption = `Попытка ${attempt + Number(busy)}. ${status}`;
-        this.errorToast.ref.changeDetectorRef.markForCheck();
         if (failed || retryDelay !== this.previousToastRetryDelay)
           this.errorToastRemainingMs = Math.max(5000, retryDelay + 5000);
       }
