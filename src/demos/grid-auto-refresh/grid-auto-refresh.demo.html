@@ -248,15 +248,7 @@
 </article>
 
 <ng-template #retryToastActions>
-  <a
-    kbqLink
-    pseudo
-    [attr.aria-disabled]="state.busy()"
-    [class.kbq-progress]="state.busy()"
-    (click)="retryUpdate()"
-  >
-    Повторить
-  </a>
+  <a kbqLink pseudo (click)="retryUpdate()">Повторить</a>
 </ng-template>
 
 <ng-template #controlTemplate let-control>
