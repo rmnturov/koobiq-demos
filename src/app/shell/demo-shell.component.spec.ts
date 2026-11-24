@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { Title } from '@angular/platform-browser';
+import { By, Title } from '@angular/platform-browser';
 import { provideRouter, Router, Routes } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { kbqThemeProvider } from '@koobiq/components/core';
@@ -56,6 +56,31 @@ describe('DemoShellComponent', () => {
         expect(document.querySelector('header kbq-top-bar')).not.toBeNull();
         expect(document.querySelector('[kbqTopBarContainer][placement="start"]')).not.toBeNull();
         expect(document.querySelector('[kbqTopBarContainer][placement="end"]')).not.toBeNull();
+    });
+
+    it('shows the header shadow only while the page is scrolled', async () => {
+        const harness = await setup('/demo/hello');
+        const scrollbar = document.querySelector('kbq-scrollbar.content') as HTMLElement;
+        const scrollContainer = harness.routeDebugElement!.query(By.css('kbq-scrollbar.content'));
+        const topBar = document.querySelector('header kbq-top-bar')!;
+        const hasShadow = () => topBar.classList.contains('kbq-top-bar_with-shadow');
+
+        expect(hasShadow()).toBe(false);
+
+        // Scrolling inside a demo must not change the page header.
+        document.querySelector('.fake')!.dispatchEvent(new Event('scroll'));
+        harness.detectChanges();
+        expect(hasShadow()).toBe(false);
+
+        scrollbar.scrollTop = 120;
+        scrollContainer.triggerEventHandler('scroll');
+        harness.detectChanges();
+        expect(hasShadow()).toBe(true);
+
+        scrollbar.scrollTop = 0;
+        scrollContainer.triggerEventHandler('scroll');
+        harness.detectChanges();
+        expect(hasShadow()).toBe(false);
     });
 
     it('shows the demo title as the current breadcrumb and renders the content', async () => {

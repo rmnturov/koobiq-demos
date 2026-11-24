@@ -1,5 +1,5 @@
 <header class="header">
-    <kbq-top-bar>
+    <kbq-top-bar [withShadow]="pageScrolled()">
         <div class="header__start" kbqTopBarContainer placement="start">
             <nav class="header__trail" kbq-breadcrumbs size="big" wrapMode="wrap">
                 <kbq-breadcrumb-item text="Демки" routerLink="/" />
@@ -59,7 +59,12 @@
         </div>
     </kbq-top-bar>
 </header>
-<kbq-scrollbar class="content" kbqScrollbarMode="hover">
+<kbq-scrollbar
+    #pageScrollbar
+    class="content"
+    kbqScrollbarMode="hover"
+    (scroll)="pageScrolled.set(pageScrollbar.getNativeElement().scrollTop > 0)"
+>
     <main>
         <router-outlet />
     </main>

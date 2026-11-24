@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Title } from '@angular/platform-browser';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterOutlet } from '@angular/router';
@@ -36,6 +36,7 @@ import { ThemeToggleComponent } from '../theme/theme-toggle.component';
     changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DemoShellComponent {
+    protected readonly pageScrolled = signal(false);
     private readonly route = inject(ActivatedRoute);
     private readonly pageTitle = inject(Title);
 
