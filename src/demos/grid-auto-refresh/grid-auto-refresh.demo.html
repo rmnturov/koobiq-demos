@@ -53,7 +53,7 @@
                         kbqTrigger="hover"
                         aria-haspopup="menu"
                         [kbqTooltip]="controlHints.interval"
-                        kbqPlacement="left"
+                        kbqPlacement="top"
                         [kbqDropdownTriggerFor]="intervalMenu"
                       >
                         <i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }}
@@ -68,7 +68,7 @@
                         [attr.aria-busy]="state.busy()"
                         data-control="refresh"
                         [kbqTooltip]="controlHints.refresh"
-                        kbqPlacement="left"
+                        kbqPlacement="top"
                         (click)="state.refresh()"
                       >
                         <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
@@ -80,7 +80,7 @@
                         kbqTrigger="hover"
                         aria-haspopup="menu"
                         [kbqTooltip]="controlHints.count"
-                        kbqPlacement="left"
+                        kbqPlacement="top"
                         [kbqDropdownTriggerFor]="countMenu"
                       >
                         {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
@@ -93,7 +93,7 @@
                         [kbqTooltip]="
                           server.offline ? controlHints.restore : controlHints.disconnect
                         "
-                        kbqPlacement="left"
+                        kbqPlacement="top"
                         (click)="toggleConnection()"
                       >
                         {{ server.offline ? 'Восстановить связь' : 'Ошибка связи' }}
@@ -104,7 +104,7 @@
                         kbq-dropdown-item
                         kbqTrigger="hover"
                         [kbqTooltip]="controlHints.scenario"
-                        kbqPlacement="left"
+                        kbqPlacement="top"
                         [kbqDropdownTriggerFor]="scenarioMenu"
                       >
                         Сценарий
@@ -234,7 +234,7 @@
                   kbq-dropdown-item
                   kbqTrigger="hover"
                   [kbqTooltip]="controlHints.action"
-                  kbqPlacement="left"
+                  kbqPlacement="top"
                   (click)="notify(action.feedback + ': ' + state.card()?.id)"
                 >
                   {{ action.label }}
@@ -290,7 +290,7 @@
         [color]="'contrast'"
         aria-haspopup="menu"
         [kbqTooltip]="controlHints.interval"
-        kbqPlacement="bottom"
+        kbqPlacement="top"
         [kbqDropdownTriggerFor]="intervalMenu"
       >
         <i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }}
@@ -307,7 +307,7 @@
         [attr.aria-busy]="state.busy()"
         data-control="refresh"
         [kbqTooltip]="controlHints.refresh"
-        kbqPlacement="bottom"
+        kbqPlacement="top"
         (click)="state.refresh()"
       >
         <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
@@ -320,7 +320,7 @@
         [color]="'contrast'"
         aria-haspopup="menu"
         [kbqTooltip]="controlHints.count"
-        kbqPlacement="bottom"
+        kbqPlacement="top"
         [kbqDropdownTriggerFor]="countMenu"
       >
         {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
@@ -333,7 +333,7 @@
         [kbqStyle]="'transparent'"
         [color]="'contrast'"
         [kbqTooltip]="server.offline ? controlHints.restore : controlHints.disconnect"
-        kbqPlacement="bottom"
+        kbqPlacement="top"
         (click)="toggleConnection()"
       >
         {{ server.offline ? 'Восстановить связь' : 'Ошибка связи' }}
@@ -345,7 +345,7 @@
         [kbqStyle]="'transparent'"
         [color]="'contrast'"
         [kbqTooltip]="controlHints.scenario"
-        kbqPlacement="bottom"
+        kbqPlacement="top"
         [kbqDropdownTriggerFor]="scenarioMenu"
       >
         Сценарий <i kbq-icon="kbq-chevron-down-s_16"></i>
@@ -381,7 +381,7 @@
       role="menuitemradio"
       [attr.aria-checked]="state.exactCount()"
       [kbqTooltip]="controlHints.exactCount"
-      kbqPlacement="left"
+      kbqPlacement="top"
       (click)="state.exactCount.set(true)"
     >
       <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
@@ -395,7 +395,7 @@
       role="menuitemradio"
       [attr.aria-checked]="!state.exactCount()"
       [kbqTooltip]="controlHints.unknownCount"
-      kbqPlacement="left"
+      kbqPlacement="top"
       (click)="state.exactCount.set(false)"
     >
       <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
@@ -408,7 +408,7 @@
     kbq-dropdown-item
     kbqTrigger="hover"
     [kbqTooltip]="controlHints.observe"
-    kbqPlacement="left"
+    kbqPlacement="top"
     (click)="scenario('observe')"
   >
     Наблюдение за поступлениями
@@ -417,7 +417,7 @@
     kbq-dropdown-item
     kbqTrigger="hover"
     [kbqTooltip]="controlHints.select"
-    kbqPlacement="left"
+    kbqPlacement="top"
     (click)="scenario('select')"
   >
     Работа с выбранными строками
@@ -426,7 +426,7 @@
     kbq-dropdown-item
     kbqTrigger="hover"
     [kbqTooltip]="controlHints.card"
-    kbqPlacement="left"
+    kbqPlacement="top"
     (click)="scenario('card')"
   >
     Просмотр инцидента
@@ -466,7 +466,7 @@
             kbq-dropdown-item
             kbqTrigger="hover"
             [kbqTooltip]="controlHints.action"
-            kbqPlacement="left"
+            kbqPlacement="top"
             (click)="acknowledge(action)"
           >
             {{ action }}
