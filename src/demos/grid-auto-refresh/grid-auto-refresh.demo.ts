@@ -31,6 +31,7 @@ import { KbqIconModule } from '@koobiq/components/icon';
 import { KbqLink } from '@koobiq/components/link';
 import { KbqOverflowItemsModule } from '@koobiq/components/overflow-items';
 import { KbqToastService, KbqToastStyle } from '@koobiq/components/toast';
+import { KbqToolTipModule } from '@koobiq/components/tooltip';
 import { KbqTopBarModule } from '@koobiq/components/top-bar';
 import { AgGridAngular } from 'ag-grid-angular';
 import {
@@ -62,6 +63,7 @@ import {
 import { IncidentServer } from './incident-server';
 import { createDemoToastScope } from './demo-toast-scope';
 import { AnimatedNoticeText } from './animated-notice-text';
+import { MenuItemHint } from './menu-item-hint';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -69,6 +71,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   selector: 'grid-auto-refresh-demo',
   imports: [
     AnimatedNoticeText,
+    MenuItemHint,
     NgTemplateOutlet,
     KbqMarkdown,
     KbqLuxonDateModule,
@@ -82,6 +85,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
     KbqIconModule,
     KbqLink,
     KbqOverflowItemsModule,
+    KbqToolTipModule,
     KbqTopBarModule,
   ],
   providers: [KbqActionsPanel, DateFormatter],
@@ -199,6 +203,20 @@ export class GridAutoRefreshDemo {
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   readonly intervals = [0, 5000, 15000, 30000, 60000];
   readonly controls = ['refresh', 'interval', 'count', 'connection', 'scenario'];
+  readonly controlHints = {
+    refresh: 'Показать актуальные инциденты и вернуться к началу таблицы',
+    interval: 'Выбрать период проверки новых инцидентов или выключить автообновление',
+    count: 'Проверить панель новых записей с точным числом и без него',
+    disconnect: 'Имитировать ошибку связи при следующем обновлении',
+    restore: 'Завершить имитацию ошибки связи',
+    scenario: 'Подготовить таблицу для проверки одного из сценариев',
+    exactCount: 'Показать число новых инцидентов, подходящих под текущие фильтры',
+    unknownCount: 'Имитировать отсутствие точного числа новых инцидентов',
+    observe: 'Закрыть карточку, снять выбор и показать актуальный список',
+    select: 'Выбрать две первые строки и открыть панель массовых действий',
+    card: 'Открыть карточку первого инцидента',
+    action: 'Демонстрационное действие: показать уведомление без изменения инцидентов',
+  };
   readonly cardActions = [
     { id: 'assign', label: 'Назначить', feedback: 'Назначение оператора' },
     { id: 'status', label: 'Изменить статус', feedback: 'Изменение статуса' },

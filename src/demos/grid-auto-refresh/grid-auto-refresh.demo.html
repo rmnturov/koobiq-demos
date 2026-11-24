@@ -50,7 +50,10 @@
                     @case ('interval') {
                       <button
                         kbq-dropdown-item
+                        kbqTrigger="hover"
                         aria-haspopup="menu"
+                        [kbqTooltip]="controlHints.interval"
+                        kbqPlacement="left"
                         [kbqDropdownTriggerFor]="intervalMenu"
                       >
                         <i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }}
@@ -59,10 +62,13 @@
                     @case ('refresh') {
                       <button
                         kbq-dropdown-item
+                        kbqTrigger="hover"
                         [disabled]="state.busy()"
                         [class.kbq-progress]="state.busy()"
                         [attr.aria-busy]="state.busy()"
                         data-control="refresh"
+                        [kbqTooltip]="controlHints.refresh"
+                        kbqPlacement="left"
                         (click)="state.refresh()"
                       >
                         <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
@@ -71,19 +77,36 @@
                     @case ('count') {
                       <button
                         kbq-dropdown-item
+                        kbqTrigger="hover"
                         aria-haspopup="menu"
+                        [kbqTooltip]="controlHints.count"
+                        kbqPlacement="left"
                         [kbqDropdownTriggerFor]="countMenu"
                       >
                         {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
                       </button>
                     }
                     @case ('connection') {
-                      <button kbq-dropdown-item (click)="toggleConnection()">
+                      <button
+                        kbq-dropdown-item
+                        kbqTrigger="hover"
+                        [kbqTooltip]="
+                          server.offline ? controlHints.restore : controlHints.disconnect
+                        "
+                        kbqPlacement="left"
+                        (click)="toggleConnection()"
+                      >
                         {{ server.offline ? 'Восстановить связь' : 'Ошибка связи' }}
                       </button>
                     }
                     @case ('scenario') {
-                      <button kbq-dropdown-item [kbqDropdownTriggerFor]="scenarioMenu">
+                      <button
+                        kbq-dropdown-item
+                        kbqTrigger="hover"
+                        [kbqTooltip]="controlHints.scenario"
+                        kbqPlacement="left"
+                        [kbqDropdownTriggerFor]="scenarioMenu"
+                      >
                         Сценарий
                       </button>
                     }
@@ -190,7 +213,11 @@
         <div #cardOverflow="kbqOverflowItems" kbqOverflowItems class="card-actions">
           @for (action of cardActions; track action.id) {
             <div [kbqOverflowItem]="action.id">
-              <button kbq-button (click)="notify(action.feedback + ': ' + state.card()?.id)">
+              <button
+                kbq-button
+                [kbqTooltip]="controlHints.action"
+                (click)="notify(action.feedback + ': ' + state.card()?.id)"
+              >
                 {{ action.label }}
               </button>
             </div>
@@ -205,6 +232,9 @@
               @if (cardOverflow.hiddenItemIDs().has(action.id)) {
                 <button
                   kbq-dropdown-item
+                  kbqTrigger="hover"
+                  [kbqTooltip]="controlHints.action"
+                  kbqPlacement="left"
                   (click)="notify(action.feedback + ': ' + state.card()?.id)"
                 >
                   {{ action.label }}
@@ -259,6 +289,8 @@
         [kbqStyle]="'transparent'"
         [color]="'contrast'"
         aria-haspopup="menu"
+        [kbqTooltip]="controlHints.interval"
+        kbqPlacement="bottom"
         [kbqDropdownTriggerFor]="intervalMenu"
       >
         <i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }}
@@ -274,6 +306,8 @@
         [class.kbq-progress]="state.busy()"
         [attr.aria-busy]="state.busy()"
         data-control="refresh"
+        [kbqTooltip]="controlHints.refresh"
+        kbqPlacement="bottom"
         (click)="state.refresh()"
       >
         <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
@@ -285,6 +319,8 @@
         [kbqStyle]="'transparent'"
         [color]="'contrast'"
         aria-haspopup="menu"
+        [kbqTooltip]="controlHints.count"
+        kbqPlacement="bottom"
         [kbqDropdownTriggerFor]="countMenu"
       >
         {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
@@ -296,6 +332,8 @@
         kbq-button
         [kbqStyle]="'transparent'"
         [color]="'contrast'"
+        [kbqTooltip]="server.offline ? controlHints.restore : controlHints.disconnect"
+        kbqPlacement="bottom"
         (click)="toggleConnection()"
       >
         {{ server.offline ? 'Восстановить связь' : 'Ошибка связи' }}
@@ -306,6 +344,8 @@
         kbq-button
         [kbqStyle]="'transparent'"
         [color]="'contrast'"
+        [kbqTooltip]="controlHints.scenario"
+        kbqPlacement="bottom"
         [kbqDropdownTriggerFor]="scenarioMenu"
       >
         Сценарий <i kbq-icon="kbq-chevron-down-s_16"></i>
@@ -335,10 +375,13 @@
   <div role="menu" aria-label="Точность счётчика новых записей">
     <button
       kbq-dropdown-item
+      kbqTrigger="hover"
       type="button"
       class="menu-radio-item"
       role="menuitemradio"
       [attr.aria-checked]="state.exactCount()"
+      [kbqTooltip]="controlHints.exactCount"
+      kbqPlacement="left"
       (click)="state.exactCount.set(true)"
     >
       <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
@@ -346,10 +389,13 @@
     </button>
     <button
       kbq-dropdown-item
+      kbqTrigger="hover"
       type="button"
       class="menu-radio-item"
       role="menuitemradio"
       [attr.aria-checked]="!state.exactCount()"
+      [kbqTooltip]="controlHints.unknownCount"
+      kbqPlacement="left"
       (click)="state.exactCount.set(false)"
     >
       <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
@@ -357,11 +403,35 @@
     </button>
   </div>
 </kbq-dropdown>
-<kbq-dropdown #scenarioMenu="kbqDropdown"
-  ><button kbq-dropdown-item (click)="scenario('observe')">Наблюдение за поступлениями</button
-  ><button kbq-dropdown-item (click)="scenario('select')">Работа с выбранными строками</button
-  ><button kbq-dropdown-item (click)="scenario('card')">Просмотр инцидента</button></kbq-dropdown
->
+<kbq-dropdown #scenarioMenu="kbqDropdown">
+  <button
+    kbq-dropdown-item
+    kbqTrigger="hover"
+    [kbqTooltip]="controlHints.observe"
+    kbqPlacement="left"
+    (click)="scenario('observe')"
+  >
+    Наблюдение за поступлениями
+  </button>
+  <button
+    kbq-dropdown-item
+    kbqTrigger="hover"
+    [kbqTooltip]="controlHints.select"
+    kbqPlacement="left"
+    (click)="scenario('select')"
+  >
+    Работа с выбранными строками
+  </button>
+  <button
+    kbq-dropdown-item
+    kbqTrigger="hover"
+    [kbqTooltip]="controlHints.card"
+    kbqPlacement="left"
+    (click)="scenario('card')"
+  >
+    Просмотр инцидента
+  </button>
+</kbq-dropdown>
 <ng-template #actionsPanel>
   <div #actionOverflow="kbqOverflowItems" kbqOverflowItems class="selection-actions">
     <span [kbqOverflowItem]="'counter'" [alwaysVisible]="true" class="selection-count"
@@ -369,7 +439,14 @@
     >
     @for (action of actions; track action) {
       <div [kbqOverflowItem]="action">
-        <button kbq-button [color]="'contrast'" (click)="acknowledge(action)">{{ action }}</button>
+        <button
+          kbq-button
+          [color]="'contrast'"
+          [kbqTooltip]="controlHints.action"
+          (click)="acknowledge(action)"
+        >
+          {{ action }}
+        </button>
       </div>
     }
     @if (actionOverflow.hiddenItemIDs().size) {
@@ -385,7 +462,15 @@
     <kbq-dropdown #moreActions="kbqDropdown">
       @for (action of actions; track action) {
         @if (actionOverflow.hiddenItemIDs().has(action)) {
-          <button kbq-dropdown-item (click)="acknowledge(action)">{{ action }}</button>
+          <button
+            kbq-dropdown-item
+            kbqTrigger="hover"
+            [kbqTooltip]="controlHints.action"
+            kbqPlacement="left"
+            (click)="acknowledge(action)"
+          >
+            {{ action }}
+          </button>
         }
       }
     </kbq-dropdown>
