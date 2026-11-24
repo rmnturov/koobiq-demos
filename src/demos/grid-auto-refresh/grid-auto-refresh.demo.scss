@@ -73,6 +73,13 @@
   width: 100%;
   justify-content: flex-start;
 }
+.menu-radio-item.kbq-dropdown-item {
+  block-size: var(--kbq-size-3xl);
+  align-items: center;
+}
+.menu-radio-marker {
+  block-size: var(--kbq-typography-text-normal-line-height);
+}
 .menu-radio-item[aria-checked='false'] .menu-radio-marker {
   visibility: hidden;
 }
