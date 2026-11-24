@@ -167,7 +167,7 @@
             (click)="showNewRecords($event)"
           >
             <i kbq-icon="kbq-arrow-up_16" kbqButtonPrefix></i>
-            {{ noticeText() }}
+            <incident-notice-text [text]="noticeText()" [active]="state.pendingNoticeVisible()" />
           </button>
           <button
             kbq-button

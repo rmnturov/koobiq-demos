@@ -1,0 +1,49 @@
+:host {
+  display: inline-block;
+  position: relative;
+  vertical-align: bottom;
+  height: var(--kbq-typography-text-normal-medium-line-height);
+  max-width: 100%;
+  overflow: clip;
+  font-variant-numeric: tabular-nums;
+}
+.label-content {
+  display: inline-flex;
+  align-items: center;
+  width: max-content;
+  white-space: pre;
+}
+.number-slot {
+  display: inline-block;
+  position: relative;
+  height: var(--kbq-typography-text-normal-medium-line-height);
+  overflow: clip;
+}
+.number-current,
+.number-outgoing {
+  display: block;
+  width: max-content;
+}
+.number-outgoing {
+  position: absolute;
+  inset-block-start: 0;
+  inset-inline-start: 0;
+  opacity: 0;
+}
+.measurement {
+  position: absolute;
+  visibility: hidden;
+  width: max-content;
+  white-space: pre;
+  pointer-events: none;
+}
+:host(.animate-size),
+:host(.animate-size) .number-slot {
+  transition: width 180ms cubic-bezier(0.23, 1, 0.32, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  :host(.animate-size),
+  :host(.animate-size) .number-slot {
+    transition: none;
+  }
+}

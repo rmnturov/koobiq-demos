@@ -60,12 +60,14 @@ import {
 } from './incident-model';
 import { IncidentServer } from './incident-server';
 import { createDemoToastScope } from './demo-toast-scope';
+import { AnimatedNoticeText } from './animated-notice-text';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
 @Component({
   selector: 'grid-auto-refresh-demo',
   imports: [
+    AnimatedNoticeText,
     NgTemplateOutlet,
     KbqMarkdown,
     KbqLuxonDateModule,
