@@ -21,9 +21,10 @@ export class IncidentServer implements IncidentSource {
     this.random = options.random ?? Math.random;
     this.latencyMs = options.latencyMs ?? 450;
     const start = this.now();
-    this.initialRows = Array.from({ length: 300 }, (_, i) =>
-      createIncident(i + 1, start - (300 - i) * 90000),
-    );
+    this.initialRows = Array.from({ length: 300 }, (_, i) => {
+      const createdAt = start - (300 - i) * 90000;
+      return createIncident(i + 1, createdAt, Math.min(start, createdAt + (i % 7) * 300000));
+    });
     this.rows = this.initialRows;
     this.lastArrival = start;
     this.nextTick = start + 5000;

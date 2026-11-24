@@ -4,6 +4,7 @@ export type IncidentSeverity = 1 | 2 | 3 | 4;
 export interface Incident {
   readonly id: string;
   readonly createdAt: number;
+  readonly updatedAt: number;
   readonly name: string;
   readonly severity: IncidentSeverity;
   readonly status: IncidentStatus;
@@ -14,7 +15,7 @@ export interface Incident {
 }
 
 export type IncidentSortField =
-  'createdAt' | 'name' | 'id' | 'severity' | 'status' | 'assignee' | 'source';
+  'createdAt' | 'updatedAt' | 'name' | 'id' | 'severity' | 'status' | 'assignee' | 'source';
 export interface IncidentQuery {
   readonly search: string;
   readonly status: IncidentStatus | null;
@@ -67,10 +68,21 @@ const SOURCES = [
   'fs-01.example.com',
 ];
 
-export function createIncident(sequence: number, createdAt: number): Incident {
+export function createIncident(
+  sequence: number,
+  createdAt: number,
+  updatedAt = createdAt,
+): Incident {
+  const date = new Date(createdAt);
+  const registrationDate = [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, '0'),
+    String(date.getDate()).padStart(2, '0'),
+  ].join('');
   return {
-    id: `INC-${String(10000 + sequence)}`,
+    id: `INC-${registrationDate}0-${String(sequence).padStart(4, '0')}`,
     createdAt,
+    updatedAt,
     name: NAMES[sequence % NAMES.length],
     severity: ((sequence % 4) + 1) as IncidentSeverity,
     status: (['new', 'investigating', 'closed'] as const)[sequence % 3],

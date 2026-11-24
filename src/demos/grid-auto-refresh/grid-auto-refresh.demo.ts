@@ -251,7 +251,8 @@ export class GridAutoRefreshDemo {
     {
       field: 'id',
       headerName: 'ID',
-      width: 132,
+      width: 168,
+      minWidth: 168,
       cellRenderer: IncidentIdCell,
       pinned: 'left',
       lockPinned: true,
@@ -273,14 +274,21 @@ export class GridAutoRefreshDemo {
     {
       field: 'status',
       headerName: 'Статус',
-      width: 138,
+      width: 100,
+      minWidth: 100,
       valueFormatter: ({ data }) => (data ? STATUS_LABELS[data.status] : ''),
     },
     { field: 'assignee', headerName: 'Оператор', width: 180 },
     { field: 'source', headerName: 'Источник', width: 185 },
     {
+      field: 'updatedAt',
+      headerName: 'Изменен',
+      width: 200,
+      valueFormatter: ({ value }) => this.formatDate(value),
+    },
+    {
       field: 'createdAt',
-      headerName: 'Время создания',
+      headerName: 'Зарегистрирован',
       width: 200,
       sort: 'desc',
       valueFormatter: ({ value }) => this.formatDate(value),

@@ -35,15 +35,16 @@ describe('auto-refresh controller', () => {
     append();
     await c.poll();
     expect(c.snapshot()).toHaveLength(303);
-    expect(c.visibleRows()[0].id).toBe('INC-10303');
+    expect(c.visibleRows()[0].createdAt).toBe(origin + 2);
     expect(c.pendingCount()).toBe(0);
     expect(c.newlyAppliedIds()).toHaveLength(3);
-    expect(c.newlyAppliedIds()).toContain('INC-10303');
+    expect(c.newlyAppliedIds()).toContain(c.visibleRows()[0].id);
   });
 
   it('latches protection after scrolling and deduplicates repeated discoveries', async () => {
     const { controller: c, append } = setup();
     const previous = c.visibleRows();
+    const previousIds = new Set(c.snapshot().map((row) => row.id));
     c.protect('Прокрутка таблицы');
     append();
     await c.poll();
@@ -53,7 +54,7 @@ describe('auto-refresh controller', () => {
     expect(c.pendingCount()).toBe(3);
     c.loadMore();
     expect(c.visibleRows()).toHaveLength(100);
-    expect(c.visibleRows().every((row) => Number(row.id.slice(4)) <= 10300)).toBe(true);
+    expect(c.visibleRows().every((row) => previousIds.has(row.id))).toBe(true);
   });
 
   it('marks only newly applied rows in the first block and never flashes subsequent loading', async () => {
