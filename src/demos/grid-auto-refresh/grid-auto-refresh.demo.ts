@@ -115,6 +115,12 @@ export class GridAutoRefreshDemo {
   readonly statusLabels = STATUS_LABELS;
   readonly severityLabels = SEVERITY_LABELS;
   readonly ready = signal(false);
+  readonly noticeText = signal('');
+  readonly instantNoticeExit = signal(false);
+  private noticeActivation = 0;
+  private readonly noticePanel = viewChild('newRecordsPanel', {
+    read: ElementRef<HTMLElement>,
+  });
   readonly workspaceWidth = signal(window.innerWidth);
   readonly minPanelWidth = 400;
   readonly compactCard = computed(() => this.workspaceWidth() < this.minPanelWidth + 336);
@@ -253,6 +259,13 @@ export class GridAutoRefreshDemo {
 
   constructor() {
     const destroy = inject(DestroyRef);
+    effect(() => {
+      if (this.state.pendingNoticeVisible()) this.instantNoticeExit.set(false);
+    });
+    effect(() => {
+      // Keep the last label during exit, after the pending count has already reset.
+      if (this.state.pendingNoticeVisible()) this.noticeText.set(this.state.pendingText());
+    });
     afterNextRender(() => {
       const resize = new ResizeObserver(([entry]) =>
         this.workspaceWidth.set(entry.contentRect.width),
@@ -361,33 +374,54 @@ export class GridAutoRefreshDemo {
     });
   }
 
-  async showNewRecords(): Promise<void> {
-    const button = document.activeElement;
-    if (!(await this.state.refresh())) return;
-    this.restoreFocusAfterNoticeRemoval(button);
-  }
-
-  dismissNewRecords(): void {
-    const button = document.activeElement;
-    this.state.dismissPendingNotice();
-    this.restoreFocusAfterNoticeRemoval(button);
-  }
-
-  private restoreFocusAfterNoticeRemoval(button: Element | null): void {
+  async showNewRecords(event: MouseEvent): Promise<void> {
+    const activation = ++this.noticeActivation;
+    this.instantNoticeExit.set(event.detail === 0);
+    const request = this.state.refresh();
+    const focusTarget = this.focusOutsideNotice();
+    if (!(await request)) {
+      if (activation === this.noticeActivation) this.instantNoticeExit.set(false);
+      return;
+    }
     afterNextRender(
       () => {
-        if (
-          button?.isConnected ||
-          (document.activeElement && document.activeElement !== document.body)
-        )
-          return;
-        const buttons = this.host.nativeElement.querySelectorAll<HTMLButtonElement>(
-          '[data-control="refresh"], .topbar button[kbqOverflowItemsResult]',
-        );
-        [...buttons].find((candidate) => candidate.getClientRects().length > 0)?.focus();
+        if (activation === this.noticeActivation && !this.state.pendingNoticeVisible()) {
+          this.focusOutsideNotice(focusTarget);
+        }
       },
       { injector: this.injector },
     );
+  }
+
+  dismissNewRecords(event: MouseEvent): void {
+    this.noticeActivation++;
+    this.instantNoticeExit.set(event.detail === 0);
+    this.focusOutsideNotice();
+    this.state.dismissPendingNotice();
+  }
+
+  private focusOutsideNotice(previousTarget?: Element): HTMLButtonElement | undefined {
+    const active = document.activeElement;
+    if (
+      active &&
+      active !== document.body &&
+      active !== previousTarget &&
+      !this.noticePanel()?.nativeElement.contains(active)
+    )
+      return;
+    const preferred = this.host.nativeElement.querySelectorAll<HTMLButtonElement>(
+      '[data-control="refresh"], .topbar button[kbqOverflowItemsResult]',
+    );
+    const fallback = this.host.nativeElement.querySelectorAll<HTMLButtonElement>('.topbar button');
+    const target = [...preferred, ...fallback].find(
+      (candidate) =>
+        !candidate.disabled &&
+        !(this.state.busy() && candidate.getAttribute('data-control') === 'refresh') &&
+        !candidate.closest('[aria-hidden="true"]') &&
+        candidate.getClientRects().length > 0,
+    );
+    target?.focus();
+    return target;
   }
   sortChanged(event: SortChangedEvent<Incident>): void {
     if (this.syncing) return;

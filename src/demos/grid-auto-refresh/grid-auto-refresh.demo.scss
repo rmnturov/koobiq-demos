@@ -153,7 +153,15 @@ ag-grid-angular {
   position: absolute;
   top: calc(40px + var(--kbq-size-l));
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, -6px) scale(0.97);
+  transform-origin: top center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition-property: opacity, transform, visibility;
+  transition-duration: 120ms, 120ms, 0s;
+  transition-delay: 0s, 0s, 120ms;
+  transition-timing-function: cubic-bezier(0.23, 1, 0.32, 1);
   z-index: 3;
   display: flex;
   align-items: center;
@@ -163,6 +171,27 @@ ag-grid-angular {
   background: var(--kbq-background-card);
   box-shadow: var(--kbq-shadow-popup);
   white-space: nowrap;
+}
+.new-records-visible {
+  transform: translate(-50%, 0) scale(1);
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition-duration: 180ms, 180ms, 0s;
+  transition-delay: 0s;
+}
+.new-records-instant:not(.new-records-visible) {
+  transition: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .new-records {
+    transform: translateX(-50%);
+    transition-duration: 80ms, 80ms, 0s;
+    transition-delay: 0s, 0s, 80ms;
+  }
+  .new-records-visible {
+    transition-delay: 0s;
+  }
 }
 .new-records::after {
   content: '';
