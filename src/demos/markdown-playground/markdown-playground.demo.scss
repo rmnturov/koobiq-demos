@@ -1,26 +1,25 @@
+@use './markdown-spacing';
+@use './markdown-typography';
+@use './markdown-compact';
+
 :host {
     display: block;
     color: var(--kbq-foreground-contrast);
 }
 
 .layout {
-    display: grid;
-    grid-template-columns: minmax(150px, 180px) minmax(0, 650px);
-    gap: clamp(32px, 5vw, 72px);
-    max-width: 960px;
+    max-width: 1396px;
     margin-inline: auto;
-    padding: 48px 24px 80px;
+    padding: 24px clamp(16px, 3vw, 48px) 80px;
 }
 
 .contents {
-    position: sticky;
-    top: 24px;
-    align-self: start;
-    display: grid;
-    gap: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin-bottom: 24px;
 
     a {
-        width: fit-content;
         color: var(--kbq-foreground-contrast-secondary);
         text-decoration: none;
 
@@ -32,54 +31,95 @@
     }
 }
 
-.documents {
+.column-headings,
+.sample {
     display: grid;
-    min-width: 0;
-    gap: 48px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: clamp(48px, 7vw, 96px);
+}
 
-    > * {
-        min-width: 0;
-        scroll-margin-block-start: 24px;
-    }
+.column-headings {
+    position: sticky;
+    z-index: 1;
+    top: 0;
+    padding-block: 12px;
+    background: var(--kbq-background-bg);
+    border-bottom: 1px solid var(--kbq-line-contrast-less);
+}
 
-    > * + * {
-        padding-block-start: 40px;
+.layout > section {
+    padding-block-start: 32px;
+    scroll-margin-block-start: 48px;
+
+    + section {
+        margin-block-start: 48px;
         border-top: 1px solid var(--kbq-line-contrast-less);
     }
 }
 
-#examples-title {
+.section-title {
     margin: 0 0 24px;
 }
 
-.sample {
-    margin-block-end: 32px;
+.sample + .sample {
+    margin-block-start: 32px;
 }
 
 .sample-label {
-    width: fit-content;
+    grid-column: 1 / -1;
     margin: 0 0 12px;
-    padding: 4px 8px;
-    border-radius: var(--kbq-size-border-radius);
-    background: var(--kbq-background-contrast-fade);
     color: var(--kbq-foreground-contrast-secondary);
 }
 
+.cell {
+    min-width: 0;
+}
+
+.cell:not(.markdown-compact) kbq-markdown {
+    --kbq-md-typography-md-body-line-height: var(--kbq-typography-text-normal-line-height);
+    line-height: var(--kbq-md-typography-md-body-line-height);
+}
+
+.mobile-label {
+    display: none;
+}
+
+:host ::ng-deep :is(#examples, #headings) .kbq-markdown__output {
+    [data-type-scale]::after {
+        content: "\00a0" attr(data-type-scale) / "";
+        white-space: nowrap;
+        font-size: var(--kbq-typography-text-compact-font-size);
+        font-weight: normal;
+        line-height: 1;
+        letter-spacing: normal;
+        color: var(--kbq-foreground-contrast-secondary);
+    }
+}
+
 @media (max-width: 760px) {
-    .layout {
-        grid-template-columns: minmax(0, 650px);
-        justify-content: center;
-        padding: 24px 16px 48px;
+    .column-headings {
+        display: none;
     }
 
-    .contents {
-        position: static;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px 16px;
+    .sample {
+        grid-template-columns: minmax(0, 1fr);
+    }
 
-        span {
-            flex-basis: 100%;
-        }
+    .sample-label {
+        margin-bottom: 16px;
+    }
+
+    .cell + .cell {
+        margin-block-start: 32px;
+    }
+
+    .mobile-label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--kbq-foreground-contrast-secondary);
+    }
+
+    .layout > section {
+        scroll-margin-block-start: 0;
     }
 }

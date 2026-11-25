@@ -1,0 +1,73 @@
+kbq-markdown {
+    --kbq-markdown-code-size-inline-padding: 0 2px;
+    --kbq-markdown-code-size-multiline-margin-top: var(--kbq-size-xl);
+    --kbq-markdown-code-size-multiline-margin-bottom: var(--kbq-size-xl);
+    --kbq-markdown-list-size-margin-top-after-paragraph: var(--kbq-markdown-p-size-margin-top);
+    --kbq-markdown-list-size-margin-bottom: var(--kbq-markdown-p-size-margin-bottom);
+    --kbq-markdown-blockquote-size-margin-top: var(--kbq-size-xl);
+    --kbq-markdown-blockquote-size-margin-bottom: var(--kbq-size-xl);
+    --kbq-markdown-blockquote-size-padding: var(--kbq-size-m) var(--kbq-size-l);
+}
+
+// KbqMarkdown inserts the parsed HTML outside Angular's emulated style scope.
+:host ::ng-deep .kbq-markdown {
+    $heading: ":is(h1, h2, h3, h4, h5, h6)";
+
+    // Koobiq already resets the second heading’s top margin in an adjacent pair.
+    #{$heading}:has(+ #{$heading}) {
+        margin-block-end: var(--kbq-size-xxs);
+    }
+
+    h1:has(+ h2),
+    h5:has(+ h6) {
+        margin-block-end: var(--kbq-size-xs);
+    }
+
+    :is(pre, blockquote) + p > img:only-child {
+        margin-block-start: 0;
+    }
+
+    figure > figcaption {
+        color: var(--kbq-markdown-image-caption-text);
+    }
+
+    .kbq-markdown__code:not(pre > code) {
+        --kbq-markdown-code-background: var(--kbq-background-contrast-less);
+        border-radius: 4px;
+    }
+
+    .kbq-markdown__ol {
+        list-style: decimal outside;
+        padding-inline-start: 3ch;
+
+        > li::before {
+            content: none;
+        }
+
+        > li > * {
+            display: revert;
+        }
+    }
+
+    li > :is(ul, ol) {
+        --kbq-markdown-list-size-margin-top: var(--kbq-markdown-list-size-item-margin-bottom);
+        --kbq-markdown-list-size-margin-top-after-paragraph: var(--kbq-markdown-list-size-item-margin-bottom);
+        --kbq-markdown-list-size-margin-bottom: var(--kbq-markdown-list-size-item-margin-bottom);
+    }
+
+    li > p:has(+ :is(p, ul, ol)) {
+        margin-block-end: var(--kbq-markdown-list-size-item-margin-bottom);
+    }
+
+    li > p + p {
+        margin-block-start: var(--kbq-markdown-list-size-item-margin-bottom);
+    }
+
+    li > p:first-child {
+        margin-block-start: 0;
+    }
+
+    li > p:last-child {
+        margin-block-end: 0;
+    }
+}

@@ -1,0 +1,47 @@
+.markdown-compact kbq-markdown {
+    $roles: (
+        h1: headline,
+        h2: title,
+        h3: subheading,
+        h4: text-big-strong,
+        h5: text-normal-strong,
+        h6: caps-compact-strong,
+        body: text-normal,
+        body-mono: mono-normal,
+        inline-code: mono-compact,
+        inline-code-as-link: mono-compact,
+        caption: text-compact,
+        table-header: tabular-compact,
+        table-cell: tabular-normal
+    );
+
+    @each $role, $style in $roles {
+        --kbq-md-typography-md-#{$role}-font-size: var(--kbq-typography-#{$style}-font-size);
+        --kbq-md-typography-md-#{$role}-line-height: var(--kbq-typography-#{$style}-line-height);
+    }
+
+    font-size: var(--kbq-md-typography-md-body-font-size);
+    line-height: var(--kbq-md-typography-md-body-line-height);
+
+    --kbq-markdown-p-size-margin-top: var(--kbq-size-s);
+    --kbq-markdown-p-size-margin-bottom: var(--kbq-size-s);
+    --kbq-markdown-code-size-multiline-margin-top: var(--kbq-size-l);
+    --kbq-markdown-code-size-multiline-margin-bottom: var(--kbq-size-l);
+    --kbq-markdown-blockquote-size-margin-top: var(--kbq-size-l);
+    --kbq-markdown-blockquote-size-margin-bottom: var(--kbq-size-l);
+    --kbq-markdown-blockquote-size-padding: var(--kbq-size-s) var(--kbq-size-m);
+}
+
+:host ::ng-deep .markdown-compact .kbq-markdown :is(th, td) {
+    padding-block: var(--kbq-size-xxs);
+}
+
+:host ::ng-deep .markdown-compact .kbq-markdown pre > code {
+    font-size: var(--kbq-md-typography-md-body-mono-font-size);
+    line-height: var(--kbq-md-typography-md-body-mono-line-height);
+}
+
+:host ::ng-deep .markdown-compact .kbq-markdown figure > figcaption {
+    font-size: var(--kbq-md-typography-md-caption-font-size);
+    line-height: var(--kbq-md-typography-md-caption-line-height);
+}
