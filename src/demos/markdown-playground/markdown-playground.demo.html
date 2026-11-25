@@ -1,0 +1,28 @@
+<div class="layout">
+    <nav class="contents" aria-label="На этой странице">
+        <span class="kbq-text-compact-strong">На этой странице</span>
+        <a href="demo/markdown-playground#article">Статья</a>
+        <a href="demo/markdown-playground#changelog">Чейнджлог</a>
+        <a href="demo/markdown-playground#examples">Соседство элементов</a>
+    </nav>
+
+    <div class="documents">
+        <article id="article" aria-label="Статья">
+            <kbq-markdown [markdownText]="article" />
+        </article>
+
+        <article id="changelog" aria-label="Чейнджлог">
+            <kbq-markdown [markdownText]="changelog" />
+        </article>
+
+        <section id="examples" aria-labelledby="examples-title">
+            <h2 id="examples-title" class="kbq-headline">Соседство элементов</h2>
+            @for (example of examples; track example.label) {
+                <section class="sample">
+                    <h3 class="sample-label kbq-text-compact-strong">{{ example.label }}</h3>
+                    <kbq-markdown [markdownText]="example.markdown" />
+                </section>
+            }
+        </section>
+    </div>
+</div>
