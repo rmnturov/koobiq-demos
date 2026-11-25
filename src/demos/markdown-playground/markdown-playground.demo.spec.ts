@@ -18,6 +18,21 @@ describe('MarkdownPlaygroundDemo', () => {
     expect(sample?.querySelector(`kbq-markdown p + h${level} + p`)).toBeTruthy();
   });
 
+  it('keeps the contents links on the current page when the demo is embedded elsewhere', async () => {
+    const originalUrl = window.location.href;
+    try {
+      window.history.replaceState(null, '', '/notes/preview?edition=24');
+      const embedded = TestBed.createComponent(MarkdownPlaygroundDemo);
+      await embedded.whenStable();
+      const links: NodeListOf<HTMLAnchorElement> = embedded.nativeElement.querySelectorAll('nav a');
+      expect(Array.from(links, (link) => link.href)).toEqual(
+        ['article', 'changelog', 'examples'].map((id) => `${window.location.origin}/notes/preview?edition=24#${id}`),
+      );
+    } finally {
+      window.history.replaceState(null, '', originalUrl);
+    }
+  });
+
   it('renders the two documents and the block transitions', () => {
     expect(page.querySelector('#article kbq-markdown ul ol')).toBeTruthy();
     expect(page.querySelector('#article kbq-markdown table')).toBeTruthy();
