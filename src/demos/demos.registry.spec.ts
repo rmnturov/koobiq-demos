@@ -23,6 +23,12 @@ describe('demos registry', () => {
         expect(findDemo('hello')?.title).toBe('Hello');
     });
 
+    it('lists the Markdown playground in the catalog', () => {
+        const demo = findDemo('markdown-playground');
+        expect(demo?.title).toBe('Полигон Markdown');
+        expect(demo?.hidden).toBeFalsy();
+    });
+
     it('findDemo returns undefined for an unknown slug', () => {
         expect(findDemo('nope')).toBeUndefined();
     });

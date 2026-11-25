@@ -6,6 +6,12 @@ import { DemoEntry } from './demo.types';
 /** The only place where demos are wired into the app. One entry per demo. */
 export const DEMOS: readonly DemoEntry[] = [
     {
+        slug: 'markdown-playground',
+        title: 'Полигон Markdown',
+        description: 'Типографика Koobiq в статье, чейнджлоге и примерах соседства элементов',
+        loadComponent: () => import('./markdown-playground/markdown-playground.demo').then((m) => m.MarkdownPlaygroundDemo)
+    },
+    {
         slug: 'notification-status-tenant',
         title: 'Статус и тенант',
         description: 'Бейджи уведомлений с цветами тенантов и CSS-переменными',
