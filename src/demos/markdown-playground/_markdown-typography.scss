@@ -1,4 +1,7 @@
 kbq-markdown {
+    --kbq-md-typography-md-body-mono-font-size: 15px;
+    --kbq-md-typography-md-inline-code-font-size: var(--kbq-md-typography-md-body-mono-font-size);
+    --kbq-md-typography-md-inline-code-as-link-font-size: var(--kbq-md-typography-md-body-mono-font-size);
     --kbq-md-typography-md-body-font-feature-settings: "calt", "kern", "liga", "ss01", "ss04", "zero" 0, "ss02" 0;
     --kbq-md-typography-md-caption-font-feature-settings: var(--kbq-md-typography-md-body-font-feature-settings);
     --kbq-md-typography-md-h5-font-feature-settings: var(--kbq-md-typography-md-body-font-feature-settings);
@@ -9,4 +12,9 @@ kbq-markdown {
 
 :host ::ng-deep .kbq-markdown :is(h1, h2, h3, h4, h5, h6) {
     text-wrap: balance;
+}
+
+:host ::ng-deep .cell:not(.markdown-compact) .kbq-markdown__code:not(pre > code) {
+    /* Keep the two 20px line boxes aligned despite their different font baselines. */
+    vertical-align: top;
 }

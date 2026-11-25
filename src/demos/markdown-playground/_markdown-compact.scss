@@ -7,9 +7,6 @@
         h5: text-normal-strong,
         h6: caps-compact-strong,
         body: text-normal,
-        body-mono: mono-normal,
-        inline-code: mono-compact,
-        inline-code-as-link: mono-compact,
         caption: text-compact,
         table-header: tabular-compact,
         table-cell: tabular-normal
@@ -22,6 +19,11 @@
 
     font-size: var(--kbq-md-typography-md-body-font-size);
     line-height: var(--kbq-md-typography-md-body-line-height);
+
+    --kbq-md-typography-md-body-mono-font-size: 13px;
+    --kbq-md-typography-md-body-mono-line-height: var(--kbq-typography-mono-normal-line-height);
+    --kbq-md-typography-md-inline-code-line-height: var(--kbq-typography-mono-compact-line-height);
+    --kbq-md-typography-md-inline-code-as-link-line-height: var(--kbq-md-typography-md-inline-code-line-height);
 
     --kbq-markdown-p-size-margin-top: var(--kbq-size-s);
     --kbq-markdown-p-size-margin-bottom: var(--kbq-size-s);
@@ -37,7 +39,7 @@
 }
 
 :host ::ng-deep .markdown-compact .kbq-markdown pre > code {
-    font-size: var(--kbq-md-typography-md-body-mono-font-size);
+    display: block;
     line-height: var(--kbq-md-typography-md-body-mono-line-height);
 }
 
