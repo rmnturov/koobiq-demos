@@ -124,6 +124,17 @@ ag-grid-angular {
     display: none;
   }
 }
+:host ::ng-deep .ag-row.incident-active-row {
+  --ag-theme-koobiq-row-background-color: var(--kbq-background-theme-less);
+
+  &.ag-row-hover {
+    --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-hover);
+  }
+
+  &:active {
+    --ag-theme-koobiq-row-background-color: var(--kbq-states-background-theme-less-active);
+  }
+}
 :host ::ng-deep .incident-new-row {
   isolation: isolate;
 }
@@ -190,17 +201,27 @@ ag-grid-angular {
   box-shadow: var(--kbq-shadow-popup);
   white-space: nowrap;
 }
+.new-records-contrast-fade {
+  --notice-background: var(--kbq-background-contrast-fade);
+  background-color: var(--kbq-background-bg);
+  box-shadow: 0 0 0 1px var(--kbq-line-contrast-fade);
+}
 .new-records-theme {
   --notice-background: var(--kbq-background-theme);
   --notice-foreground: var(--kbq-foreground-white);
   --notice-icon: var(--kbq-icon-white);
-  --notice-divider: var(--kbq-line-white-fade);
+  --notice-divider: var(--kbq-line-white-less);
+}
+:host-context(.kbq-dark) .new-records-theme {
+  box-shadow: none;
 }
 .new-records-theme-fade {
   --notice-background: var(--kbq-background-theme-fade);
   --notice-foreground: var(--kbq-foreground-theme);
   --notice-icon: var(--kbq-icon-theme);
-  --notice-divider: var(--kbq-line-theme-fade);
+  --notice-divider: var(--kbq-line-theme-less);
+  background-color: var(--kbq-background-bg);
+  box-shadow: 0 0 0 1px var(--kbq-line-theme-fade);
 }
 .new-records > button {
   --kbq-button-transparent-contrast-fade-on-foreground: var(--notice-foreground);

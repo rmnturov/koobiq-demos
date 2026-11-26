@@ -95,7 +95,7 @@
                         kbqPlacement="top"
                         [kbqDropdownTriggerFor]="noticeStyleMenu"
                       >
-                        Вид уведомления
+                        {{ noticeStyleLabel() }} уведомление
                       </button>
                     }
                     @case ('connection') {
@@ -157,7 +157,7 @@
         <ag-grid-angular
           kbqAgGridTheme
           kbqAgGridThemeDisableCellFocusStyles
-          [rowClassRules]="rowClasses"
+          [rowClassRules]="rowClasses()"
           [getRowStyle]="arrivalStyle"
           [postSortRows]="keepAppliedOrder"
           [suppressMultiSort]="true"
@@ -186,6 +186,7 @@
           #newRecordsPanel
           kbq-button-group
           class="new-records"
+          [class.new-records-contrast-fade]="noticeStyle() === 'contrast-fade'"
           [class.new-records-theme]="noticeStyle() === 'theme'"
           [class.new-records-theme-fade]="noticeStyle() === 'theme-fade'"
           [class.new-records-visible]="state.pendingNoticeVisible()"
@@ -229,7 +230,6 @@
             <div [kbqOverflowItem]="action.id">
               <button
                 kbq-button
-                [kbqTooltip]="controlHints.action"
                 (click)="notify(action.feedback + ': ' + state.card()?.id)"
               >
                 {{ action.label }}
@@ -246,9 +246,6 @@
               @if (cardOverflow.hiddenItemIDs().has(action.id)) {
                 <button
                   kbq-dropdown-item
-                  kbqTrigger="hover"
-                  [kbqTooltip]="controlHints.action"
-                  kbqPlacement="top"
                   (click)="notify(action.feedback + ': ' + state.card()?.id)"
                 >
                   {{ action.label }}
@@ -355,7 +352,7 @@
         kbqPlacement="top"
         [kbqDropdownTriggerFor]="noticeStyleMenu"
       >
-        Вид уведомления <i kbq-icon="kbq-chevron-down-s_16"></i>
+        {{ noticeStyleLabel() }} уведомление <i kbq-icon="kbq-chevron-down-s_16"></i>
       </button>
     }
     @case ('connection') {

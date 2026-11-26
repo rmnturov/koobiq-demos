@@ -207,13 +207,21 @@ export class AutoRefreshController {
             .map((row) => row.id)
         : [],
     );
-    const loadedIds = new Set(next.slice(0, BLOCK_SIZE).map((row) => row.id));
+    const nextById = new Map(next.map((row) => [row.id, row]));
     const selection = this.selectedIds();
-    if (!selection.every((id) => loadedIds.has(id))) this.selectedIds.set([]);
+    if (!selection.every((id) => nextById.has(id))) this.selectedIds.set([]);
+    const card = this.card();
+    if (card) this.card.set(nextById.get(card.id) ?? null);
+    const retainedIds = new Set(this.selectedIds());
+    if (this.card()) retainedIds.add(this.card()!.id);
+    let visibleCount = BLOCK_SIZE;
+    next.forEach((row, index) => {
+      if (retainedIds.has(row.id)) visibleCount = Math.max(visibleCount, index + 1);
+    });
     this.appliedIds = new Set(rows.map((row) => row.id));
     this.query.set(query);
     this.snapshot.set(next);
-    this.visibleCount.set(BLOCK_SIZE);
+    this.visibleCount.set(Math.ceil(visibleCount / BLOCK_SIZE) * BLOCK_SIZE);
     this.pendingCount.set(0);
     this.dismissedPendingCount.set(0);
     this.interaction.set(null);

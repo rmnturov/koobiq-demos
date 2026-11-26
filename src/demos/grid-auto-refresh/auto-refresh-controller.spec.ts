@@ -179,14 +179,61 @@ describe('auto-refresh controller', () => {
     expect(c.protectedMode()).toBe(true);
   });
 
-  it('clears all selected IDs when any selected record is outside the first reloaded block', async () => {
+  it('keeps the full selection when retained records move beyond the first reloaded block', async () => {
     const { controller: c, append } = setup();
     c.loadMore();
-    c.setSelection([c.visibleRows()[0].id, c.visibleRows()[70].id]);
-    append();
+    const ids = [c.visibleRows()[0].id, c.visibleRows()[70].id];
+    c.setSelection(ids);
+    append(40);
+    await c.refresh();
+    expect(c.selectedIds()).toEqual(ids);
+    expect(ids.every((id) => c.visibleRows().some((row) => row.id === id))).toBe(true);
+    expect(c.protectedMode()).toBe(true);
+  });
+
+  it('clears the entire selection when just one selected record disappears', async () => {
+    const { controller: c, source } = setup();
+    const ids = c.visibleRows().slice(0, 2).map((row) => row.id);
+    c.setSelection(ids);
+    source.read.mockResolvedValue(source.initialRows.filter((row) => row.id !== ids[1]));
     await c.refresh();
     expect(c.selectedIds()).toEqual([]);
     expect(c.protectedMode()).toBe(false);
+  });
+
+  it('updates the retained card with fresh data even beyond the first reloaded block', async () => {
+    const { controller: c, source } = setup();
+    c.loadMore();
+    const card = c.visibleRows()[70];
+    c.openCard(card);
+    const updated = { ...card, name: 'Обновленное название', assignee: 'Анна Петрова' };
+    source.read.mockResolvedValue(source.initialRows.map((row) => row.id === card.id ? updated : row));
+    await c.refresh();
+    expect(c.card()).toEqual(updated);
+    expect(c.visibleRows().some((row) => row.id === card.id)).toBe(true);
+    expect(c.protectedMode()).toBe(true);
+  });
+
+  it('closes a missing card while preserving surviving checkbox selection', async () => {
+    const { controller: c, source } = setup();
+    const [card, selected] = c.visibleRows();
+    c.openCard(card);
+    c.setSelection([selected.id]);
+    source.read.mockResolvedValue(source.initialRows.filter((row) => row.id !== card.id));
+    await c.refresh();
+    expect(c.card()).toBeNull();
+    expect(c.selectedIds()).toEqual([selected.id]);
+  });
+
+  it('clears excluded selections and closes a card after filters change', async () => {
+    const { controller: c } = setup();
+    const [card, selected] = c.visibleRows();
+    c.openCard(card);
+    c.setSelection([card.id, selected.id]);
+    await c.setQuery({ ...DEFAULT_QUERY, search: 'нет такого инцидента' });
+    expect(c.card()).toBeNull();
+    expect(c.selectedIds()).toEqual([]);
+    expect(c.visibleRows()).toEqual([]);
   });
 
   it('keeps arbitrary sorting protected even after Show', async () => {
