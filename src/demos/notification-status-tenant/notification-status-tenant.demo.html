@@ -1,22 +1,106 @@
 <article class="demo" [ngStyle]="surfaceStyles()">
   <div class="demo__workspace">
-    <section class="geometry-controls" aria-label="Геометрия бейджа">
-      @for (control of geometryControls; track control.key) {
-        <div class="geometry-controls__field">
-          <label [for]="'badge-' + control.key">{{ control.label }}</label>
-          <output [for]="'badge-' + control.key">{{ geometry()[control.key] }} px</output>
-          <input
-            #slider
-            type="range"
-            [id]="'badge-' + control.key"
-            [min]="control.min"
-            [max]="geometryControlMax(control.key, geometry(), squircle())"
-            [value]="geometry()[control.key]"
-            step="1"
-            (input)="updateGeometry(control.key, slider.valueAsNumber)"
-          />
+    <section class="geometry-controls" aria-label="Настройки бейджа">
+      <div class="geometry-controls__viewport" kbqScrollbarViewport kbqScrollbarMode="hover">
+        <div class="geometry-controls__fields">
+          @for (control of geometryControls; track control.key) {
+            <div class="geometry-controls__field">
+              <label [for]="'badge-' + control.key">{{ control.label }}</label>
+              <output [for]="'badge-' + control.key">{{ geometry()[control.key] }} px</output>
+              <input
+                #slider
+                type="range"
+                [id]="'badge-' + control.key"
+                [min]="control.min"
+                [max]="geometryControlMax(control.key, geometry(), squircle())"
+                [value]="geometry()[control.key]"
+                step="1"
+                (input)="updateGeometry(control.key, slider.valueAsNumber)"
+              />
+            </div>
+          }
+          @for (control of letterControls; track control.key) {
+            <div class="geometry-controls__field">
+              <div class="geometry-controls__label">
+                <label [for]="'tenant-background-' + control.key">{{
+                  control.backgroundLabel
+                }}</label>
+                <output
+                  class="geometry-controls__contrast"
+                  [id]="'tenant-background-contrast-' + control.key"
+                  [for]="'tenant-background-' + control.key"
+                  [attr.aria-label]="
+                    'Контраст фона тенанта относительно фона статуса: ' + control.backgroundLabel
+                  "
+                  [attr.title]="
+                    'Контраст фона тенанта относительно фона статуса · Непрозрачные ' +
+                    (control.key === 'light' ? 'theme' : 'dark-theme') +
+                    ' с теми же индексами'
+                  "
+                  >Lc:
+                  <span class="geometry-controls__apca">{{
+                    backgroundContrast()[control.key].apca
+                  }}</span>
+                  · WCAG:
+                  <span class="geometry-controls__wcag">{{
+                    backgroundContrast()[control.key].wcag
+                  }}</span>:1</output
+                >
+              </div>
+              <output [for]="'tenant-background-' + control.key">{{
+                backgroundSteps()[control.key]
+              }}</output>
+              <input
+                #backgroundSlider
+                type="range"
+                [id]="'tenant-background-' + control.key"
+                [min]="backgroundMin[control.key]"
+                max="20"
+                step="1"
+                [value]="backgroundSteps()[control.key]"
+                [attr.aria-describedby]="'tenant-background-contrast-' + control.key"
+                (input)="updateTenantBackground(control.key, backgroundSlider.valueAsNumber)"
+              />
+            </div>
+            <div class="geometry-controls__field">
+              <div class="geometry-controls__label">
+                <label [for]="'tenant-letter-' + control.key">{{ control.label }}</label>
+                <output
+                  class="geometry-controls__contrast"
+                  [id]="'tenant-contrast-' + control.key"
+                  [for]="'tenant-letter-' + control.key + ' tenant-background-' + control.key"
+                  [attr.aria-label]="'Контраст APCA и WCAG: ' + control.label"
+                  [attr.title]="
+                    'Контраст буквы тенанта относительно фона тенанта · Непрозрачные ' +
+                    (control.key === 'light' ? 'theme' : 'dark-theme') +
+                    ' с выбранными индексами'
+                  "
+                  >Lc:
+                  <span class="geometry-controls__apca">{{ contrast()[control.key].apca }}</span> ·
+                  WCAG:
+                  <span class="geometry-controls__wcag">{{
+                    contrast()[control.key].wcag
+                  }}</span>:1</output
+                >
+              </div>
+              <output [for]="'tenant-letter-' + control.key">{{
+                letterSteps()[control.key]
+              }}</output>
+              <input
+                #letterSlider
+                type="range"
+                [id]="'tenant-letter-' + control.key"
+                min="1"
+                max="20"
+                step="1"
+                [value]="letterSteps()[control.key]"
+                [attr.aria-describedby]="'tenant-contrast-' + control.key"
+                (input)="updateLetterColor(control.key, letterSlider.valueAsNumber)"
+              />
+            </div>
+          }
         </div>
-      }
+      </div>
     </section>
 
     <section class="feed-preview" aria-label="Пример центра уведомлений">
@@ -109,7 +193,7 @@
         </table>
       </div>
     </div>
-    @for (group of variableGroups; track group.label) {
+    @for (group of variableGroups(); track group.label) {
       <div class="variables__group">
         <h3>{{ group.label }}</h3>
         <p>{{ group.description }}</p>

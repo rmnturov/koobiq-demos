@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { KbqThemeService } from '@koobiq/components/core';
 import { KbqIconModule } from '@koobiq/components/icon';
+import { KbqScrollbarViewport } from '@koobiq/components/scrollbar';
 import {
   BadgeGeometry,
   badgeGeometryStyles,
@@ -20,20 +21,26 @@ import {
 } from './badge-geometry';
 import { NOTIFICATION_STATUSES as STATUSES, tenantInitial } from './notification-data';
 import { NotificationFeedComponent } from './notification-feed.component';
+import {
+  BadgeTheme,
+  TENANT_BACKGROUND_MIN,
+  themeLightnessContrast,
+  themeWcagContrast,
+} from './tenant-contrast';
 
 export { tenantInitial } from './notification-data';
 
 const CATEGORIES = [
-  { color: 'blue', darkForegroundStep: 13 },
-  { color: 'green', darkForegroundStep: 15 },
-  { color: 'teal', darkForegroundStep: 15 },
-  { color: 'purple', darkForegroundStep: 15 },
-  { color: 'red', darkForegroundStep: 15 },
-  { color: 'orange', darkForegroundStep: 15 },
-  { color: 'yellow', darkForegroundStep: 15 },
-  { color: 'slate', darkForegroundStep: 15 },
-  { color: 'grey', darkForegroundStep: 15 },
-  { color: 'yellow-fixed', darkForegroundStep: 15 },
+  'blue',
+  'green',
+  'teal',
+  'purple',
+  'red',
+  'orange',
+  'yellow',
+  'slate',
+  'grey',
+  'yellow-fixed',
 ] as const;
 
 const TENANTS = [
@@ -73,22 +80,33 @@ const STATUS_VARIABLES: readonly ColorVariable[] = STATUSES.flatMap((status) => 
   colorVariable(`--notification-status-icon-${status.id}`, `--kbq-icon-${status.background}`),
 ]);
 
-// Figma hzTjmRSN66Z7r3B8phvwVa: tenant/{bg,icon}/{1..4}, Collection 1.
-// Categories 5–10 extend the shared steps; blue keeps its explicit dark icon step.
-const TENANT_STEPS = { lightBackground: 6, lightForeground: 16, darkBackground: 7 } as const;
+function tenantVariables(
+  letterSteps: Record<BadgeTheme, number>,
+  backgroundSteps: Record<BadgeTheme, number>,
+): readonly ColorVariable[] {
+  return CATEGORIES.flatMap((color, index) => {
+    const letterColor = color === 'yellow-fixed' ? 'yellow' : color;
+    return [
+      colorVariable(
+        `--notification-tenant-bg-${index + 1}`,
+        `--kbq-plt-${color}-a${backgroundSteps.light}`,
+        `--kbq-plt-dark-${letterColor}-a${backgroundSteps.dark}`,
+      ),
+      colorVariable(
+        `--notification-tenant-icon-${index + 1}`,
+        `--kbq-plt-${letterColor}-${letterSteps.light}`,
+        `--kbq-plt-dark-${letterColor}-${letterSteps.dark}`,
+      ),
+    ];
+  });
+}
 
-const TENANT_VARIABLES: readonly ColorVariable[] = CATEGORIES.flatMap((category, index) => [
-  colorVariable(
-    `--notification-tenant-bg-${index + 1}`,
-    `--kbq-plt-${category.color}-${TENANT_STEPS.lightBackground}`,
-    `--kbq-plt-dark-${category.color === 'yellow-fixed' ? 'yellow' : category.color}-${TENANT_STEPS.darkBackground}`,
-  ),
-  colorVariable(
-    `--notification-tenant-icon-${index + 1}`,
-    `--kbq-plt-${category.color === 'yellow-fixed' ? 'yellow' : category.color}-${TENANT_STEPS.lightForeground}`,
-    `--kbq-plt-dark-${category.color === 'yellow-fixed' ? 'yellow' : category.color}-${category.darkForegroundStep}`,
-  ),
-]);
+function formattedContrast(theme: BadgeTheme, foreground: number, background: number) {
+  return {
+    apca: themeLightnessContrast(theme, foreground, background).toFixed(1),
+    wcag: themeWcagContrast(theme, foreground, background).toFixed(2),
+  };
+}
 
 // A fixed permutation covers all 30 pairs without changing a tenant's color on reload.
 const SAMPLE_ORDER = [
@@ -103,7 +121,13 @@ const SAMPLES = SAMPLE_ORDER.map((pair) => {
 
 @Component({
   selector: 'notification-status-tenant-demo',
-  imports: [KbqIconModule, NgStyle, NgTemplateOutlet, NotificationFeedComponent],
+  imports: [
+    KbqIconModule,
+    KbqScrollbarViewport,
+    NgStyle,
+    NgTemplateOutlet,
+    NotificationFeedComponent,
+  ],
   templateUrl: './notification-status-tenant.demo.html',
   styleUrl: './notification-status-tenant.demo.scss',
   encapsulation: ViewEncapsulation.Emulated,
@@ -111,6 +135,39 @@ const SAMPLES = SAMPLE_ORDER.map((pair) => {
 })
 export class NotificationStatusTenantDemo {
   private readonly theme = inject(KbqThemeService);
+  protected readonly letterSteps = signal({ light: 16, dark: 15 });
+  protected readonly backgroundSteps = signal({ light: 6, dark: 7 });
+  protected readonly backgroundMin = TENANT_BACKGROUND_MIN;
+  protected readonly letterControls = [
+    {
+      key: 'light',
+      label: 'Буква тенанта · Светлая тема',
+      backgroundLabel: 'Фон тенанта · Светлая тема',
+    },
+    {
+      key: 'dark',
+      label: 'Буква тенанта · Тёмная тема',
+      backgroundLabel: 'Фон тенанта · Тёмная тема',
+    },
+  ] as const;
+  protected readonly contrast = computed(() => {
+    const letters = this.letterSteps();
+    const backgrounds = this.backgroundSteps();
+    return {
+      light: formattedContrast('light', letters.light, backgrounds.light),
+      dark: formattedContrast('dark', letters.dark, backgrounds.dark),
+    };
+  });
+  protected readonly backgroundContrast = computed(() => {
+    const backgrounds = this.backgroundSteps();
+    return {
+      light: formattedContrast('light', backgrounds.light, TENANT_BACKGROUND_MIN.light),
+      dark: formattedContrast('dark', backgrounds.dark, TENANT_BACKGROUND_MIN.dark),
+    };
+  });
+  private readonly tenantVariables = computed(() =>
+    tenantVariables(this.letterSteps(), this.backgroundSteps()),
+  );
   protected readonly geometry = signal({ ...DEFAULT_GEOMETRY });
   protected readonly geometryControls = GEOMETRY_CONTROLS;
   protected readonly geometryVariables = [...GEOMETRY_CONTROLS].sort((a, b) =>
@@ -119,7 +176,7 @@ export class NotificationStatusTenantDemo {
   protected readonly geometryControlMax = geometryControlMax;
   protected readonly squircle = signal(false);
   protected readonly samples = SAMPLES;
-  protected readonly variableGroups = [
+  protected readonly variableGroups = computed(() => [
     {
       label: 'Статусы',
       description: 'Отдельные цвета фона и иконки для каждого статуса.',
@@ -130,14 +187,14 @@ export class NotificationStatusTenantDemo {
     {
       label: 'Тенанты',
       description: 'Десять категорий с отдельными цветами фона и буквы.',
-      rows: [...TENANT_VARIABLES].sort((a, b) =>
+      rows: [...this.tenantVariables()].sort((a, b) =>
         a.name.localeCompare(b.name, 'en', { numeric: true }),
       ),
     },
-  ];
+  ]);
   protected readonly surfaceStyles = computed(() => ({
     ...Object.fromEntries(
-      [...STATUS_VARIABLES, ...TENANT_VARIABLES].map((row) => [
+      [...STATUS_VARIABLES, ...this.tenantVariables()].map((row) => [
         row.name,
         `var(${this.theme.colorScheme() === 'dark' ? row.darkToken : row.lightToken})`,
       ]),
@@ -155,5 +212,16 @@ export class NotificationStatusTenantDemo {
 
   protected updateGeometry(key: keyof BadgeGeometry, value: number): void {
     this.geometry.update((geometry) => updateBadgeGeometry(geometry, key, value, this.squircle()));
+  }
+
+  protected updateLetterColor(theme: BadgeTheme, value: number): void {
+    this.letterSteps.update((steps) => ({ ...steps, [theme]: value }));
+  }
+
+  protected updateTenantBackground(theme: BadgeTheme, value: number): void {
+    this.backgroundSteps.update((steps) => ({
+      ...steps,
+      [theme]: Math.max(TENANT_BACKGROUND_MIN[theme], Math.min(20, value)),
+    }));
   }
 }
