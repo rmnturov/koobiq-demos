@@ -102,7 +102,7 @@ export class GridAutoRefreshDemo {
 
 ## Новые записи сверху
 
-Таблица проверяет новые данные с заданным периодом. Период можно настроить или выключить автообновление. Если список еще не трогали, новые инциденты появляются сверху. Добавленные строки один раз плавно подсвечиваются голубым градиентом: цвет заметнее слева и постепенно исчезает к правому краю. Подсветка складывается с фоном активной или выбранной строки и затем гаснет.
+Таблица проверяет новые данные с заданным периодом. Период можно настроить или выключить автообновление. Если список еще не трогали, новые инциденты появляются сверху. Добавленные строки один раз плавно подсвечиваются. Подсветка складывается с фоном активной или выбранной строки и затем гаснет.
 
 Кнопка **Обновить** работает в любом режиме. Если новых инцидентов нет, список остается прежним.
 
@@ -165,6 +165,7 @@ export class GridAutoRefreshDemo {
 - **Точное число** переключает панель новых записей между счетчиком и сообщением «Есть новые записи». Вариант **Без точного числа** имитирует ситуацию, когда число новых инцидентов недоступно.
 - **Белое уведомление**, **Серое уведомление**, **Синее уведомление** или **Светло-синее уведомление** — кнопка показывает выбранное оформление панели новых записей и позволяет его сменить.
 - **Подсветка: 1 с** позволяет выбрать длительность подсветки новых строк: 0,5, 1, 2 или 3 секунды. По умолчанию выбрана одна секунда. Выбранная длительность применяется при следующем обновлении списка.
+- **Стиль: Градиент** переключает оформление подсветки новых строк. **Сплошная заливка** равномерно окрашивает строку, а **Градиент** заметнее слева и постепенно исчезает к правому краю. По умолчанию выбран градиент.
 - **Ошибка связи** имитирует разрыв соединения. При следующей проверке появится тост с ошибкой. Кнопка меняется на **Восстановить связь**, чтобы завершить этот сценарий.
 - **Сценарий** подготавливает таблицу для наблюдения за поступлениями, работы с выбранными строками или просмотра карточки.
 - **Сброс примера** в шапке страницы возвращает демо в начальное состояние.
@@ -240,13 +241,31 @@ export class GridAutoRefreshDemo {
   readonly highlightDurationLabel = computed(
     () => this.highlightDurations.find(({ ms }) => ms === this.state.highlightDurationMs())!.label,
   );
-  readonly controls = ['refresh', 'interval', 'count', 'appearance', 'highlight', 'connection', 'scenario'];
+  readonly highlightStyle = signal<'solid' | 'gradient'>('gradient');
+  readonly highlightStyles = [
+    { id: 'solid', label: 'Сплошная заливка' },
+    { id: 'gradient', label: 'Градиент' },
+  ] as const;
+  readonly highlightStyleLabel = computed(
+    () => this.highlightStyles.find(({ id }) => id === this.highlightStyle())!.label,
+  );
+  readonly controls = [
+    'refresh',
+    'interval',
+    'count',
+    'appearance',
+    'highlight',
+    'highlightStyle',
+    'connection',
+    'scenario',
+  ];
   readonly controlHints = {
     refresh: 'Показать актуальные инциденты и вернуться к началу таблицы',
     interval: 'Период автообновления',
     count: 'Проверить панель новых записей с точным числом и без него',
     appearance: 'Сравнить четыре варианта оформления панели новых записей',
     highlight: 'Длительность подсветки новых строк',
+    highlightStyle: 'Стиль подсветки новых строк',
     disconnect: 'Имитировать ошибку связи при следующем обновлении',
     restore: 'Завершить имитацию ошибки связи',
     scenario: 'Подготовить таблицу для проверки одного из сценариев',
@@ -625,8 +644,12 @@ export class GridAutoRefreshDemo {
   syncHighlightGradient(api: GridApi<Incident>): void {
     const area = this.gridArea()?.nativeElement;
     if (!area || api.isDestroyed()) return;
-    const pinnedStart = api.getDisplayedLeftColumns().reduce((width, col) => width + col.getActualWidth(), 0);
-    const pinnedEnd = api.getDisplayedRightColumns().reduce((width, col) => width + col.getActualWidth(), 0);
+    const pinnedStart = api
+      .getDisplayedLeftColumns()
+      .reduce((width, col) => width + col.getActualWidth(), 0);
+    const pinnedEnd = api
+      .getDisplayedRightColumns()
+      .reduce((width, col) => width + col.getActualWidth(), 0);
     const { left, right } = api.getHorizontalPixelRange();
     const width = pinnedStart + right - left + pinnedEnd;
     // All row segments share one gradient, including pinned columns and horizontal scrolling.

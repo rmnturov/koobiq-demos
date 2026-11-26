@@ -110,6 +110,18 @@
                         Подсветка: {{ highlightDurationLabel() }}
                       </button>
                     }
+                    @case ('highlightStyle') {
+                      <button
+                        kbq-dropdown-item
+                        kbqTrigger="hover"
+                        aria-haspopup="menu"
+                        [kbqTooltip]="controlHints.highlightStyle"
+                        kbqPlacement="top"
+                        [kbqDropdownTriggerFor]="highlightStyleMenu"
+                      >
+                        Стиль: {{ highlightStyleLabel() }}
+                      </button>
+                    }
                     @case ('connection') {
                       <button
                         kbq-dropdown-item
@@ -158,6 +170,7 @@
       <div
         #gridArea
         class="grid-wrap"
+        [class.solid-row-highlight]="highlightStyle() === 'solid'"
         (pointerdown)="cancelReturnScroll()"
         (wheel)="cancelReturnScroll()"
         (touchstart)="cancelReturnScroll()"
@@ -243,10 +256,7 @@
         <div #cardOverflow="kbqOverflowItems" kbqOverflowItems class="card-actions">
           @for (action of cardActions; track action.id) {
             <div [kbqOverflowItem]="action.id">
-              <button
-                kbq-button
-                (click)="notify(action.feedback + ': ' + state.card()?.id)"
-              >
+              <button kbq-button (click)="notify(action.feedback + ': ' + state.card()?.id)">
                 {{ action.label }}
               </button>
             </div>
@@ -383,6 +393,19 @@
         Подсветка: {{ highlightDurationLabel() }} <i kbq-icon="kbq-chevron-down-s_16"></i>
       </button>
     }
+    @case ('highlightStyle') {
+      <button
+        kbq-button
+        [kbqStyle]="'transparent'"
+        [color]="'contrast'"
+        aria-haspopup="menu"
+        [kbqTooltip]="controlHints.highlightStyle"
+        kbqPlacement="top"
+        [kbqDropdownTriggerFor]="highlightStyleMenu"
+      >
+        Стиль: {{ highlightStyleLabel() }} <i kbq-icon="kbq-chevron-down-s_16"></i>
+      </button>
+    }
     @case ('connection') {
       <button
         kbq-button
@@ -489,6 +512,23 @@
       >
         <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
         {{ duration.label }}
+      </button>
+    }
+  </div>
+</kbq-dropdown>
+<kbq-dropdown #highlightStyleMenu="kbqDropdown">
+  <div role="menu" aria-label="Стиль подсветки новых строк">
+    @for (style of highlightStyles; track style.id) {
+      <button
+        kbq-dropdown-item
+        type="button"
+        class="menu-radio-item"
+        role="menuitemradio"
+        [attr.aria-checked]="highlightStyle() === style.id"
+        (click)="highlightStyle.set(style.id)"
+      >
+        <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
+        {{ style.label }}
       </button>
     }
   </div>

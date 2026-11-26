@@ -145,8 +145,8 @@ ag-grid-angular {
   z-index: -1;
   pointer-events: none;
   // This translucent layer sits above the native row background and below its cells.
-  background: linear-gradient(to right in oklab, var(--kbq-background-theme-fade), transparent)
-    0 0 / var(--incident-gradient-width) 100% no-repeat;
+  background: linear-gradient(to right in oklab, var(--kbq-background-theme-fade), transparent) 0
+    0 / var(--incident-gradient-width) 100% no-repeat;
   animation: incident-arrival-pulse var(--incident-arrival-duration) cubic-bezier(0.77, 0, 0.175, 1)
     var(--incident-arrival-progress) both;
 }
@@ -155,6 +155,9 @@ ag-grid-angular {
 }
 :host ::ng-deep .ag-pinned-right-cols-container .incident-new-row::after {
   background-position-x: var(--incident-gradient-end-offset);
+}
+:host ::ng-deep .solid-row-highlight .incident-new-row::after {
+  background: var(--kbq-background-theme-less);
 }
 @keyframes incident-arrival-pulse {
   0%,
