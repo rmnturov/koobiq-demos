@@ -13,7 +13,7 @@ type RequestKind = 'poll' | 'refresh' | 'query';
 
 export class AutoRefreshController {
   readonly newlyAppliedIds = signal<readonly string[]>([]);
-  readonly highlightDurationMs = signal(1000);
+  readonly highlightDurationMs = signal(2000);
   readonly appliedHighlightDurationMs = signal(this.highlightDurationMs());
   readonly snapshot = signal<readonly Incident[]>([]);
   readonly query = signal<IncidentQuery>(DEFAULT_QUERY);

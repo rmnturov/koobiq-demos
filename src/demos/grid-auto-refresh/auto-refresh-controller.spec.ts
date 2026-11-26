@@ -74,9 +74,9 @@ describe('auto-refresh controller', () => {
 
   it('applies the chosen highlight duration to the next snapshot without changing the current pulse', async () => {
     const { controller: c, append } = setup();
-    expect(c.appliedHighlightDurationMs()).toBe(1000);
+    expect(c.appliedHighlightDurationMs()).toBe(2000);
     c.highlightDurationMs.set(3000);
-    expect(c.appliedHighlightDurationMs()).toBe(1000);
+    expect(c.appliedHighlightDurationMs()).toBe(2000);
     append();
     await c.refresh();
     expect(c.appliedHighlightDurationMs()).toBe(3000);

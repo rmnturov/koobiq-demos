@@ -94,12 +94,15 @@
   flex: 1;
   min-height: 0;
   margin: 0 24px;
-  --incident-gradient-reach: 400px;
-  --incident-highlight-paint: linear-gradient(
-    to right in oklab,
-    var(--kbq-background-theme-fade) 0px,
-    transparent 100%
-  );
+
+  &[data-highlight-style='gradient'] {
+    --incident-highlight-width: calc(var(--incident-gradient-width) * 0.3);
+    --incident-highlight-paint: linear-gradient(
+      to right in oklab,
+      var(--kbq-background-theme-fade),
+      transparent
+    );
+  }
 
   &[data-highlight-style='solid'] {
     --incident-highlight-paint: linear-gradient(
@@ -209,17 +212,10 @@ ag-grid-angular {
   // The shared paint stays continuous across pinned and scrolling row segments.
   background-image: var(--incident-highlight-paint);
   background-position: var(--incident-highlight-offset, 0px) 0;
-  background-size: var(--incident-gradient-width) 100%;
+  background-size: var(--incident-highlight-width, var(--incident-gradient-width)) 100%;
   background-repeat: no-repeat;
   animation: incident-arrival-pulse var(--incident-arrival-duration) cubic-bezier(0.77, 0, 0.175, 1)
     var(--incident-arrival-progress) both;
-}
-:host ::ng-deep .grid-wrap[data-highlight-style='gradient'] .incident-new-row::after {
-  --incident-arrival-edge-opacity: 1;
-  --incident-arrival-closed-size: 0px 100%;
-  --incident-arrival-open-size: var(--incident-gradient-reach) 100%;
-  background-size: var(--incident-gradient-reach) 100%;
-  animation-timing-function: linear;
 }
 :host ::ng-deep .ag-center-cols-container .incident-new-row::after {
   --incident-highlight-offset: var(--incident-gradient-center-offset);
@@ -230,16 +226,26 @@ ag-grid-angular {
 @keyframes incident-arrival-pulse {
   0%,
   100% {
-    opacity: var(--incident-arrival-edge-opacity, 0);
-    background-size: var(--incident-arrival-closed-size, var(--incident-gradient-width) 100%);
+    opacity: 0;
   }
   20%,
   60% {
     opacity: 1;
   }
-  45%,
-  60% {
-    background-size: var(--incident-arrival-open-size, var(--incident-gradient-width) 100%);
+}
+@media (prefers-reduced-motion: no-preference) {
+  :host ::ng-deep .grid-wrap[data-highlight-style='gradient'] .incident-new-row::after {
+    animation-name: incident-arrival-gradient;
+    animation-timing-function: ease-in-out;
+  }
+}
+@keyframes incident-arrival-gradient {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  34% {
+    opacity: 0.9;
   }
 }
 @media (prefers-reduced-motion: reduce) {
