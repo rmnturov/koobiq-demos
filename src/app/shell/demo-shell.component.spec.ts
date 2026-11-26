@@ -113,8 +113,8 @@ describe('DemoShellComponent', () => {
 
     it('opens the repository folder from an icon button in a new tab', async () => {
         await setup('/demo/hello');
-        const a = action(document.body, 'Код в репозитории')!;
-        expect(a.querySelector('.kbq-icon.kbq-code_16')).not.toBeNull();
+        const a = action(document.body, 'Код в GitHub')!;
+        expect(a.querySelector('.kbq-icon.kbq-github_16')).not.toBeNull();
         expect(a.href).toBe(repoUrlFor('hello'));
         expect(a.target).toBe('_blank');
         expect(a.rel).toContain('noopener');
@@ -171,7 +171,7 @@ describe('DemoShellComponent', () => {
         expect(document.querySelector('.fake-catalog')).not.toBeNull();
         expect(document.querySelector('header kbq-top-bar')).not.toBeNull();
         expect(document.querySelector('[aria-current="page"]')?.textContent?.trim()).toBe('Демки');
-        expect(action(document.body, 'Код в репозитории')).toBeNull();
+        expect(action(document.body, 'Код в GitHub')).toBeNull();
         expect(action(document.body, 'Скачать ZIP')).toBeNull();
         expect(document.querySelector('app-theme-toggle')).not.toBeNull();
     });
