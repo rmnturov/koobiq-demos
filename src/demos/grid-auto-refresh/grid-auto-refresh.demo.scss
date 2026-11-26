@@ -98,7 +98,7 @@
   --incident-highlight-paint: linear-gradient(
     to right in oklab,
     var(--kbq-background-theme-fade) 0px,
-    transparent var(--incident-gradient-reach)
+    transparent 100%
   );
 
   &[data-highlight-style='solid'] {
@@ -215,10 +215,11 @@ ag-grid-angular {
     var(--incident-arrival-progress) both;
 }
 :host ::ng-deep .grid-wrap[data-highlight-style='gradient'] .incident-new-row::after {
-  --incident-arrival-closed-clip: inset(0 calc(100% - var(--incident-highlight-offset, 0px)) 0 0);
-  --incident-arrival-open-clip: inset(
-    0 calc(100% - var(--incident-highlight-offset, 0px) - var(--incident-gradient-reach)) 0 0
-  );
+  --incident-arrival-edge-opacity: 1;
+  --incident-arrival-closed-size: 0px 100%;
+  --incident-arrival-open-size: var(--incident-gradient-reach) 100%;
+  background-size: var(--incident-gradient-reach) 100%;
+  animation-timing-function: linear;
 }
 :host ::ng-deep .ag-center-cols-container .incident-new-row::after {
   --incident-highlight-offset: var(--incident-gradient-center-offset);
@@ -229,13 +230,16 @@ ag-grid-angular {
 @keyframes incident-arrival-pulse {
   0%,
   100% {
-    opacity: 0;
-    clip-path: var(--incident-arrival-closed-clip, inset(0));
+    opacity: var(--incident-arrival-edge-opacity, 0);
+    background-size: var(--incident-arrival-closed-size, var(--incident-gradient-width) 100%);
   }
   20%,
   60% {
     opacity: 1;
-    clip-path: var(--incident-arrival-open-clip, inset(0));
+  }
+  45%,
+  60% {
+    background-size: var(--incident-arrival-open-size, var(--incident-gradient-width) 100%);
   }
 }
 @media (prefers-reduced-motion: reduce) {
