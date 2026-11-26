@@ -96,8 +96,8 @@
   margin: 0 24px;
   --incident-highlight-paint: linear-gradient(
     to right in oklab,
-    var(--kbq-background-theme-fade),
-    transparent
+    var(--kbq-background-theme-fade) 0px,
+    transparent 200px
   );
 
   &[data-highlight-style='solid'] {
