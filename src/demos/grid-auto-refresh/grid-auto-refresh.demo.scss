@@ -202,6 +202,7 @@ ag-grid-angular {
   content: '';
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   z-index: -1;
   pointer-events: none;
   // The shared paint stays continuous across pinned and scrolling row segments.
