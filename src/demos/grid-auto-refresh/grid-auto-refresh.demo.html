@@ -86,6 +86,18 @@
                         {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
                       </button>
                     }
+                    @case ('appearance') {
+                      <button
+                        kbq-dropdown-item
+                        kbqTrigger="hover"
+                        aria-haspopup="menu"
+                        [kbqTooltip]="controlHints.appearance"
+                        kbqPlacement="top"
+                        [kbqDropdownTriggerFor]="noticeStyleMenu"
+                      >
+                        Вид уведомления
+                      </button>
+                    }
                     @case ('connection') {
                       <button
                         kbq-dropdown-item
@@ -174,6 +186,8 @@
           #newRecordsPanel
           kbq-button-group
           class="new-records"
+          [class.new-records-theme]="noticeStyle() === 'theme'"
+          [class.new-records-theme-fade]="noticeStyle() === 'theme-fade'"
           [class.new-records-visible]="state.pendingNoticeVisible()"
           [class.new-records-instant]="instantNoticeExit()"
           [attr.inert]="state.pendingNoticeVisible() ? null : ''"
@@ -331,6 +345,19 @@
         <i kbq-icon="kbq-chevron-down-s_16"></i>
       </button>
     }
+    @case ('appearance') {
+      <button
+        kbq-button
+        [kbqStyle]="'transparent'"
+        [color]="'contrast'"
+        aria-haspopup="menu"
+        [kbqTooltip]="controlHints.appearance"
+        kbqPlacement="top"
+        [kbqDropdownTriggerFor]="noticeStyleMenu"
+      >
+        Вид уведомления <i kbq-icon="kbq-chevron-down-s_16"></i>
+      </button>
+    }
     @case ('connection') {
       <button
         kbq-button
@@ -405,6 +432,23 @@
       <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
       Без точного числа
     </button>
+  </div>
+</kbq-dropdown>
+<kbq-dropdown #noticeStyleMenu="kbqDropdown">
+  <div role="menu" aria-label="Вид уведомления о новых записях">
+    @for (style of noticeStyles; track style.id) {
+      <button
+        kbq-dropdown-item
+        type="button"
+        class="menu-radio-item"
+        role="menuitemradio"
+        [attr.aria-checked]="noticeStyle() === style.id"
+        (click)="noticeStyle.set(style.id)"
+      >
+        <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
+        {{ style.label }}
+      </button>
+    }
   </div>
 </kbq-dropdown>
 <kbq-dropdown #scenarioMenu="kbqDropdown">

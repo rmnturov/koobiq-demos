@@ -133,6 +133,7 @@ ag-grid-angular {
   inset: 0;
   z-index: -1;
   pointer-events: none;
+  // This translucent layer sits above the native row background and below its cells.
   background: var(--kbq-background-theme-less);
   animation: incident-arrival-pulse 1000ms cubic-bezier(0.77, 0, 0.175, 1)
     var(--incident-arrival-progress) both;
@@ -142,7 +143,8 @@ ag-grid-angular {
   100% {
     opacity: 0;
   }
-  30% {
+  20%,
+  60% {
     opacity: 1;
   }
 }
@@ -161,6 +163,10 @@ ag-grid-angular {
   }
 }
 .new-records {
+  --notice-background: var(--kbq-background-card);
+  --notice-foreground: var(--kbq-foreground-contrast);
+  --notice-icon: var(--kbq-icon-contrast);
+  --notice-divider: var(--kbq-line-contrast-less);
   position: absolute;
   top: calc(40px + var(--kbq-size-l));
   left: 50%;
@@ -179,9 +185,27 @@ ag-grid-angular {
   width: max-content;
   max-width: calc(100% - var(--kbq-size-xxl) * 2);
   border-radius: var(--kbq-size-s);
-  background: var(--kbq-background-card);
+  background: linear-gradient(var(--notice-background), var(--notice-background))
+    var(--kbq-background-card);
   box-shadow: var(--kbq-shadow-popup);
   white-space: nowrap;
+}
+.new-records-theme {
+  --notice-background: var(--kbq-background-theme);
+  --notice-foreground: var(--kbq-foreground-white);
+  --notice-icon: var(--kbq-icon-white);
+  --notice-divider: var(--kbq-line-white-fade);
+}
+.new-records-theme-fade {
+  --notice-background: var(--kbq-background-theme-fade);
+  --notice-foreground: var(--kbq-foreground-theme);
+  --notice-icon: var(--kbq-icon-theme);
+  --notice-divider: var(--kbq-line-theme-fade);
+}
+.new-records > button {
+  --kbq-button-transparent-contrast-fade-on-foreground: var(--notice-foreground);
+  --kbq-button-transparent-contrast-fade-on-left-icon: var(--notice-icon);
+  --kbq-button-transparent-contrast-fade-on-right-icon: var(--notice-icon);
 }
 .new-records-visible {
   transform: translate(-50%, 0) scale(1);
@@ -212,7 +236,7 @@ ag-grid-angular {
   transform: translateY(-50%);
   width: var(--kbq-size-border-width);
   height: var(--kbq-size-m);
-  background: var(--kbq-line-contrast-less);
+  background: var(--notice-divider);
   pointer-events: none;
 }
 .new-records:has(> button:is(:hover, :active, :focus))::after {
