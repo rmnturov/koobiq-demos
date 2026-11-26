@@ -102,7 +102,7 @@ export class GridAutoRefreshDemo {
 
 ## Новые записи сверху
 
-Таблица проверяет новые данные с заданным периодом. Период можно настроить или выключить автообновление. Если список еще не трогали, новые инциденты появляются сверху. Добавленные строки один раз плавно подсвечиваются голубым. Подсветка складывается с фоном активной или выбранной строки и затем гаснет.
+Таблица проверяет новые данные с заданным периодом. Период можно настроить или выключить автообновление. Если список еще не трогали, новые инциденты появляются сверху. Добавленные строки один раз плавно подсвечиваются голубым градиентом: цвет заметнее слева и постепенно исчезает к правому краю. Подсветка складывается с фоном активной или выбранной строки и затем гаснет.
 
 Кнопка **Обновить** работает в любом режиме. Если новых инцидентов нет, список остается прежним.
 
@@ -620,12 +620,26 @@ export class GridAutoRefreshDemo {
   }
   gridReady(event: GridReadyEvent<Incident>): void {
     this.grid.set(event.api);
+    this.syncHighlightGradient(event.api);
+  }
+  syncHighlightGradient(api: GridApi<Incident>): void {
+    const area = this.gridArea()?.nativeElement;
+    if (!area || api.isDestroyed()) return;
+    const pinnedStart = api.getDisplayedLeftColumns().reduce((width, col) => width + col.getActualWidth(), 0);
+    const pinnedEnd = api.getDisplayedRightColumns().reduce((width, col) => width + col.getActualWidth(), 0);
+    const { left, right } = api.getHorizontalPixelRange();
+    const width = pinnedStart + right - left + pinnedEnd;
+    // All row segments share one gradient, including pinned columns and horizontal scrolling.
+    area.style.setProperty('--incident-gradient-width', `${width}px`);
+    area.style.setProperty('--incident-gradient-center-offset', `${left - pinnedStart}px`);
+    area.style.setProperty('--incident-gradient-end-offset', `${pinnedEnd - width}px`);
   }
   selectionChanged(event: SelectionChangedEvent<Incident>): void {
     if (!this.syncing && event.source !== 'rowDataChanged' && event.source !== 'api')
       this.state.setSelection(event.api.getSelectedRows().map((row) => row.id));
   }
   scrolled(event: BodyScrollEvent<Incident>): void {
+    if (event.direction === 'horizontal') this.syncHighlightGradient(event.api);
     if (this.syncing) return;
     if (this.returningToTop && event.direction === 'vertical') {
       if (event.top <= 1) this.cancelReturnScroll();
