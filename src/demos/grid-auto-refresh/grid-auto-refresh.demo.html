@@ -170,7 +170,7 @@
       <div
         #gridArea
         class="grid-wrap"
-        [class.solid-row-highlight]="highlightStyle() === 'solid'"
+        [attr.data-highlight-style]="highlightStyle()"
         (pointerdown)="cancelReturnScroll()"
         (wheel)="cancelReturnScroll()"
         (touchstart)="cancelReturnScroll()"
