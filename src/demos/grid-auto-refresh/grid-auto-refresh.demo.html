@@ -98,6 +98,18 @@
                         {{ noticeStyleLabel() }} уведомление
                       </button>
                     }
+                    @case ('highlight') {
+                      <button
+                        kbq-dropdown-item
+                        kbqTrigger="hover"
+                        aria-haspopup="menu"
+                        [kbqTooltip]="controlHints.highlight"
+                        kbqPlacement="top"
+                        [kbqDropdownTriggerFor]="highlightDurationMenu"
+                      >
+                        Подсветка: {{ highlightDurationLabel() }}
+                      </button>
+                    }
                     @case ('connection') {
                       <button
                         kbq-dropdown-item
@@ -355,6 +367,19 @@
         {{ noticeStyleLabel() }} уведомление <i kbq-icon="kbq-chevron-down-s_16"></i>
       </button>
     }
+    @case ('highlight') {
+      <button
+        kbq-button
+        [kbqStyle]="'transparent'"
+        [color]="'contrast'"
+        aria-haspopup="menu"
+        [kbqTooltip]="controlHints.highlight"
+        kbqPlacement="top"
+        [kbqDropdownTriggerFor]="highlightDurationMenu"
+      >
+        Подсветка: {{ highlightDurationLabel() }} <i kbq-icon="kbq-chevron-down-s_16"></i>
+      </button>
+    }
     @case ('connection') {
       <button
         kbq-button
@@ -444,6 +469,23 @@
       >
         <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
         {{ style.label }}
+      </button>
+    }
+  </div>
+</kbq-dropdown>
+<kbq-dropdown #highlightDurationMenu="kbqDropdown">
+  <div role="menu" aria-label="Длительность подсветки новых строк">
+    @for (duration of highlightDurations; track duration.ms) {
+      <button
+        kbq-dropdown-item
+        type="button"
+        class="menu-radio-item"
+        role="menuitemradio"
+        [attr.aria-checked]="state.highlightDurationMs() === duration.ms"
+        (click)="state.highlightDurationMs.set(duration.ms)"
+      >
+        <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
+        {{ duration.label }}
       </button>
     }
   </div>

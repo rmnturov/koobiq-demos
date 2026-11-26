@@ -72,6 +72,22 @@ describe('auto-refresh controller', () => {
     expect(c.newlyAppliedIds()).toEqual([]);
   });
 
+  it('applies the chosen highlight duration to the next snapshot without changing the current pulse', async () => {
+    const { controller: c, append } = setup();
+    expect(c.appliedHighlightDurationMs()).toBe(1000);
+    c.highlightDurationMs.set(3000);
+    expect(c.appliedHighlightDurationMs()).toBe(1000);
+    append();
+    await c.refresh();
+    expect(c.appliedHighlightDurationMs()).toBe(3000);
+    c.highlightDurationMs.set(500);
+    c.loadMore();
+    expect(c.appliedHighlightDurationMs()).toBe(3000);
+    append();
+    await c.refresh();
+    expect(c.appliedHighlightDurationMs()).toBe(500);
+  });
+
   it('dismisses only the current notice, preserving pending data until more records arrive', async () => {
     const { controller: c, append } = setup();
     c.protect('Прокрутка таблицы');
