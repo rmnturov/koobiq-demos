@@ -306,6 +306,9 @@ ag-grid-angular {
   background-color: var(--kbq-background-bg);
   box-shadow: 0 0 0 1px var(--kbq-line-theme-fade);
 }
+.new-records-theme-fade-shadow {
+  box-shadow: var(--kbq-shadow-popup);
+}
 .new-records > button {
   --kbq-button-transparent-contrast-fade-on-foreground: var(--notice-foreground);
   --kbq-button-transparent-contrast-fade-on-left-icon: var(--notice-icon);

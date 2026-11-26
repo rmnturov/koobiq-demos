@@ -95,7 +95,7 @@
                         kbqPlacement="top"
                         [kbqDropdownTriggerFor]="noticeStyleMenu"
                       >
-                        {{ noticeStyleLabel() }} уведомление
+                        {{ noticeStyleLabel() }}
                       </button>
                     }
                     @case ('highlight') {
@@ -216,7 +216,10 @@
           class="new-records"
           [class.new-records-contrast-fade]="noticeStyle() === 'contrast-fade'"
           [class.new-records-theme]="noticeStyle() === 'theme'"
-          [class.new-records-theme-fade]="noticeStyle() === 'theme-fade'"
+          [class.new-records-theme-fade]="
+            noticeStyle() === 'theme-fade' || noticeStyle() === 'theme-fade-shadow'
+          "
+          [class.new-records-theme-fade-shadow]="noticeStyle() === 'theme-fade-shadow'"
           [class.new-records-visible]="state.pendingNoticeVisible()"
           [class.new-records-instant]="instantNoticeExit()"
           [attr.inert]="state.pendingNoticeVisible() ? null : ''"
@@ -377,7 +380,7 @@
         kbqPlacement="top"
         [kbqDropdownTriggerFor]="noticeStyleMenu"
       >
-        {{ noticeStyleLabel() }} уведомление <i kbq-icon="kbq-chevron-down-s_16"></i>
+        {{ noticeStyleLabel() }} <i kbq-icon="kbq-chevron-down-s_16"></i>
       </button>
     }
     @case ('highlight') {
