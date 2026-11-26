@@ -32,7 +32,7 @@ describe('notification status and tenant', () => {
       for (const [index, family] of families.entries()) {
         const palette = `--kbq-plt-${dark ? 'dark-' : ''}${family}`;
         const foregroundFamily = family === 'yellow-fixed' ? 'yellow' : family;
-        const darkForeground = 15;
+        const darkForeground = 13;
         const background = dark
           ? `var(--kbq-plt-dark-${foregroundFamily}-a7)`
           : `var(${palette}-a6)`;
@@ -94,7 +94,7 @@ describe('notification status and tenant', () => {
       expect([slider.min, slider.max, slider.step]).toEqual(['1', '20', '1']);
     }
     expect(sliders.light.value).toBe('16');
-    expect(sliders.dark.value).toBe('15');
+    expect(sliders.dark.value).toBe('13');
     const changeStep = (scheme: 'light' | 'dark', value: number) => {
       sliders[scheme].value = String(value);
       sliders[scheme].dispatchEvent(new Event('input', { bubbles: true }));
@@ -171,7 +171,7 @@ describe('notification status and tenant', () => {
     expect([sliders.light.min, sliders.dark.min]).toEqual(['2', '3']);
     expect([sliders.light.max, sliders.dark.max]).toEqual(['20', '20']);
     expect(contrast('light')).toBe('47.7');
-    expect(contrast('dark')).toBe('40.6');
+    expect(contrast('dark')).toBe('30.7');
     expect(root.querySelector('#tenant-background-contrast-light')?.textContent).toMatch(
       /Lc:.*14\.4.*WCAG:.*1\.32.*:1/s,
     );
@@ -189,7 +189,7 @@ describe('notification status and tenant', () => {
     );
     expect(
       root.querySelector('#tenant-contrast-dark .geometry-controls__wcag')?.textContent?.trim(),
-    ).toBe('3.92');
+    ).toBe('3.06');
 
     changeBackground('light', 16);
     expect(contrast('light')).toBe('0.0');
@@ -199,13 +199,13 @@ describe('notification status and tenant', () => {
     expect(
       root.querySelector('#tenant-contrast-light .geometry-controls__wcag')?.textContent?.trim(),
     ).toBe('1.00');
-    expect(contrast('dark')).toBe('40.6');
+    expect(contrast('dark')).toBe('30.7');
     expect(surface.style.getPropertyValue('--notification-tenant-bg-1')).toBe(
       'var(--kbq-plt-blue-a16)',
     );
     expect(refs()).toEqual(['var(--kbq-plt-yellow-fixed-a16)', 'var(--kbq-plt-dark-yellow-a7)']);
 
-    changeBackground('dark', 15);
+    changeBackground('dark', 13);
     expect(contrast('dark')).toBe('0.0');
     expect(surface.style.getPropertyValue('--notification-tenant-bg-1')).toBe(
       'var(--kbq-plt-blue-a16)',
@@ -213,10 +213,10 @@ describe('notification status and tenant', () => {
     theme.setMode('dark');
     fixture.detectChanges();
     expect(surface.style.getPropertyValue('--notification-tenant-bg-1')).toBe(
-      'var(--kbq-plt-dark-blue-a15)',
+      'var(--kbq-plt-dark-blue-a13)',
     );
     expect(surface.style.getPropertyValue('--notification-tenant-icon-1')).toBe(
-      'var(--kbq-plt-dark-blue-15)',
+      'var(--kbq-plt-dark-blue-13)',
     );
 
     changeBackground('light', 1);

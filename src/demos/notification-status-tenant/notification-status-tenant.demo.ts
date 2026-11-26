@@ -135,7 +135,7 @@ const SAMPLES = SAMPLE_ORDER.map((pair) => {
 })
 export class NotificationStatusTenantDemo {
   private readonly theme = inject(KbqThemeService);
-  protected readonly letterSteps = signal({ light: 16, dark: 15 });
+  protected readonly letterSteps = signal({ light: 16, dark: 13 });
   protected readonly backgroundSteps = signal({ light: 6, dark: 7 });
   protected readonly backgroundMin = TENANT_BACKGROUND_MIN;
   protected readonly letterControls = [
