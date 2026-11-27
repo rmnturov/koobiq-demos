@@ -12,6 +12,11 @@ body {
     height: 100%;
 }
 
+// Tooltip overlays live outside the demo host.
+.kbq-tooltip.grid-menu-hint-instant.kbq-tooltip_visible {
+    animation: none;
+}
+
 body {
     font-family: var(--kbq-font-family-base);
     font-size: var(--kbq-typography-text-normal-font-size, 14px);

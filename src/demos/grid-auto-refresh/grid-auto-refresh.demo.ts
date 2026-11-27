@@ -64,7 +64,7 @@ import {
 import { IncidentServer } from './incident-server';
 import { createDemoToastScope } from './demo-toast-scope';
 import { AnimatedNoticeText } from './animated-notice-text';
-import { MenuItemHint } from './menu-item-hint';
+import { MenuHintGroup, MenuHintRoot, MenuItemHint } from './menu-item-hint';
 import {
   DemoScenario,
   GridDemoSettings,
@@ -84,6 +84,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
   imports: [
     AnimatedNoticeText,
     MenuItemHint,
+    MenuHintRoot,
     NgTemplateOutlet,
     KbqMarkdown,
     KbqLuxonDateModule,
@@ -101,7 +102,7 @@ ModuleRegistry.registerModules([AllCommunityModule]);
     KbqToolTipModule,
     KbqTopBarModule,
   ],
-  providers: [KbqActionsPanel, DateFormatter],
+  providers: [KbqActionsPanel, DateFormatter, MenuHintGroup],
   templateUrl: './grid-auto-refresh.demo.html',
   styleUrl: './grid-auto-refresh.demo.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
