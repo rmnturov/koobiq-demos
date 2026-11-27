@@ -463,7 +463,7 @@
       role="menuitemradio"
       [attr.aria-checked]="state.exactCount()"
       [kbqTooltip]="controlHints.exactCount"
-      kbqPlacement="top"
+      [kbqPlacement]="overflow.hiddenItemIDs().has('count') ? 'left' : 'top'"
       (click)="state.exactCount.set(true)"
     >
       <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
@@ -477,7 +477,7 @@
       role="menuitemradio"
       [attr.aria-checked]="!state.exactCount()"
       [kbqTooltip]="controlHints.unknownCount"
-      kbqPlacement="top"
+      [kbqPlacement]="overflow.hiddenItemIDs().has('count') ? 'left' : 'top'"
       (click)="state.exactCount.set(false)"
     >
       <i kbq-icon="kbq-circle-xs_16" class="menu-radio-marker"></i>
@@ -541,7 +541,7 @@
     kbq-dropdown-item
     kbqTrigger="hover"
     [kbqTooltip]="controlHints.observe"
-    kbqPlacement="top"
+    [kbqPlacement]="overflow.hiddenItemIDs().has('scenario') ? 'left' : 'top'"
     (click)="scenario('observe')"
   >
     Наблюдение за поступлениями
@@ -550,7 +550,7 @@
     kbq-dropdown-item
     kbqTrigger="hover"
     [kbqTooltip]="controlHints.select"
-    kbqPlacement="top"
+    [kbqPlacement]="overflow.hiddenItemIDs().has('scenario') ? 'left' : 'top'"
     (click)="scenario('select')"
   >
     Работа с выбранными строками
@@ -559,7 +559,7 @@
     kbq-dropdown-item
     kbqTrigger="hover"
     [kbqTooltip]="controlHints.card"
-    kbqPlacement="top"
+    [kbqPlacement]="overflow.hiddenItemIDs().has('scenario') ? 'left' : 'top'"
     (click)="scenario('card')"
   >
     Просмотр инцидента
