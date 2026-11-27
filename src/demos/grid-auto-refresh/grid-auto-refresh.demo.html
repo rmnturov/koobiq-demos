@@ -53,7 +53,7 @@
                         kbqTrigger="hover"
                         aria-haspopup="menu"
                         [kbqTooltip]="controlHints.interval"
-                        kbqPlacement="top"
+                        kbqPlacement="left"
                         [kbqDropdownTriggerFor]="intervalMenu"
                       >
                         <i kbq-icon="kbq-clock_16"></i> {{ intervalLabel(state.intervalMs()) }}
@@ -68,7 +68,7 @@
                         [attr.aria-busy]="state.busy()"
                         data-control="refresh"
                         [kbqTooltip]="controlHints.refresh"
-                        kbqPlacement="top"
+                        kbqPlacement="left"
                         (click)="state.refresh()"
                       >
                         <i kbq-icon="kbq-arrow-rotate-right_16"></i>Обновить
@@ -80,7 +80,7 @@
                         kbqTrigger="hover"
                         aria-haspopup="menu"
                         [kbqTooltip]="controlHints.count"
-                        kbqPlacement="top"
+                        kbqPlacement="left"
                         [kbqDropdownTriggerFor]="countMenu"
                       >
                         {{ state.exactCount() ? 'Точное число' : 'Без числа' }}
@@ -92,7 +92,7 @@
                         kbqTrigger="hover"
                         aria-haspopup="menu"
                         [kbqTooltip]="controlHints.appearance"
-                        kbqPlacement="top"
+                        kbqPlacement="left"
                         [kbqDropdownTriggerFor]="noticeStyleMenu"
                       >
                         {{ noticeStyleLabel() }}
@@ -104,7 +104,7 @@
                         kbqTrigger="hover"
                         aria-haspopup="menu"
                         [kbqTooltip]="controlHints.highlight"
-                        kbqPlacement="top"
+                        kbqPlacement="left"
                         [kbqDropdownTriggerFor]="highlightDurationMenu"
                       >
                         Подсветка: {{ highlightDurationLabel() }}
@@ -116,7 +116,7 @@
                         kbqTrigger="hover"
                         aria-haspopup="menu"
                         [kbqTooltip]="controlHints.highlightStyle"
-                        kbqPlacement="top"
+                        kbqPlacement="left"
                         [kbqDropdownTriggerFor]="highlightStyleMenu"
                       >
                         Стиль: {{ highlightStyleLabel() }}
@@ -129,7 +129,7 @@
                         [kbqTooltip]="
                           connectionOffline() ? controlHints.restore : controlHints.disconnect
                         "
-                        kbqPlacement="top"
+                        kbqPlacement="left"
                         (click)="toggleConnection()"
                       >
                         {{ connectionOffline() ? 'Восстановить связь' : 'Ошибка связи' }}
@@ -140,7 +140,7 @@
                         kbq-dropdown-item
                         kbqTrigger="hover"
                         [kbqTooltip]="controlHints.scenario"
-                        kbqPlacement="top"
+                        kbqPlacement="left"
                         [kbqDropdownTriggerFor]="scenarioMenu"
                       >
                         Сценарий
@@ -599,7 +599,7 @@
             kbq-dropdown-item
             kbqTrigger="hover"
             [kbqTooltip]="controlHints.action"
-            kbqPlacement="top"
+            kbqPlacement="left"
             (click)="acknowledge(action)"
           >
             {{ action }}
