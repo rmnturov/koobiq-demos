@@ -1,0 +1,75 @@
+<div
+    class="layout"
+    [class.phone-preview]="mobilePreview()"
+    [style]="headingStyle()"
+    [style.--kbq-markdown-heading-pair-adjustment.px]="pairAdjustment()"
+>
+    <nav class="contents" aria-label="На этой странице">
+        @for (section of sections; track section.id) {
+            <a kbqLink [href]="pageUrl + '#' + section.id">{{ section.title }}</a>
+        }
+        <a kbqLink [href]="pageUrl + '#article-in-grid'">Статья в интерфейсе</a>
+    </nav>
+
+    <div class="comparison-header">
+        <div class="scale-controls" role="group" aria-label="Настройки просмотра">
+            <div class="scale-field">
+                <label for="heading-preset">Стиль H1</label>
+                <span class="scale-value">{{ presetLabel() }}</span>
+                <input #sizeInput type="range" id="heading-preset" min="0" [max]="presets.length" step="1"
+                    [value]="presetIndex()" [attr.aria-valuetext]="presetLabel()"
+                    (input)="presetIndex.set(sizeInput.valueAsNumber)" />
+            </div>
+            <div class="scale-field">
+                <label for="heading-gap">Отступ в паре</label>
+                <span class="scale-value">{{ gapLabel() }}</span>
+                <input #gapInput type="range" id="heading-gap" min="-4" max="4" step="1"
+                    [value]="pairAdjustment()" [attr.aria-valuetext]="gapLabel()"
+                    (input)="pairAdjustment.set(gapInput.valueAsNumber)" />
+            </div>
+            <button kbq-button type="button" (click)="resetScale()" [disabled]="!presetIndex() && !pairAdjustment()">Сбросить</button>
+            <kbq-toggle [checked]="mobilePreview()" (change)="previewOverride.set($event.checked)">Мобильный вид</kbq-toggle>
+        </div>
+        <div class="column-headings kbq-text-normal-strong" aria-label="Размер основного текста">
+            @for (column of columns; track column.label) {
+                <span>{{ column.label }}</span>
+            }
+        </div>
+    </div>
+
+    @for (section of sections; track section.id) {
+        <section
+            [id]="section.id"
+            [attr.aria-label]="section.title"
+            [class.markdown-mobile]="section.id === 'mobile' || mobilePreview()"
+            [class.markdown-desktop]="section.id !== 'mobile' && previewOverride() === false"
+        >
+            @if (section.id !== 'article' && section.id !== 'changelog') {
+                <h2 class="section-title kbq-headline">{{ section.title }}</h2>
+            }
+            @for (row of section.rows; track row.markdown) {
+                <div class="sample">
+                    @if (row.label) {
+                        <h3 class="sample-label kbq-text-compact-strong">{{ row.label }}</h3>
+                    }
+                    @for (column of columns; track column.label) {
+                        <div class="cell" role="group" [class.markdown-compact]="column.compact" [attr.aria-label]="column.label">
+                            <span class="mobile-label kbq-text-normal-strong" aria-hidden="true">{{ column.label }}</span>
+                            <kbq-markdown markdownScrollableBlocks [markdownText]="row.markdown" />
+                        </div>
+                    }
+                </div>
+            }
+        </section>
+    }
+
+    <section id="article-in-grid" aria-labelledby="article-in-grid-title">
+        <h2 id="article-in-grid-title" class="section-title kbq-headline">Статья в интерфейсе</h2>
+        <ng-template #gridArticle let-markdown>
+            <div class="markdown-desktop markdown-compact">
+                <kbq-markdown markdownScrollableBlocks [markdownText]="markdown" />
+            </div>
+        </ng-template>
+        <app-article-grid [articleTemplate]="gridArticle" />
+    </section>
+</div>

@@ -1,0 +1,34 @@
+.markdown-compact kbq-markdown {
+    $roles: (
+        body: text-normal,
+        caption: text-compact,
+        table-header: tabular-compact,
+        table-cell: tabular-normal
+    );
+
+    @each $role, $style in $roles {
+        --kbq-md-typography-md-#{$role}-font-size: var(--kbq-typography-#{$style}-font-size);
+        --kbq-md-typography-md-#{$role}-line-height: var(--kbq-typography-#{$style}-line-height);
+    }
+
+    font-size: var(--kbq-md-typography-md-body-font-size);
+    line-height: var(--kbq-md-typography-md-body-line-height);
+
+    --kbq-md-typography-md-body-mono-font-size: 13px;
+    --kbq-md-typography-md-body-mono-line-height: var(--kbq-typography-mono-normal-line-height);
+    --kbq-md-typography-md-inline-code-line-height: var(--kbq-typography-mono-compact-line-height);
+    --kbq-md-typography-md-inline-code-as-link-line-height: var(--kbq-md-typography-md-inline-code-line-height);
+
+    --kbq-markdown-p-size-margin-top: var(--kbq-size-s);
+    --kbq-markdown-p-size-margin-bottom: var(--kbq-size-s);
+    --kbq-markdown-code-size-multiline-margin-top: var(--kbq-size-l);
+    --kbq-markdown-code-size-multiline-margin-bottom: var(--kbq-size-l);
+    --kbq-markdown-blockquote-size-margin-top: var(--kbq-size-l);
+    --kbq-markdown-blockquote-size-margin-bottom: var(--kbq-size-l);
+    --kbq-markdown-blockquote-size-padding: var(--kbq-size-s) var(--kbq-size-m);
+}
+
+:host ::ng-deep .markdown-compact .kbq-markdown pre > code {
+    display: block;
+    line-height: var(--kbq-md-typography-md-body-mono-line-height);
+}

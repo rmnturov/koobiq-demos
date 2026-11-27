@@ -1,0 +1,31 @@
+@use '@koobiq/components/core/styles/common/squircle' as corners;
+
+:host ::ng-deep .kbq-markdown {
+    .docs-hot-key {
+        display: inline-flex;
+        font: inherit;
+        white-space: nowrap;
+    }
+
+    .docs-hot-key-button {
+        display: inline-block;
+        box-sizing: border-box;
+        min-width: 20px;
+        margin: 0 2px;
+        padding: 0 4px;
+        border: none;
+        @include corners.kbq-squircle(4px);
+        box-shadow: 0 0 0 1px var(--kbq-line-contrast-fade);
+        color: var(--kbq-foreground-contrast);
+        font-family: var(--kbq-font-family-mono);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 24px;
+        text-align: center;
+    }
+}
+
+:host ::ng-deep .markdown-compact .docs-hot-key-button {
+    font-size: 12px;
+    line-height: 20px;
+}

@@ -1,0 +1,92 @@
+@use '@koobiq/components/core/styles/common/squircle' as corners;
+
+kbq-markdown {
+    --kbq-markdown-code-size-inline-padding: 0 4px;
+    --kbq-markdown-code-background: var(--kbq-background-contrast-less);
+    --kbq-markdown-blockquote-background: var(--kbq-background-contrast-less);
+    --kbq-markdown-code-size-multiline-margin-top: var(--kbq-size-xl);
+    --kbq-markdown-code-size-multiline-margin-bottom: var(--kbq-size-xl);
+    --kbq-markdown-list-size-margin-top-after-paragraph: var(--kbq-markdown-p-size-margin-top);
+    --kbq-markdown-list-size-margin-bottom: var(--kbq-markdown-p-size-margin-bottom);
+    --kbq-markdown-blockquote-size-margin-top: var(--kbq-size-xl);
+    --kbq-markdown-blockquote-size-margin-bottom: var(--kbq-size-xl);
+    --kbq-markdown-blockquote-size-padding: var(--kbq-size-m) var(--kbq-size-l);
+}
+
+// Measure the gap from the visible image edge, including when Markdown wraps it in a paragraph.
+:host :not(.markdown-compact) > kbq-markdown ::ng-deep {
+    $standalone: 'pre, blockquote, figure, kbq-alert, .kbq-alert, [role="alert"], .kbq-markdown__output > img';
+    $image-wrapper: ':is(p, figure)';
+    $block: ':is(#{$standalone}, p:has(> img:only-child, > img:first-child + em:last-child))';
+
+    #{$block} + #{$block} {
+        margin-block-start: var(--kbq-size-xxl);
+    }
+
+    #{$block} + #{$image-wrapper} > img:only-child {
+        display: block;
+    }
+
+    #{$image-wrapper}:has(+ :is(#{$standalone}), + #{$image-wrapper} > img:only-child) > img:only-child {
+        display: block;
+    }
+
+    .kbq-markdown__output > img:has(+ :is(#{$standalone}), + #{$image-wrapper} > img:only-child),
+    .kbq-markdown__output > #{$block} + img {
+        display: block;
+    }
+}
+
+// KbqMarkdown inserts the parsed HTML outside Angular's emulated style scope.
+:host ::ng-deep .kbq-markdown {
+    .kbq-markdown__blockquote {
+        @include corners.kbq-squircle(var(--kbq-markdown-code-size-border-radius), border-top-right-radius border-bottom-right-radius);
+    }
+
+    .kbq-markdown__code:not(pre > code) {
+        --kbq-markdown-code-size-border-radius: 4px;
+    }
+
+    .kbq-markdown__a .kbq-markdown__code {
+        --kbq-markdown-code-background: var(--kbq-background-theme-less);
+    }
+
+    .kbq-markdown__img {
+        @include corners.kbq-squircle(12px);
+    }
+
+    .kbq-markdown__ol {
+        list-style: decimal outside;
+        padding-inline-start: 3ch;
+
+        > li::before {
+            content: none;
+        }
+
+        > li > * {
+            display: revert;
+        }
+    }
+
+    li > :is(ul, ol) {
+        --kbq-markdown-list-size-margin-top: var(--kbq-markdown-list-size-item-margin-bottom);
+        --kbq-markdown-list-size-margin-top-after-paragraph: var(--kbq-markdown-list-size-item-margin-bottom);
+        --kbq-markdown-list-size-margin-bottom: var(--kbq-markdown-list-size-item-margin-bottom);
+    }
+
+    li > p:has(+ :is(p, ul, ol)) {
+        margin-block-end: var(--kbq-markdown-list-size-item-margin-bottom);
+    }
+
+    li > p + p {
+        margin-block-start: var(--kbq-markdown-list-size-item-margin-bottom);
+    }
+
+    li > p:first-child {
+        margin-block-start: 0;
+    }
+
+    li > p:last-child {
+        margin-block-end: 0;
+    }
+}

@@ -1,0 +1,99 @@
+<div class="preview-scroll">
+  <article class="preview-card" aria-label="Пример со списком инцидентов">
+    <kbq-content-panel-container
+      #workspace
+      [opened]="!!active()"
+      [width]="480"
+      [disableResizer]="true"
+      [useStateSaving]="false"
+      (openedChange)="!$event && closeArticle()"
+    >
+      <section class="incident-list" [class.with-article]="!!active()" aria-label="Инциденты">
+        <kbq-top-bar>
+          <div kbqTopBarContainer placement="start">
+            <span kbqTopBarTitle
+              >Инциденты <span class="total">{{ rows().length }}</span></span
+            >
+          </div>
+          <div kbqTopBarContainer placement="end">
+            <button
+              kbq-button
+              type="button"
+              color="contrast"
+              (click)="grid().api.exportDataAsCsv({ fileName: 'Инциденты.csv' })"
+            >
+              <i kbq-icon="kbq-arrow-down-to-line_16" kbqButtonPrefix></i> Экспорт CSV
+            </button>
+          </div>
+        </kbq-top-bar>
+        <kbq-filter-bar
+          [filter]="filter()"
+          [pipeTemplates]="filterTemplates"
+          [useStateSaving]="false"
+          (filterChange)="applyFilter($event)"
+        >
+          @for (pipe of filter().pipes; track pipe.id) {
+            <ng-container *kbqPipe="pipe" />
+          }
+          <kbq-pipe-add />
+        </kbq-filter-bar>
+        <div #gridArea class="grid-area" [class.with-actions]="count() > 0">
+          <ag-grid-angular
+            kbqAgGridTheme
+            [modules]="modules"
+            [rowData]="rows()"
+            [columnDefs]="columns"
+            [getRowId]="getRowId"
+            [rowSelection]="selection"
+            [rowClassRules]="rowClasses"
+            [rowHeight]="40"
+            [headerHeight]="40"
+            [animateRows]="false"
+            [localeText]="{ noRowsToShow: 'Инциденты не найдены' }"
+            (firstDataRendered)="selectFirst($event)"
+            (selectionChanged)="count.set($event.selectedNodes?.length ?? 0)"
+            (cellClicked)="onCellClick($event)"
+            (cellKeyDown)="onCellKeyDown($event)"
+          />
+        </div>
+      </section>
+      <kbq-content-panel>
+        @for (incident of active() ? [active()!] : []; track incident.id) {
+          <kbq-content-panel-body>
+            <article class="article-content" [attr.aria-label]="incident.name">
+              <div class="close-position">
+                <button
+                  kbq-button
+                  type="button"
+                  class="close-article"
+                  aria-label="Закрыть статью"
+                  kbqStyle="transparent"
+                  color="contrast"
+                  (click)="workspace.close()"
+                >
+                  <i kbq-icon="kbq-xmark_16"></i>
+                </button>
+              </div>
+              <ng-container
+                *ngTemplateOutlet="articleTemplate(); context: { $implicit: markdown() }"
+              />
+            </article>
+          </kbq-content-panel-body>
+        }
+      </kbq-content-panel>
+    </kbq-content-panel-container>
+  </article>
+</div>
+
+<ng-template #actions>
+  <div class="bulk-actions">
+    <span class="selection-count">Выбрано: {{ count() }}</span>
+    <kbq-divider class="selection-divider" [vertical]="true" />
+    <button kbq-button type="button" color="contrast" (click)="changeStatus('В работе')">
+      Взять в работу
+    </button>
+    <button kbq-button type="button" color="contrast" (click)="changeStatus('Закрыт')">
+      Закрыть
+    </button>
+  </div>
+</ng-template>
