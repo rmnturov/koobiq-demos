@@ -82,7 +82,7 @@ describe('MarkdownPlaygroundDemo', () => {
   it('keeps the contents links on the page that hosts the demo', () => {
     const links = page.querySelectorAll<HTMLAnchorElement>('nav a');
     expect(Array.from(links, (link) => link.href)).toEqual(
-      ['article', 'shortcuts', 'mobile', 'changelog', 'examples', 'headings-after-code', 'headings', 'ordered-list', 'article-in-grid'].map((id) => new URL(`#${id}`, window.location.href).href),
+      ['article', 'shortcuts', 'tables', 'mobile', 'changelog', 'examples', 'headings-after-code', 'headings', 'ordered-list', 'article-in-grid'].map((id) => new URL(`#${id}`, window.location.href).href),
     );
   });
 

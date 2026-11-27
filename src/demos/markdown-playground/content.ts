@@ -54,6 +54,26 @@ export const shortcutTable = `| Шорткат | Поведение |
 | ${shortcut('Ctrl', 'Shift', 'P')} | Открывает предпросмотр выпуска. |
 | ${shortcut('Esc')} | Закрывает предпросмотр и возвращает курсор в редактор. |`;
 
+export const tableExamples = [
+  {
+    label: 'Публикации за неделю',
+    markdown: `| Рубрика | Записей |
+| --- | ---: |
+| Новое | 3 |
+| Улучшения | 8 |
+| Исправления | 5 |`,
+  },
+  {
+    label: 'Журнал сборок выпуска',
+    markdown: `| Сборка | Версия | Компонент | Ветка | Коммит | Среда | Начало | Длительность | Результат | Артефакт |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1842 | 2.5.0 | release-notes-editor | release/2.5 | b5132af | production | 27.11 12:40 | 2 мин 14 с | Опубликовано | release-notes-editor-2.5.0.zip |
+| 1841 | 2.5.0 | markdown-renderer | release/2.5 | 720ac3b | staging | 27.11 12:32 | 1 мин 48 с | Проверено | markdown-renderer-2.5.0.zip |
+| 1839 | 2.4.2 | publication-service | hotfix/export | 8ea55d1 | production | 26.11 18:15 | 3 мин 06 с | Опубликовано | publication-service-2.4.2.zip |
+| 1838 | 2.5.0 | release-notes-editor | feature/preview | f041c2e | preview | 26.11 17:52 | 2 мин 03 с | На проверке | release-notes-preview-1838.zip |`,
+  },
+];
+
 export const mobileArticle = `# Константинопольский
 
 В словарной статье редактор указывает ударение и объясняет, как слово связано с названием города. Рядом он приводит знакомое сочетание: «константинопольский купец».

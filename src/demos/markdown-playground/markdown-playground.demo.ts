@@ -6,7 +6,7 @@ import { KbqToggleModule } from '@koobiq/components/toggle';
 import { KbqLink } from '@koobiq/components/link';
 import { KbqMarkdown } from '@koobiq/components/markdown';
 import { ArticleGridComponent } from './article-grid.component';
-import { article, changelog, examples, examplesIntro, headingExamples, headingsAfterCode, mobileArticle, orderedList, shortcutTable } from './content';
+import { article, changelog, examples, examplesIntro, headingExamples, headingsAfterCode, mobileArticle, orderedList, shortcutTable, tableExamples } from './content';
 import { MarkdownScrollableBlocks } from './markdown-scrollable-blocks';
 
 @Component({
@@ -60,6 +60,7 @@ export class MarkdownPlaygroundDemo {
     }[] = [
         { id: 'article', title: 'Статья', rows: [{ markdown: article }] },
         { id: 'shortcuts', title: 'Сочетания клавиш', rows: [{ markdown: shortcutTable }] },
+        { id: 'tables', title: 'Таблицы', rows: tableExamples },
         { id: 'mobile', title: 'Мобильные стили', rows: [{ label: 'Экран 320 px · поля по 16 px', markdown: mobileArticle }] },
         { id: 'changelog', title: 'Чейнджлог', rows: [{ markdown: changelog }] },
         { id: 'examples', title: 'Соседство элементов', rows: [{ markdown: examplesIntro }, ...examples] },
