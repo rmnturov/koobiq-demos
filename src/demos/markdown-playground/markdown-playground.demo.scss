@@ -1,6 +1,7 @@
 @use './markdown-spacing';
 @use './markdown-typography';
 @use './markdown-compact';
+@use './markdown-heading-scale';
 
 :host {
     display: block;
@@ -16,19 +17,8 @@
 .contents {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px 24px;
+    gap: 8px 16px;
     margin-bottom: 24px;
-
-    a {
-        color: var(--kbq-foreground-contrast-secondary);
-        text-decoration: none;
-
-        &:hover,
-        &:focus-visible {
-            color: var(--kbq-foreground-theme);
-            text-decoration: underline;
-        }
-    }
 }
 
 .column-headings,
@@ -38,18 +28,49 @@
     column-gap: clamp(48px, 7vw, 96px);
 }
 
-.column-headings {
+.comparison-header {
     position: sticky;
     z-index: 1;
     top: 0;
-    padding-block: 12px;
     background: var(--kbq-background-bg);
     border-bottom: 1px solid var(--kbq-line-contrast-less);
 }
 
+.scale-controls {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding-block: 12px;
+}
+
+.scale-field {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 4px 12px;
+    width: min(100%, 240px);
+    min-width: 0;
+
+    input {
+        grid-column: 1 / -1;
+        width: 100%;
+        margin: 0;
+        accent-color: var(--kbq-foreground-theme);
+    }
+}
+
+.scale-value {
+    color: var(--kbq-foreground-contrast-secondary);
+    font-variant-numeric: tabular-nums;
+}
+
+.column-headings {
+    padding-block: 8px;
+}
+
 .layout > section {
     padding-block-start: 32px;
-    scroll-margin-block-start: 48px;
+    scroll-margin-block-start: 108px;
 
     + section {
         margin-block-start: 48px;
@@ -75,16 +96,18 @@
     min-width: 0;
 }
 
-.cell:not(.markdown-compact) kbq-markdown {
-    --kbq-md-typography-md-body-line-height: var(--kbq-typography-text-normal-line-height);
-    line-height: var(--kbq-md-typography-md-body-line-height);
+.markdown-mobile .cell {
+    box-sizing: border-box;
+    width: min(100%, 320px);
+    padding: 16px;
+    outline: 1px solid var(--kbq-line-contrast-less);
 }
 
 .mobile-label {
     display: none;
 }
 
-:host ::ng-deep :is(#examples, #headings) .kbq-markdown__output {
+:host ::ng-deep :is(#examples, #headings, #headings-after-code) .kbq-markdown__output {
     [data-type-scale]::after {
         content: "\00a0" attr(data-type-scale) / "";
         white-space: nowrap;
@@ -93,6 +116,12 @@
         line-height: 1;
         letter-spacing: normal;
         color: var(--kbq-foreground-contrast-secondary);
+    }
+}
+
+@media (min-width: 761px) {
+    .phone-preview :is(.sample, .column-headings) {
+        grid-template-columns: repeat(2, minmax(0, 320px));
     }
 }
 
@@ -109,6 +138,17 @@
         margin-bottom: 16px;
     }
 
+    // The page already supplies the phone's side padding.
+    .markdown-mobile .cell {
+        width: 100%;
+        padding: 0;
+        outline: none;
+    }
+
+    #mobile .cell {
+        max-width: 288px;
+    }
+
     .cell + .cell {
         margin-block-start: 32px;
     }
@@ -119,7 +159,23 @@
         color: var(--kbq-foreground-contrast-secondary);
     }
 
+    .scale-controls {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+        gap: 8px 12px;
+
+        kbq-toggle {
+            grid-column: 1 / -1;
+            justify-self: start;
+        }
+    }
+
+    .scale-field {
+        grid-template-columns: 1fr;
+        gap: 2px;
+    }
+
     .layout > section {
-        scroll-margin-block-start: 0;
+        scroll-margin-block-start: 136px;
     }
 }

@@ -1,0 +1,102 @@
+@use 'sass:list';
+@use 'sass:math';
+
+// Each column interpolates from its own body metrics to the H1 chosen by the host.
+@mixin heading-scale($body-size, $body-height, $sizes, $heights) {
+    $h1-size: list.nth($sizes, 1);
+    $h1-height: list.nth($heights, 1);
+
+    --_h1-size: var(--kbq-markdown-h1-font-size, var(--_h1-size-limit, #{$h1-size}px));
+    --_h1-height: var(--kbq-markdown-h1-line-height, var(--_h1-height-limit, #{$h1-height}px));
+    --_size-change: calc(var(--_h1-size) - #{$h1-size}px);
+    --_height-change: calc(var(--_h1-height) - #{$h1-height}px);
+
+    @for $level from 1 through 6 {
+        $size: list.nth($sizes, $level);
+        $height: list.nth($heights, $level);
+        $type: '--kbq-md-typography-md-h#{$level}';
+
+        // H5 follows the body; H6 keeps its small caps. Both have fixed metrics.
+        @if $level >= 5 {
+            #{$type}-font-size: #{$size}px;
+            #{$type}-line-height: #{$height}px;
+            --_h#{$level}-pair-gap: 4px;
+        } @else {
+            $size-weight: math.div($size - $body-size, $h1-size - $body-size);
+            $height-weight: math.div($height - $body-height, $h1-height - $body-height);
+            #{$type}-font-size: round(nearest, calc(#{$size}px + var(--_size-change) * #{$size-weight}), 1px);
+            #{$type}-line-height: round(nearest, calc(#{$height}px + var(--_height-change) * #{$height-weight}), 1px);
+
+            --_h#{$level}-pair-gap: calc(var(#{$type}-line-height) * #{math.div(4, $height)});
+        }
+    }
+}
+
+kbq-markdown {
+    @include heading-scale(16, 24, 36 24 20 18 16 14, 44 32 28 26 24 20);
+
+    @for $level from 1 through 6 {
+        --kbq-markdown-h#{$level}-size-margin-top: var(--kbq-md-typography-md-body-line-height);
+        --kbq-markdown-h#{$level}-size-margin-bottom: var(--kbq-markdown-p-size-margin-bottom);
+    }
+}
+
+.markdown-compact kbq-markdown {
+    @include heading-scale(14, 20, 28 20 18 16 14 12, 32 28 26 24 20 16);
+}
+
+// Also used by the fixed-width phone specimen on a wide screen.
+@mixin mobile-headings {
+    kbq-markdown {
+        --_h1-size-limit: 24px;
+        --_h1-height-limit: 32px;
+    }
+
+    .markdown-compact kbq-markdown {
+        --_h1-size-limit: 22px;
+        --_h1-height-limit: 28px;
+    }
+}
+
+.markdown-mobile {
+    @include mobile-headings;
+}
+
+@media (max-width: 760px) {
+    @include mobile-headings;
+
+    .markdown-desktop kbq-markdown {
+        --_h1-size-limit: initial;
+        --_h1-height-limit: initial;
+    }
+}
+
+:host ::ng-deep .kbq-markdown {
+    $heading: ':is(h1, h2, h3, h4, h5, h6)';
+
+    h1 {
+        overflow-wrap: anywhere;
+    }
+
+    :is(pre, blockquote, img, :is(p, figure):has(> img:only-child)) + #{$heading} {
+        margin-block-start: calc(var(--kbq-md-typography-md-body-line-height) + 8px);
+    }
+
+    // The next heading determines the upper bound. Koobiq already clears its top margin.
+    @for $level from 1 through 6 {
+        #{$heading}:has(+ h#{$level}) {
+            --_pair-base: var(--_h#{$level}-pair-gap);
+            --_pair-limit: var(--kbq-markdown-h#{$level}-size-margin-bottom);
+        }
+    }
+
+    h1:has(+ h2), h5:has(+ h6) {
+        --_pair-factor: 1.5;
+    }
+
+    #{$heading}:has(+ #{$heading}) {
+        margin-block-end: clamp(0px,
+            round(nearest, calc(var(--_pair-base) * var(--_pair-factor, 1) + var(--kbq-markdown-heading-pair-adjustment, 0px)), 1px),
+            var(--_pair-limit));
+    }
+}

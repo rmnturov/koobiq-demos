@@ -1,0 +1,18 @@
+.markdown-compact kbq-markdown {
+    --kbq-markdown-table-header-padding-end: 8px;
+    --kbq-markdown-table-first-row-padding-start: 10px;
+}
+
+:host ::ng-deep .markdown-compact .kbq-markdown :is(th, td) {
+    padding-block: var(--kbq-size-xxs);
+}
+
+:host ::ng-deep .kbq-markdown table {
+    > thead > tr:last-child > :is(th, td) {
+        padding-block-end: var(--kbq-markdown-table-header-padding-end, 10px);
+    }
+
+    > thead + tbody > tr:first-child > :is(th, td) {
+        padding-block-start: var(--kbq-markdown-table-first-row-padding-start, 12px);
+    }
+}

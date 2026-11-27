@@ -1,11 +1,5 @@
 .markdown-compact kbq-markdown {
     $roles: (
-        h1: headline,
-        h2: title,
-        h3: subheading,
-        h4: text-big-strong,
-        h5: text-normal-strong,
-        h6: caps-compact-strong,
         body: text-normal,
         caption: text-compact,
         table-header: tabular-compact,
@@ -34,16 +28,7 @@
     --kbq-markdown-blockquote-size-padding: var(--kbq-size-s) var(--kbq-size-m);
 }
 
-:host ::ng-deep .markdown-compact .kbq-markdown :is(th, td) {
-    padding-block: var(--kbq-size-xxs);
-}
-
 :host ::ng-deep .markdown-compact .kbq-markdown pre > code {
     display: block;
     line-height: var(--kbq-md-typography-md-body-mono-line-height);
-}
-
-:host ::ng-deep .markdown-compact .kbq-markdown figure > figcaption {
-    font-size: var(--kbq-md-typography-md-caption-font-size);
-    line-height: var(--kbq-md-typography-md-caption-line-height);
 }

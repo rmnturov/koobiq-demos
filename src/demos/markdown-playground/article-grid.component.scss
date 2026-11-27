@@ -1,0 +1,123 @@
+:host {
+  display: block;
+  min-inline-size: 0;
+}
+
+.preview-scroll {
+  overflow-x: auto;
+  margin: calc(-1 * var(--kbq-size-l));
+  padding: var(--kbq-size-l);
+}
+
+.preview-card {
+  min-inline-size: 960px;
+  aspect-ratio: 1440 / 600;
+  min-block-size: 420px;
+  max-block-size: 600px;
+  border-radius: var(--kbq-size-xxl);
+  background: var(--kbq-background-bg);
+  box-shadow: var(--kbq-shadow-overlay);
+  overflow: clip;
+}
+
+.incident-list {
+  display: flex;
+  flex-direction: column;
+  block-size: 100%;
+  min-inline-size: 0;
+}
+
+kbq-top-bar {
+  flex: none;
+  --kbq-top-bar-size-content-padding-horizontal: var(--kbq-size-xxl);
+}
+
+.total {
+  margin-inline-start: var(--kbq-size-xs);
+  color: var(--kbq-foreground-contrast-tertiary);
+}
+
+kbq-filter-bar {
+  flex: none;
+  margin: 0 var(--kbq-size-xxl) 16px;
+}
+
+.grid-area {
+  position: relative;
+  flex: 1;
+  min-block-size: 0;
+  margin-inline: var(--kbq-size-xxl);
+}
+
+// The content-panel container itself reserves the gap beside the open panel.
+.with-article .grid-area,
+.with-article kbq-filter-bar {
+  margin-inline-end: 0;
+}
+
+.with-article kbq-top-bar {
+  padding-inline-end: 0;
+}
+
+ag-grid-angular {
+  display: block;
+  height: 100%;
+  --ag-row-border-color: var(--kbq-line-contrast-less);
+}
+
+:host ::ng-deep .ag-root-wrapper .ag-row.article-open {
+  --ag-theme-koobiq-row-background-color: var(--kbq-background-theme-less);
+}
+
+.with-actions ::ng-deep .ag-body-viewport {
+  padding-block-end: 72px;
+}
+
+.bulk-actions {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+
+  button + button {
+    margin-inline-start: 4px;
+  }
+}
+
+.selection-count {
+  margin-inline: var(--kbq-size-m);
+}
+
+.bulk-actions .selection-divider {
+  height: var(--kbq-actions-panel-vertical-divider-height);
+  margin: var(--kbq-actions-panel-vertical-divider-margin);
+  background-color: var(--kbq-actions-panel-vertical-divider-background-color);
+}
+
+kbq-content-panel {
+  margin-block-start: var(--kbq-size-s);
+}
+
+.article-content {
+  padding-block-end: 128px;
+}
+
+.article-content ::ng-deep h1:first-child {
+  padding-block-start: 28px;
+}
+
+.close-position {
+  position: sticky;
+  inset-block-start: 8px;
+  margin-inline-end: calc(8px - var(--kbq-content-panel-vertical-padding));
+  block-size: 0;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.close-article {
+  align-self: start;
+  pointer-events: auto;
+  --kbq-button-transparent-contrast-fade-on-background: var(--kbq-content-panel-background-color);
+}

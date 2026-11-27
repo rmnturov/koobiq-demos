@@ -4,8 +4,8 @@ const diagram = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="180
       <circle cx="1" cy="1" r="1" fill="#d4dfea"/>
     </pattern>
   </defs>
-  <rect width="640" height="180" rx="12" fill="#eef3f8"/>
-  <rect width="640" height="180" rx="12" fill="url(#grid)"/>
+  <rect width="640" height="180" fill="#eef3f8"/>
+  <rect width="640" height="180" fill="url(#grid)"/>
   <g fill="none" stroke="#849ab1" stroke-width="2">
     <path d="M149 78h118m-7-6 7 6-7 6M371 78h118m-7-6 7 6-7 6"/>
   </g>

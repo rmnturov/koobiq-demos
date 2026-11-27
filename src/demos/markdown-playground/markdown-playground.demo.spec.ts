@@ -1,26 +1,76 @@
+import { NgTemplateOutlet } from '@angular/common';
+import { Component, input, TemplateRef } from '@angular/core';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ArticleGridComponent } from './article-grid.component';
 import { MarkdownPlaygroundDemo } from './markdown-playground.demo';
+
+@Component({
+  selector: 'app-article-grid',
+  imports: [NgTemplateOutlet],
+  template: `<ng-container [ngTemplateOutlet]="articleTemplate()" [ngTemplateOutletContext]="{ $implicit: '# Запись' }" />`,
+})
+class ArticleGridStub {
+  readonly articleTemplate = input.required<TemplateRef<{ $implicit: string }>>();
+}
 
 describe('MarkdownPlaygroundDemo', () => {
   let page: HTMLElement;
   let fixture: ComponentFixture<MarkdownPlaygroundDemo>;
 
   beforeEach(async () => {
+    TestBed.overrideComponent(MarkdownPlaygroundDemo, {
+      remove: { imports: [ArticleGridComponent] },
+      add: { imports: [ArticleGridStub] },
+    });
     fixture = TestBed.createComponent(MarkdownPlaygroundDemo);
     await fixture.whenStable();
     page = fixture.nativeElement;
   });
 
-  it('compares the same Markdown in the 16/20 and 14/20 columns of every row', () => {
-    expect(Array.from(page.querySelectorAll('.column-headings span'), el => el.textContent)).toEqual(['16/20', '14/20']);
+  it('compares the same Markdown in the 16/24 and 14/20 columns of every row', () => {
+    expect(Array.from(page.querySelectorAll('.column-headings span'), el => el.textContent)).toEqual(['16/24', '14/20']);
     for (const row of page.querySelectorAll('.sample')) {
       const cells = row.querySelectorAll('.cell');
-      expect(Array.from(cells, cell => cell.getAttribute('aria-label'))).toEqual(['16/20', '14/20']);
+      expect(Array.from(cells, cell => cell.getAttribute('aria-label'))).toEqual(['16/24', '14/20']);
       expect(cells[1].classList.contains('markdown-compact')).toBe(true);
       const output = (cell: Element) => cell.querySelector('.kbq-markdown__output')?.textContent;
       expect(output(cells[0])).toBeTruthy();
       expect(output(cells[0])).toBe(output(cells[1]));
     }
+  });
+
+  it('renders the phone-width H1 specimen for each body size', () => {
+    const headings = page.querySelectorAll('#mobile.markdown-mobile .cell kbq-markdown h1');
+    expect(Array.from(headings, heading => heading.textContent)).toEqual(['Константинопольский', 'Константинопольский']);
+  });
+
+  it('sets the heading scale on input and restores the column defaults on reset', async () => {
+    const layout = page.querySelector<HTMLElement>('.layout')!;
+    const inputs = page.querySelectorAll<HTMLInputElement>('input[type=range]');
+    expect(inputs).toHaveLength(2);
+    const [size, gap] = Array.from(inputs);
+    const property = (name: string) => layout.style.getPropertyValue('--kbq-markdown-' + name);
+    const change = (input: HTMLInputElement, value: string) => {
+      input.value = value;
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+
+    expect(property('h1-font-size')).toBe('');
+    change(size, '2');
+    change(gap, '4');
+    await fixture.whenStable();
+    expect(property('h1-font-size')).toBe('var(--kbq-typography-title-font-size)');
+    expect(property('h1-line-height')).toBe('var(--kbq-typography-title-line-height)');
+    expect(layout.style.getPropertyValue('--kbq-md-typography-md-h1-font-weight')).toBe('var(--kbq-typography-title-font-weight)');
+    expect(property('heading-pair-adjustment')).toBe('4px');
+
+    page.querySelector<HTMLButtonElement>('.scale-controls button')!.click();
+    await fixture.whenStable();
+    expect([size.value, gap.value]).toEqual(['0', '0']);
+    expect(property('h1-font-size')).toBe('');
+    expect(property('h1-line-height')).toBe('');
+    expect(layout.style.getPropertyValue('--kbq-md-typography-md-h1-font-weight')).toBe('');
+    expect(property('heading-pair-adjustment')).toBe('0px');
   });
 
   it.each([1, 2, 3, 4, 5, 6])('renders H%i with two consecutive paragraphs after it', (level) => {
@@ -32,8 +82,18 @@ describe('MarkdownPlaygroundDemo', () => {
   it('keeps the contents links on the page that hosts the demo', () => {
     const links = page.querySelectorAll<HTMLAnchorElement>('nav a');
     expect(Array.from(links, (link) => link.href)).toEqual(
-      ['article', 'changelog', 'examples', 'headings', 'ordered-list'].map((id) => new URL(`#${id}`, window.location.href).href),
+      ['article', 'shortcuts', 'mobile', 'changelog', 'examples', 'headings-after-code', 'headings', 'ordered-list', 'article-in-grid'].map((id) => new URL(`#${id}`, window.location.href).href),
     );
+  });
+
+  it('links to one full-width grid at the end of the examples and renders its compact desktop article', () => {
+    const link = page.querySelector<HTMLAnchorElement>('nav a:last-child')!;
+    expect(link.textContent).toBe('Статья в интерфейсе');
+    const section = page.querySelector(link.hash);
+    expect(section?.matches('.layout > section:last-child')).toBe(true);
+    expect(section?.querySelector('h2')?.textContent).toBe(link.textContent);
+    expect(page.querySelectorAll('app-article-grid')).toHaveLength(1);
+    expect(section?.querySelector(':scope > app-article-grid .markdown-desktop.markdown-compact kbq-markdown[markdownScrollableBlocks] h1')?.textContent).toBe('Запись');
   });
 
   it('renders the two documents and the block transitions', () => {
@@ -49,7 +109,7 @@ describe('MarkdownPlaygroundDemo', () => {
       'p + p + pre + pre + p + p',
       'pre + blockquote + p > img:only-child',
       'p + blockquote + p',
-      'p + table + p',
+      'p + .markdown-table-scroll:has(> table) + p',
       'p + p + hr + p + p',
       'p + p + figure + p + p',
       'p + p + p:has(> img + em) + p + p',
@@ -60,6 +120,19 @@ describe('MarkdownPlaygroundDemo', () => {
       'p + ul + p',
     ]) {
       expect(page.querySelector(`#examples kbq-markdown ${sequence}`), sequence).toBeTruthy();
+    }
+  });
+
+  it('mounts Koobiq scrollbars on fenced code and around semantic tables in both columns', () => {
+    for (const cell of page.querySelectorAll('#examples .cell')) {
+      for (const code of cell.querySelectorAll('pre > code')) {
+        expect(code.parentElement?.matches('.kbq-markdown__pre.kbq-scrollbar-viewport')).toBe(true);
+        expect(code.parentElement?.querySelector(':scope > kbq-scrollbar-track')).toBeTruthy();
+      }
+      for (const table of cell.querySelectorAll('table')) {
+        expect(table.parentElement?.matches('.markdown-table-scroll.kbq-scrollbar-viewport')).toBe(true);
+        expect(table.querySelector('thead th')).toBeTruthy();
+      }
     }
   });
 
