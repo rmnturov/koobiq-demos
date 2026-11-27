@@ -67,14 +67,26 @@ export class AutoRefreshController {
   );
   private destroyed = false;
   private readonly now: () => number;
+  private latestRows: readonly Incident[];
 
   constructor(
     private readonly server: IncidentSource,
-    options: { now?: () => number } = {},
+    options: {
+      now?: () => number;
+      query?: IncidentQuery;
+      intervalMs?: number;
+      exactCount?: boolean;
+      highlightDurationMs?: number;
+    } = {},
   ) {
     this.now = options.now ?? Date.now;
+    this.latestRows = server.initialRows;
+    if (options.intervalMs !== undefined) this.intervalMs.set(options.intervalMs);
+    if (options.exactCount !== undefined) this.exactCount.set(options.exactCount);
+    if (options.highlightDurationMs !== undefined)
+      this.highlightDurationMs.set(options.highlightDurationMs);
     this.currentTime.set(this.now());
-    this.applySnapshot(server.initialRows, DEFAULT_QUERY);
+    this.applySnapshot(server.initialRows, options.query ?? DEFAULT_QUERY);
     this.schedule();
   }
 
@@ -152,6 +164,14 @@ export class AutoRefreshController {
     return this.request('query', query);
   }
 
+  restoreQuery(query: IncidentQuery): void {
+    this.requestId++;
+    this.error.set(null);
+    this.failedAttempts.set(0);
+    this.applySnapshot(this.latestRows, query);
+    this.schedule();
+  }
+
   private async request(kind: RequestKind, query: IncidentQuery): Promise<boolean> {
     if (this.destroyed) return false;
     const id = ++this.requestId;
@@ -171,6 +191,7 @@ export class AutoRefreshController {
     try {
       const rows = await this.server.read();
       if (id !== this.requestId || this.destroyed) return false;
+      this.latestRows = rows;
       const now = this.now();
       this.currentTime.set(now);
       this.lastChecked.set(now);

@@ -73,6 +73,13 @@ export class IncidentFilters {
     this.filter = signal(filterFromQuery(state.query()));
   }
 
+  restore(query: IncidentQuery): void {
+    this.requestId++;
+    this.pending = false;
+    this.state.restoreQuery(query);
+    this.filter.set(filterFromQuery(query));
+  }
+
   async change(filter: KbqFilter | null): Promise<void> {
     if (!filter) return;
     const id = ++this.requestId;

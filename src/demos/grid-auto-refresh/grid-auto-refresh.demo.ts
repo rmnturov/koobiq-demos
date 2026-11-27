@@ -23,7 +23,7 @@ import {
 } from '@koobiq/components/actions-panel';
 import { KbqButtonModule } from '@koobiq/components/button';
 import { KbqContentPanelModule } from '@koobiq/components/content-panel';
-import { DateFormatter } from '@koobiq/components/core';
+import { DateFormatter, KbqThemeService } from '@koobiq/components/core';
 import { KbqDlModule } from '@koobiq/components/dl';
 import { KbqDropdownModule } from '@koobiq/components/dropdown';
 import { KbqFilter, KbqFilterBarModule } from '@koobiq/components/filter-bar';
@@ -65,6 +65,17 @@ import { IncidentServer } from './incident-server';
 import { createDemoToastScope } from './demo-toast-scope';
 import { AnimatedNoticeText } from './animated-notice-text';
 import { MenuItemHint } from './menu-item-hint';
+import {
+  DemoScenario,
+  GridDemoSettings,
+  HIGHLIGHT_DURATIONS,
+  HIGHLIGHT_STYLES,
+  NOTICE_STYLES,
+  REFRESH_INTERVALS,
+  gridDemoSearch,
+  readGridDemoSettings,
+  writeGridDemoSettings,
+} from './demo-url-settings';
 
 ModuleRegistry.registerModules([AllCommunityModule]);
 
@@ -168,14 +179,24 @@ export class GridAutoRefreshDemo {
 - **Стиль: Градиент** переключает временное обозначение новых строк. Доступны восемь вариантов: сплошная заливка, заливка с синим подчеркиванием толщиной 1 пиксель, градиент слева направо, полоса слева, рамка строки, подчеркивание, диагональная штриховка и мягкое свечение в центре строки. Градиент растет от левого края до 400 пикселей, затем сжимается обратно. Его голубой цвет плавно переходит в прозрачный. Ширина свечения не зависит от ширины таблицы. По умолчанию выбран градиент. Все варианты временно обозначают новые строки в течение выбранного времени, сохраняя фон активных и отмеченных строк.
 - **Ошибка связи** имитирует разрыв соединения. При следующей проверке появится тост с ошибкой. Кнопка меняется на **Восстановить связь**, чтобы завершить этот сценарий.
 - **Сценарий** подготавливает таблицу для наблюдения за поступлениями, работы с выбранными строками или просмотра карточки.
-- **Сброс примера** в шапке страницы возвращает демо в начальное состояние.
+- **Сброс примера** в шапке страницы перезапускает поток инцидентов и сохраняет настройки из адреса страницы.
 - Действия в карточке и панели массовых действий показывают уведомления. Они не меняют инциденты в примере.
+
+Настройки сохраняются в адресе страницы: период обновления, режим счетчика, оформление уведомления, стиль и длительность подсветки, тема, фильтры, сортировка, сценарий и режим ошибки связи. Скопируйте адрес и отправьте коллеге — у него откроется пример с той же конфигурацией. Инциденты в новом примере будут сгенерированы заново.
 
 Если места в верхней панели не хватает, часть команд находится в меню **Еще**.
 `;
 
+  private readonly themeService = inject(KbqThemeService);
+  private readonly demoPath = window.location.pathname;
+  private readonly initialSettings = readGridDemoSettings(
+    window.location.search,
+    this.themeService.mode(),
+  );
   readonly server = new IncidentServer();
-  readonly state = new AutoRefreshController(this.server);
+  readonly state = new AutoRefreshController(this.server, this.initialSettings);
+  readonly connectionOffline = signal(this.initialSettings.offline);
+  private readonly selectedScenario = signal(this.initialSettings.scenario);
   protected readonly retryCaption = computed(() => {
     const busy = this.state.busy();
     const attempt = this.state.failedAttempts() + Number(busy);
@@ -221,44 +242,22 @@ export class GridAutoRefreshDemo {
     this.compactCard() ? this.panelWidth() : Math.min(680, this.workspaceWidth() - 336),
   );
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
-  readonly intervals = [0, 5000, 15000, 30000, 60000];
-  readonly noticeStyle = signal<
-    'neutral' | 'contrast-fade' | 'theme' | 'theme-fade' | 'theme-fade-shadow'
-  >('neutral');
-  readonly noticeStyles = [
-    { id: 'neutral', label: 'Белое' },
-    { id: 'contrast-fade', label: 'Серое' },
-    { id: 'theme', label: 'Синее' },
-    { id: 'theme-fade', label: 'Светло-синее' },
-    { id: 'theme-fade-shadow', label: 'Светло-синее с тенью' },
-  ] as const;
+  readonly intervals = REFRESH_INTERVALS;
+  readonly noticeStyle = signal<GridDemoSettings['noticeStyle']>(this.initialSettings.noticeStyle);
+  readonly noticeStyles = NOTICE_STYLES;
   readonly noticeStyleLabel = computed(() =>
     this.noticeStyle() === 'theme-fade-shadow'
       ? 'Светло-синее уведомление с тенью'
       : `${this.noticeStyles.find(({ id }) => id === this.noticeStyle())!.label} уведомление`,
   );
-  readonly highlightDurations = [
-    { ms: 500, label: '0,5 с' },
-    { ms: 1000, label: '1 с' },
-    { ms: 2000, label: '2 с' },
-    { ms: 3000, label: '3 с' },
-  ];
+  readonly highlightDurations = HIGHLIGHT_DURATIONS;
   readonly highlightDurationLabel = computed(
     () => this.highlightDurations.find(({ ms }) => ms === this.state.highlightDurationMs())!.label,
   );
-  readonly highlightStyle = signal<
-    'solid' | 'solid-underline' | 'gradient' | 'stripe' | 'outline' | 'underline' | 'hatch' | 'glow'
-  >('gradient');
-  readonly highlightStyles = [
-    { id: 'solid', label: 'Сплошная заливка' },
-    { id: 'solid-underline', label: 'Заливка с подчеркиванием' },
-    { id: 'gradient', label: 'Градиент' },
-    { id: 'stripe', label: 'Полоса слева' },
-    { id: 'outline', label: 'Рамка строки' },
-    { id: 'underline', label: 'Подчеркивание' },
-    { id: 'hatch', label: 'Штриховка' },
-    { id: 'glow', label: 'Свечение' },
-  ] as const;
+  readonly highlightStyle = signal<GridDemoSettings['highlightStyle']>(
+    this.initialSettings.highlightStyle,
+  );
+  readonly highlightStyles = HIGHLIGHT_STYLES;
   readonly highlightStyleLabel = computed(
     () => this.highlightStyles.find(({ id }) => id === this.highlightStyle())!.label,
   );
@@ -429,9 +428,47 @@ export class GridAutoRefreshDemo {
   private previousToastAttempt = 0;
   private previousToastRetryDelay = 0;
   private errorToastRemainingMs = 0;
+  private readonly urlSettings = computed<GridDemoSettings>(() => ({
+    intervalMs: this.state.intervalMs(),
+    exactCount: this.state.exactCount(),
+    noticeStyle: this.noticeStyle(),
+    highlightStyle: this.highlightStyle(),
+    highlightDurationMs: this.state.highlightDurationMs(),
+    offline: this.connectionOffline(),
+    theme: this.themeService.mode(),
+    scenario: this.selectedScenario(),
+    query: this.state.query(),
+  }));
 
   constructor() {
     const destroy = inject(DestroyRef);
+    this.server.offline = this.connectionOffline();
+    this.themeService.setMode(this.initialSettings.theme);
+    if (this.initialSettings.scenario !== 'observe') this.scenario(this.initialSettings.scenario);
+    effect(() => {
+      if (window.location.pathname === this.demoPath)
+        writeGridDemoSettings(this.urlSettings(), window);
+    });
+    const restoreUrl = () => {
+      if (window.location.pathname !== this.demoPath) return;
+      const settings = readGridDemoSettings(window.location.search, this.themeService.mode());
+      if (gridDemoSearch(settings) === gridDemoSearch(this.urlSettings())) return;
+      this.state.setInterval(settings.intervalMs);
+      this.state.exactCount.set(settings.exactCount);
+      this.state.highlightDurationMs.set(settings.highlightDurationMs);
+      this.noticeStyle.set(settings.noticeStyle);
+      this.highlightStyle.set(settings.highlightStyle);
+      this.connectionOffline.set(settings.offline);
+      this.server.offline = settings.offline;
+      this.themeService.setMode(settings.theme);
+      this.state.setSelection([]);
+      this.state.closeCard();
+      this.incidentFilters.restore(settings.query);
+      this.selectedScenario.set(settings.scenario);
+      if (settings.scenario !== 'observe') this.scenario(settings.scenario);
+    };
+    window.addEventListener('popstate', restoreUrl);
+    destroy.onDestroy(() => window.removeEventListener('popstate', restoreUrl));
     effect(() => {
       if (this.state.pendingNoticeVisible()) this.instantNoticeExit.set(false);
     });
@@ -695,7 +732,8 @@ export class GridAutoRefreshDemo {
   intervalLabel(ms: number): string {
     return ms ? `Каждые ${ms / 1000} с` : 'Выключено';
   }
-  scenario(kind: string): void {
+  scenario(kind: DemoScenario): void {
+    this.selectedScenario.set(kind);
     if (kind === 'observe') {
       this.state.setSelection([]);
       this.state.closeCard();
@@ -719,8 +757,9 @@ export class GridAutoRefreshDemo {
     void this.state.refresh();
   }
   toggleConnection(): void {
-    this.server.offline = !this.server.offline;
-    if (!this.server.offline) void this.state.poll();
+    this.connectionOffline.update((offline) => !offline);
+    this.server.offline = this.connectionOffline();
+    if (!this.connectionOffline()) void this.state.poll();
   }
   notify(message: string): void {
     this.toasts()?.show({ title: message, closeButton: true });

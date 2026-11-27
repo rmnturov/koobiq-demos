@@ -27,6 +27,56 @@ describe('auto-refresh controller', () => {
 
   afterEach(() => vi.useRealTimers());
 
+  it('starts with the shared settings before any request, including a disabled timer and filters', () => {
+    const source = {
+      initialRows: new IncidentServer({ now: () => origin }).initialRows,
+      catchUp: vi.fn(),
+      read: vi.fn(),
+    };
+    const query = { ...DEFAULT_QUERY, status: 'new' as const, period: 'hour' as const };
+    const c = new AutoRefreshController(source, {
+      now: () => origin,
+      query,
+      intervalMs: 0,
+      exactCount: false,
+      highlightDurationMs: 3000,
+    });
+    expect(c.query()).toEqual(query);
+    expect(c.snapshot().length).toBeGreaterThan(0);
+    expect(
+      c.snapshot().every((row) => row.status === 'new' && row.createdAt >= origin - 3600000),
+    ).toBe(true);
+    expect(c.exactCount()).toBe(false);
+    expect(c.nextCheckAt()).toBeNull();
+    expect(c.appliedHighlightDurationMs()).toBe(3000);
+    expect(source.read).not.toHaveBeenCalled();
+  });
+
+  it('restores filters from the latest full response even when those rows were outside the visible selection', async () => {
+    const { controller: c, append, source } = setup();
+    await c.setQuery({ ...DEFAULT_QUERY, status: 'new' });
+    append();
+    await c.poll();
+    const calls = source.read.mock.calls.length;
+    c.restoreQuery({ ...DEFAULT_QUERY, status: 'investigating' });
+    expect(c.snapshot().some((row) => row.id.endsWith('-0301'))).toBe(true);
+    expect(c.snapshot().every((row) => row.status === 'investigating')).toBe(true);
+    expect(source.read).toHaveBeenCalledTimes(calls);
+  });
+
+  it('does not let a request started before URL restoration overwrite the restored query', async () => {
+    const { controller: c, source } = setup();
+    let finish!: (rows: readonly Incident[]) => void;
+    source.read.mockImplementationOnce(() => new Promise((resolve) => (finish = resolve)));
+    const stale = c.setQuery({ ...DEFAULT_QUERY, search: 'vpn' });
+    const restored = { ...DEFAULT_QUERY, status: 'closed' as const };
+    c.restoreQuery(restored);
+    finish(source.initialRows);
+    expect(await stale).toBe(false);
+    expect(c.query()).toEqual(restored);
+    expect(c.snapshot().every((row) => row.status === 'closed')).toBe(true);
+  });
+
   it('starts with 50 of 300 rows and safely applies new rows at the top', async () => {
     const { controller: c, append } = setup();
     expect(c.visibleRows()).toHaveLength(50);
@@ -209,7 +259,10 @@ describe('auto-refresh controller', () => {
 
   it('clears the entire selection when just one selected record disappears', async () => {
     const { controller: c, source } = setup();
-    const ids = c.visibleRows().slice(0, 2).map((row) => row.id);
+    const ids = c
+      .visibleRows()
+      .slice(0, 2)
+      .map((row) => row.id);
     c.setSelection(ids);
     source.read.mockResolvedValue(source.initialRows.filter((row) => row.id !== ids[1]));
     await c.refresh();
@@ -223,7 +276,9 @@ describe('auto-refresh controller', () => {
     const card = c.visibleRows()[70];
     c.openCard(card);
     const updated = { ...card, name: 'Обновленное название', assignee: 'Анна Петрова' };
-    source.read.mockResolvedValue(source.initialRows.map((row) => row.id === card.id ? updated : row));
+    source.read.mockResolvedValue(
+      source.initialRows.map((row) => (row.id === card.id ? updated : row)),
+    );
     await c.refresh();
     expect(c.card()).toEqual(updated);
     expect(c.visibleRows().some((row) => row.id === card.id)).toBe(true);

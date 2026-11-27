@@ -127,12 +127,12 @@
                         kbq-dropdown-item
                         kbqTrigger="hover"
                         [kbqTooltip]="
-                          server.offline ? controlHints.restore : controlHints.disconnect
+                          connectionOffline() ? controlHints.restore : controlHints.disconnect
                         "
                         kbqPlacement="top"
                         (click)="toggleConnection()"
                       >
-                        {{ server.offline ? 'Восстановить связь' : 'Ошибка связи' }}
+                        {{ connectionOffline() ? 'Восстановить связь' : 'Ошибка связи' }}
                       </button>
                     }
                     @case ('scenario') {
@@ -414,11 +414,11 @@
         kbq-button
         [kbqStyle]="'transparent'"
         [color]="'contrast'"
-        [kbqTooltip]="server.offline ? controlHints.restore : controlHints.disconnect"
+        [kbqTooltip]="connectionOffline() ? controlHints.restore : controlHints.disconnect"
         kbqPlacement="top"
         (click)="toggleConnection()"
       >
-        {{ server.offline ? 'Восстановить связь' : 'Ошибка связи' }}
+        {{ connectionOffline() ? 'Восстановить связь' : 'Ошибка связи' }}
       </button>
     }
     @case ('scenario') {
