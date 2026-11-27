@@ -108,6 +108,16 @@
     );
   }
 
+  &[data-highlight-style='solid-underline'] {
+    --incident-highlight-paint:
+      linear-gradient(
+        to bottom,
+        transparent calc(100% - var(--kbq-size-border-width)),
+        var(--kbq-line-theme) calc(100% - var(--kbq-size-border-width))
+      ),
+      linear-gradient(var(--kbq-background-theme-less), var(--kbq-background-theme-less));
+  }
+
   &[data-highlight-style='stripe'] {
     --incident-highlight-paint: linear-gradient(
       to right,
