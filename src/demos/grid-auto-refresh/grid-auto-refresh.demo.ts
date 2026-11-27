@@ -320,12 +320,25 @@ export class GridAutoRefreshDemo {
   };
   readonly rowClasses = computed<RowClassRules<Incident>>(() => {
     const activeId = this.state.card()?.id;
+    const rows = this.state.snapshot();
+    const newIds = new Set(this.state.newlyAppliedIds());
+    const joinedAbove = new Set<string>();
+    const joinedBelow = new Set<string>();
+    for (let index = 1; index < rows.length; index++) {
+      if (newIds.has(rows[index - 1].id) && newIds.has(rows[index].id)) {
+        joinedAbove.add(rows[index].id);
+        joinedBelow.add(rows[index - 1].id);
+      }
+    }
+    const isNew = (data: Incident | undefined): data is Incident =>
+      !!data &&
+      Date.now() - (this.state.lastApplied() ?? 0) < this.state.appliedHighlightDurationMs() &&
+      newIds.has(data.id);
     return {
       'incident-active-row': ({ data }) => !!data && data.id === activeId,
-      'incident-new-row': ({ data }) =>
-        !!data &&
-        Date.now() - (this.state.lastApplied() ?? 0) < this.state.appliedHighlightDurationMs() &&
-        this.state.newlyAppliedIds().includes(data.id),
+      'incident-new-row': ({ data }) => isNew(data),
+      'incident-new-row-joined-above': ({ data }) => isNew(data) && joinedAbove.has(data.id),
+      'incident-new-row-joined-below': ({ data }) => isNew(data) && joinedBelow.has(data.id),
     };
   });
   readonly arrivalStyle = () => ({

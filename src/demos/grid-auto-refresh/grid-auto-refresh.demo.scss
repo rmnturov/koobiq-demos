@@ -225,6 +225,14 @@ ag-grid-angular {
   animation: incident-arrival-pulse var(--incident-arrival-duration) cubic-bezier(0.77, 0, 0.175, 1)
     var(--incident-arrival-progress) both;
 }
+:host ::ng-deep .incident-new-row-joined-above::after {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+:host ::ng-deep .incident-new-row-joined-below::after {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
 :host ::ng-deep .grid-wrap[data-highlight-style='gradient'] .incident-new-row::after {
   --incident-arrival-edge-opacity: 1;
   --incident-arrival-closed-size: 0px 100%;
