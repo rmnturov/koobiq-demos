@@ -1,5 +1,5 @@
 import { DOCUMENT } from '@angular/common';
-import { Component, effect, inject } from '@angular/core';
+import { Component, DestroyRef, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { KbqThemeService } from '@koobiq/components/core';
 
@@ -14,12 +14,16 @@ export class App {
     private readonly document = inject(DOCUMENT);
 
     constructor() {
-        effect(() => {
-            const suffix = this.themeService.colorScheme() === 'dark' ? '-dark' : '';
+        const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+        const updateFavicon = () => {
+            const suffix = systemTheme.matches ? '-dark' : '';
             for (const format of ['svg', 'ico']) {
                 this.document.getElementById(`favicon-${format}`)
                     ?.setAttribute('href', `favicon${suffix}.${format}?v=2`);
             }
-        });
+        };
+        updateFavicon();
+        systemTheme.addEventListener('change', updateFavicon);
+        inject(DestroyRef).onDestroy(() => systemTheme.removeEventListener('change', updateFavicon));
     }
 }
